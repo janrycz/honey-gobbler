@@ -26,10 +26,11 @@
   const GLOB_COL = ['#e08e0b', '#c9760a', '#a95c08', '#8a4406'];
   const FEE_MULT = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 10000];
   const allyStats = lv => { const m = 1 - 0.035 * lv; return { dmg: 3 + 0.2 * lv, lo: 2.8 * m, hi: 3.8 * m, fee: FEE_MULT[lv] }; };
-  const BEE_COUNT = [0, 1, 1, 2, 2, 3, 3, 4, 4, 4, 5];
+  const BEE_COUNT = [0, 2, 2, 4, 4, 6, 6, 8, 8, 8, 10]; // twice as many as before, each doing half the work (BEE_WORK)
   const BEE_JAR = [0, 0, 0, 0.10, 0.15, 0.20, 0.25, 0.29, 0.32, 0.36, 0.40]; // chance a bee goes for a nearby jar
   const BEE_BIG = [0, 0, 0, 0, 0, 0, 0.05, 0.075, 0.10, 0.125, 0.15];      // ...or a box or Shilajit jar
-  const beeStats = lv => ({ n: BEE_COUNT[lv], speed: 1 + 0.06 * Math.max(0, lv - 1), rest: 1 - 0.05 * Math.max(0, lv - 1), jar: BEE_JAR[lv], big: BEE_BIG[lv] });
+  const BEE_WORK = { rest: 3, speed: 0.8 }; // each bee rests longer and flies a bit slower, so the swarm does what the old one did
+  const beeStats = lv => ({ n: BEE_COUNT[lv], speed: 1 + 0.06 * Math.max(0, lv - 1), rest: BEE_WORK.rest * (1 - 0.05 * Math.max(0, lv - 1)), jar: BEE_JAR[lv], big: BEE_BIG[lv] });
   const EXTRACT_GRAB = [0, 4, 5, 6, 7, 8, 10, 12, 15, 20, Infinity];
   // powers start weak at level 1 and recharge faster and hit harder each level
   const PW = {
@@ -42,9 +43,11 @@
   const PKEY = { smoker: '1', magnet: '2', extractor: '3', queen: '4', shield: '5' };
   const PKEYS = ['smoker', 'magnet', 'extractor', 'queen', 'shield'];
   const BEE_SPEED = 300, BELT_PUSH = 290;
+  const BOSS_BONUS = 50; // kg into your savings for every boss you beat
   const ENDLESS_STEP = 4; // endless: levels a boss gains each time you meet him again
+  const ENDLESS_BASE = 2; // ...and the level his attacks start at the first time
   const QUARK_TURN = 2.4; // how fast quarks can turn towards you, radians a second (the faster they fly, the wider they turn)
-  const lvOf = b => (endless && b && b.endless ? b.elv || 0 : 0);
+  const lvOf = b => (endless && b && b.endless ? b.alv ?? b.elv ?? 0 : 0);
   const magSize = () => 0.75 + 0.25 * clamp((1100 - W) / 725, 0, 1); // 75% on a computer screen, full size on a phone
   const magR = () => W * magnetReach * magSize() * (endless ? 1 + Math.min(0.4, 0.08 * Math.max(0, fallMul() - 3)) : 1); // reaches further in endless as things fall faster
   const waxGrip = () => 1 / (1 + 0.1 * (upg.wax || 0)); // Beeswax coating: sticky stuff and belts grip half as hard when maxed
@@ -202,7 +205,7 @@
       attacks: ['toss', 'susRain', 'smoke', 'feeder'],
     },
     {
-      key: 'colonex', name: 'Colonex', tag: 'Colonex', sub: 'Founder of Loksd Corporation. Loksd Corporation does not exist.', hp: 170, mono: true, joins: true,
+      key: 'colonex', name: 'Colonex', tag: 'Colonex', sub: 'Founder of Loksd Corporation. Loksd Corporation does not exist.', hp: 170, mono: true, joins: true, pace: 0.85, dmgMul: 1.1,
       intro: 'come work for loksd corporation',
       lines: ['come work for loksd corporation', 'loksd corporation can afford', 'loksd corporation board of directors will consider your request', 'loksd corporation does not require your financial assistance', 'you have been put on the blacklist of loksd corporation', '@Ja Ja Binka vc?', '@Ja Ja Binka vc?', 'vc anyone', 'i have j*b at my dads company', 'roblox is stupid game', 'stop playing roblox', 'you wanna play the stupid game for idiots in 20 minutes', '100$ fee for jan', '50$ unnecessary question fee'],
       p2line: 'loksd corporation has doubled all fees', p2attacks: ['doubleFees'],
@@ -212,7 +215,7 @@
       attacks: ['fees', 'vc', 'factorio', 'jobs', 'crow', 'ski', 'gifs', 'cnc', 'roblox'],
     },
     {
-      key: 'ceo', name: 'The App Founder', tag: 'App Founder', sub: 'Download his app. Track your honey. Never say the other app.', hp: 250, pace: 0.87,
+      key: 'ceo', name: 'The App Founder', tag: 'App Founder', sub: 'Download his app. Track your honey. Never say the other app.', hp: 250, pace: 0.8, dmgMul: 1.08,
       intro: 'Download my app.',
       lines: ['Download my app.', 'Track your honey.', "Why aren't we getting views?", "You're fired!", 'You used to be my head of marketing!', "We don't say that name in this office.", 'Chess after this?', 'Who made this spreadsheet?', 'Did you track your honey today?', 'Rate us five stars.', "What's our MRR?", 'Churn is up. Who did this?', 'Downloads are flat. Why are downloads flat?', "We're pre-revenue. It's a strategy.", 'Our daily active users is three. One of them is me.', 'Can we A/B test the honey?', 'Push notifications fix churn.', 'Our CAC is higher than our LTV. Is that bad?', 'ARR is MRR times twelve. Put it on the slide.', 'We need to pivot. To honey.'],
       p2line: 'Checkmate in three.', p2attacks: ['checkmate'],
@@ -221,16 +224,16 @@
       attacks: ['notify', 'sheets', 'bars', 'chess', 'knight', 'deenbuddy', 'fired', 'errors', 'knight'],
     },
     {
-      key: 'ironfit', name: 'The Shilajit Coach', tag: 'Shilajit Coach', sub: 'No gym. Just pushups, pullups and a lot of shilajit.', hp: 300,
+      key: 'ironfit', name: 'The Shilajit Coach', tag: 'Shilajit Coach', sub: 'No gym. Just pushups, pullups and a lot of shilajit.', hp: 300, pace: 0.7, dmgMul: 1.3,
       intro: "Don't eat this if you're not married.",
       lines: ["Don't eat this if you're not married.", 'Is water wet?', 'Big man ting yeah', 'If you really have a premium product, raise your prices.', '1k for a story post.', 'No gym. Pushups and pullups.', '20 grams of creatine a day.', 'Watermelon juice and saffron water.', 'Day 1 of 500 pushups.', 'Lock in.', "Discipline is free. My shilajit isn't.", "Creatine, shilajit, saffron. That's the stack.", 'Premium product. Premium price. Simple.', 'Pushups in the morning. Pushups at night.', 'Raw honey? Respect. Still not shilajit.', 'No excuses. Only pushups.'],
       p2line: 'Day two. Lesgo.', p2attacks: ['ropeDouble'],
       defeat: 'Respect. Big man ting yeah.',
       lose: 'The Shilajit Coach charged you 1k for a story post.',
-      attacks: ['rope', 'prices', 'pushups', 'resin', 'drinks'],
+      attacks: ['rope', 'prices', 'pushups', 'resin', 'drinks', 'rope'],
     },
     {
-      key: 'apologist', name: 'The Honey Apologist', tag: 'Honey Apologist', sub: 'Blends three countries in one jar and sticks a new flag on it.', hp: 370,
+      key: 'apologist', name: 'The Honey Apologist', tag: 'Honey Apologist', sub: 'Blends three countries in one jar and sticks a new flag on it.', hp: 370, pace: 0.8, dmgMul: 1.25,
       intro: 'Let me just check my notes.',
       lines: ['Let me just check my notes.', 'Blended, imported, relabelled. Perfection.', 'Ackshually that jar is from Uzbekistan.', "I'm just asking questions.", 'Why most honey you buy is a lie? Mine is the lie.', 'Single origin? Pick an origin. Any origin.', 'Interesting. Very interesting.', 'Answer the question. Yes or no.', 'Cross-examination time.', 'So you admit the honey is raw?', "Let's go to the label.", "The honey dilemma: either it's raw, or I'm right."],
       p2line: 'You managed to flip my annoy me switch.', p2attacks: ['dilemma2', 'axes', 'axeChop'],
@@ -239,7 +242,7 @@
       attacks: ['blend', 'volley', 'dilemma', 'volley'],
     },
     {
-      key: 'looks', name: 'The Looksmaxxer', tag: 'Looksmaxxer', sub: 'Live on stream. Rating your face. Selling the course.', hp: 430,
+      key: 'looks', name: 'The Looksmaxxer', tag: 'Looksmaxxer', sub: 'Live on stream. Rating your face. Selling the course.', hp: 430, pace: 0.75, dmgMul: 1.2,
       intro: "Chat, we're live. Rating this honey seller.",
       lines: ["Women won't buy your honey. You're sub 5.", "Your canthal tilt is why the honey isn't selling.", "At least you sell raw honey. But why don't you eat raw meat?", 'Mew harder.', 'Ur a Jeffrey.', 'Endocrine warfare is killing your T, bro.', "Trust me bro, I'm natty.", 'I hate Greg Doucette.', "Seed oils. That's why you're losing.", 'Barefoot on the earth, chat. Grounding.', 'Link in bio. $199 jawline course.', 'Monk mode. No sugar. Honey is sugar.', 'Banned on every platform. Watch me on my own site.', 'Forty thousand watching. Biggest stream ever.', "It's fine to take meth if it keeps you lean. Chat agrees."],
       p2line: "Chat, I'm ascending.", p2attacks: ['subathon'],
@@ -248,7 +251,7 @@
       attacks: ['hypergamy', 'needles', 'ratings', 'pills', 'hypergamy', 'liver', 'courseAd', 'chatFlood', 'hypergamy', 'bonesmash'],
     },
     {
-      key: 'disprover', name: 'The Disprover', tag: 'Disprover', sub: "Here to disprove atheism. You're in the way.", hp: 540,
+      key: 'disprover', name: 'The Disprover', tag: 'Disprover', sub: "Here to disprove atheism. You're in the way.", hp: 540, dmgMul: 1.05,
       intro: 'Atheists should stop eating honey.',
       lines: ['Atheists should stop eating honey.', 'Honey disproves atheism.', 'There is no manager bee.', 'Who taught the bee the dance?', 'The atheists did not know. The bee already knew.', "The bee made the... what's it called... the hexagon, guys.", 'Zero IQ. Zero IQ.', 'You are eating the mathematics.', 'Remind me again, atheist.', 'An explosion makes a mess. It does not make a hexagon.', 'Evolution is ended today. By the bee.', 'Why did the bee need to evolve honey? The ant was fine. The mosquito was fine.', 'Show me the half bee. Show me one half bee.', 'Which monkey taught the bee the hexagon? Remind me again.', 'Random mutation made the dance? Random mutation has no legs.', 'Your grandfather was a fish? Speak for yourself.'],
       p2line: 'Think. Think. Think.', p2attacks: ['quarkStorm'],
@@ -257,16 +260,17 @@
       attacks: ['barrage', 'hexagons', 'missingLink', 'quarks', 'fishLegs', 'bigbang'],
     },
     {
-      key: 'hornet', name: 'Vespa mandarinia', tag: 'Giant hornet', sub: 'The northern giant hornet. It came for the hives.', hp: 640,
+      key: 'hornet', name: 'Vespa mandarinia', tag: 'Vespa mandarinia', sub: 'The northern giant hornet. It came for the hives.', hp: 580,
       intro: 'I am a talking hornet.',
       lines: ['I am a talking hornet.', "I don't make honey. I take it.", 'Thirty of us. Thirty thousand of you. Do the maths.', "I'm not invasive. I'm expanding.",
         "Murder hornet? It's called meal prep.", 'They misrepresented me in Ant-Man.', 'Your grandad has a tennis racket. I have a stinger.', 'Nice hive. Shame if someone raided it.',
         'Bees dance. Hornets eat.', 'October is my season.', 'Raw honey? I prefer raw bees.'],
-      p2line: 'Fine. Bring your whole hive.', p2attacks: ['stingerFan'],
-      p3line: 'Slaughter phase.', p3attacks: ['swarm', 'diveBite', 'diveBite'],
+      p2line: 'Fine. Bring your whole hive.', p2attacks: ['scouts', 'stingerFan', 'massacre', 'curtain2', 'spray'],
+      p3line: 'Slaughter phase.', p3attacks: ['diveChain', 'spray', 'curtain2', 'bigStinger', 'swarm', 'diveChain', 'massacre', 'stingerFan'],
+      p3at: 0.1, p3only: true, p3pace: 0.6, pace: 0.8, // faster than anyone, faster again in phase 2, nearly nonstop in the last 10%
       defeat: 'Tell Ant-Man... he was right.',
       lose: 'Vespa mandarinia raided the hive. Thirty of them. One of you.',
-      attacks: ['minis', 'stinger', 'hawk', 'nest', 'stinger', 'stingAlly', 'minis', 'hawk'],
+      attacks: ['bigStinger', 'minis', 'spray', 'hawk', 'curtain', 'nest', 'bigStinger', 'mark', 'stingAlly'],
     },
   ];
 
@@ -325,7 +329,7 @@
   let knightHint = false, qd = null, savings = 0, fightSaved = 0, crazyOn = false, chat = null, fightHits = 0, comboT = 0, kgSpent = 0, endlessBag = [], lastEndless = -1;
   let best = { kg: 0, time: 0, endless: 0, brawl: 0 };
   try { const s = JSON.parse(localStorage.getItem('honey-gobbler-3') || '{}'); best.kg = +s.kg || 0; best.time = +s.time || 0; best.endless = +s.endless || 0; best.brawl = +s.brawl || 0; } catch (e) {}
-  function saveBest() { try { localStorage.setItem('honey-gobbler-3', JSON.stringify(best)); } catch (e) {} }
+  function saveBest() { try { localStorage.setItem('honey-gobbler-3', JSON.stringify(best)); } catch (e) {} lbSyncSoon(); }
   let achData = { done: {}, stats: {} };
   try { const s = JSON.parse(localStorage.getItem('honey-gobbler-ach') || '{}'); if (s.done) achData.done = s.done; if (s.stats) achData.stats = s.stats; } catch (e) {}
   function achMigrate() {
@@ -357,7 +361,7 @@
   function nearestFighting(x) { let best = null; for (const b of bosses) if (fighting(b) && (!best || Math.abs(b.x - x) < Math.abs(best.x - x))) best = b; return best; }
 
   function reset() {
-    spoon = { x: W / 2, y: H - spoonSize() * 0.9 - THUMB, tx: W / 2, glow: 0, chew: 0, hurt: 0, fill: 0, tint: '#7cff6b', frozen: 0, slow: 0, drift: 0, venom: 0, venomDps: 0, sting: 0, vx: 0, px: W / 2 };
+    spoon = { x: W / 2, y: H - spoonSize() * 0.9 - THUMB, tx: W / 2, glow: 0, chew: 0, hurt: 0, fill: 0, tint: '#7cff6b', frozen: 0, slow: 0, drift: 0, venom: 0, venomDps: 0, sting: 0, vstack: 0, vstackT: 0, anaph: 0, mark: 0, vx: 0, px: W / 2 };
     items = []; proj = []; globs = []; particles = []; floaters = []; puddles = []; sticky = []; ambient = []; gore = []; beeDown = [];
     score = 0; purity = 100; combo = 1; streak = 0; comboT = 0; kgSpent = 0; endlessBag = []; lastEndless = -1; addict = 0; elapsed = 0; spawnT = 0.2; rush = 0; shake = 0; flash = 0; hurtFlash = 0; praiseT = 0;
     tally = { drops: 0, jars: 0, boxes: 0, comb: 0, labs: 0, bosses: 0, billed: 0, beeDrops: 0, spent: 0, shilajit: 0, saved: 0, bad: {}, minPurity: 100 };
@@ -626,6 +630,8 @@
     rush: () => seq([392, 523, 659, 784, 1046], 60, 'square', 0.06, 0.12),
     fling: () => tone(380, 900, 0.08, 'sine', 0.05),
     hit: () => tone(240, 110, 0.07, 'square', 0.05),
+    crunch: () => { tone(900, 140, 0.07, 'square', 0.07); setTimeout(() => tone(160, 60, 0.12, 'sawtooth', 0.09), 40); }, // a worker bee gets got
+    zip: () => tone(420, 1500, 0.12, 'sawtooth', 0.035), // a mini hornet lunges
     blip: mono => mono ? [0, 90, 180].forEach(d => setTimeout(() => tone(250, 250, 0.06, 'square', 0.025), d)) : tone(640 + Math.random() * 180, 560, 0.04, 'square', 0.02),
     warn: () => { tone(880, 880, 0.09, 'square', 0.05); setTimeout(() => tone(880, 880, 0.09, 'square', 0.05), 150); },
     boom: () => tone(120, 30, 0.6, 'sawtooth', 0.16),
@@ -790,7 +796,9 @@
   }
   function hurtSpoon(dmg, color, name, opts = {}) {
     if (spoon.hurt > 0 || state !== 'play') return false;
-    if (shieldHits > 0) { // the Honeycomb shield takes it
+    if (opts.boss && opts.boss.def && opts.boss.def.dmgMul) dmg = Math.round(dmg * opts.boss.def.dmgMul); // some bosses hit harder
+    if (shieldHits > 0) { // the Honeycomb shield takes it (the giant stinger goes straight through the wax)
+      if (opts.pierce) shieldHits = 1;
       shieldHits--; spoon.hurt = 0.35; spoon.tint = '#ffd36b'; shake = reduceMotion ? 0 : 4; sfx.hit();
       floatText(spoon.x, spoon.y - 58, shieldHits ? 'Blocked' : 'Shield cracked', '#ffd36b');
       for (let i = 0; i < 5; i++) splat(spoon.x + rnd(-24, 24), spoon.y - 24 + rnd(-12, 12), '#f2a516', 5);
@@ -929,7 +937,7 @@
           if (lv < MAX_LV && qd.hornetHits >= charges - 1) { killQueen(); return; }
         }
       }
-      for (const n of proj) if (n.k === 'nest' && !n.dead && Math.hypot(n.x - qd.x, n.y - qd.y) < 70 * queenScale() + n.r) { n.dead = true; nestDown(n); } // she smashes the nest
+      for (const n of proj) if ((n.k === 'nest' || n.k === 'scout') && !n.dead && Math.hypot(n.x - qd.x, n.y - qd.y) < 70 * queenScale() + n.r) { n.dead = true; if (n.k === 'scout') scoutDown(n); else nestDown(n); } // she smashes nests and scouts
       if (qd.x < -110 || qd.x > W + 110 || qd.y < combBottom() - 60 || qd.y > H + 60 || qd.t > (fl.length > 1 ? 1.8 : 1.3)) {
         qd.left--;
         if (qd.left > 0 && phase === 'boss' && anyFighting()) { qd.st = 'enter'; qd.t = 0; qd.tgt = null; qd.x = clamp(qd.x, -90, W + 90); qd.y = clamp(qd.y, combBottom() + 40, H * 0.7); }
@@ -964,7 +972,7 @@
     for (let i = beeDown.length - 1; i >= 0; i--) { beeDown[i] -= dt; if (beeDown[i] <= 0) beeDown.splice(i, 1); }
     const ballOf = bosses.find(b => b.ball && fighting(b));
     while (bees.length + beeDown.length < bs.n) bees.push({ x: spoon.x + rnd(-40, 40), y: spoon.y - 90, tgt: null, rest: 0.4, ph: rnd(0, 6), dir: 1 });
-    const sp = BEE_SPEED * G * bs.speed * (0.6 + 0.4 * fallMul());
+    const sp = BEE_SPEED * BEE_WORK.speed * G * bs.speed * (0.6 + 0.4 * fallMul());
     bees.forEach((b, bi) => {
       b.ph += dt; b.rest = Math.max(0, b.rest - dt);
       if (ballOf) { // bee ball: every bee piles onto the hornet
@@ -1124,14 +1132,16 @@
     // endless: how hard this boss is depends on how many times you've met him this run (first time 0, then 4, 8, 12...);
     // in crazy mode they count as met once more. Fighting everyone at once doesn't count as meeting them.
     const elv = inBrawl ? bl : isEndless ? ENDLESS_STEP * ((endlessSeen[i] = (endlessSeen[i] || 0) + 1) - 1 + (n > 1 ? 1 : 0)) : 0;
-    const hp = isEndless ? Math.round((def.ehp || def.hp) * (0.8 + 0.25 * elv) * (inBrawl ? BRAWL_HP * (brawl.S >= 5 ? 1 : 0.8) : 1)) : def.hp; // fewer fit on a phone, so a bit less each
+    const hp = isEndless ? Math.round((def.ehp || def.hp) * (1 + 0.25 * (inBrawl ? 0 : elv) + 0.05 * endlessRound)) : def.hp;
+    // how hard he attacks: endless bosses start a few levels up and creep up half a level a round
+    const alv = inBrawl ? bl : isEndless ? elv + ENDLESS_BASE + Math.floor(endlessRound / 2) : 0;
     const x = inBrawl ? laneX(slot, 0.5) : n > 1 ? W * (slot ? 0.75 : 0.25) : W / 2;
     return {
       def, i, slot, n, x, tx: x, y: -160 * k, hp, max: hp, t: 0, mode: 'intro', endless: isEndless, done: false,
       atkT: 1.2 + slot * 1.5, atkI: 0, sayT: 4.5 + slot * 3, say: null, recent: [], hurt: 0, pose: 0, wanderT: 1, rot: 0, vy: 0, alpha: 1, scale: 1,
       forceNext: null, p2: false, pushup: 0, repT: 0, reps: 0,
       // two at once each attack a little less often
-      speed: (isEndless ? Math.max(0.45, 0.9 - 0.06 * elv) : 1) * (inBrawl ? BRAWL_PACE : n > 1 ? 1.25 : 1) * (def.pace || 1), elv, brawl: inBrawl,
+      speed: (isEndless ? Math.max(0.45, 0.9 - 0.06 * alv) : 1) * (inBrawl ? BRAWL_PACE : n > 1 ? 1.25 : 1) * (def.pace || 1), elv, alv, brawl: inBrawl,
     };
   }
   function startFight(ids, isEndless = false) {
@@ -1147,7 +1157,7 @@
   }
   function startBoss(i) { startFight([i]); }
   function newChat() { return { msgs: [], nextT: 2.4, viewers: 38000 + Math.floor(rnd(0, 3000)), flood: 0, recent: [], reactT: 0 }; }
-  const BRAWL_HP = 0.35, BRAWL_PACE = 1.35;
+  const BRAWL_PACE = 1; // each boss attacks as often as in a normal fight, they just take turns
   // Fight every boss at once. Bought with crazy mode. Everything about your run is put back afterwards, win or lose.
   function startBrawl() {
     if (state !== 'shed' || shedFromPause || !upg.crazy || brawl) return;
@@ -1155,12 +1165,12 @@
     brawl = {
       snap: { purity, combo, streak, comboT, addict, savings, revivesLeft, tally: JSON.parse(JSON.stringify(tally)) },
       t: 0, S, queue: order.slice(S), beaten: 0, active: [], rotT: 0, rotI: 0,
-      lv: ENDLESS_STEP * (1 + Math.floor(runStats.crazyFights / 4)), // harder the further you've got in crazy mode
+      lv: ENDLESS_BASE + ENDLESS_STEP * Math.floor(runStats.crazyFights / 4), // as strong as in endless, and harder the further you've got in crazy mode
       atkN: S >= 5 ? 3 : 2, // how many attack at a time; the rest only talk
     };
     $('shedScreen').hidden = true; state = 'play'; last = performance.now(); $('toast').classList.remove('low');
     purity = 100; combo = 1; streak = 0; addict = 0; rush = 0; items = []; sticky = [];
-    Object.assign(spoon, { hurt: 0, frozen: 0, slow: 0, venom: 0, sting: 0 });
+    Object.assign(spoon, { hurt: 0, frozen: 0, slow: 0, venom: 0, sting: 0, vstack: 0, anaph: 0, mark: 0 });
     startFight(order.slice(0, S), true);
     updateHud(); lockMouse();
   }
@@ -1180,7 +1190,7 @@
     const s = brawl.snap, time = brawl.t, beaten = brawl.beaten;
     brawl = null; boss = null; bosses = []; chat = null; qd = null; ally = null; proj = []; globs = []; sticky = [];
     purity = s.purity; combo = s.combo; streak = s.streak; comboT = s.comboT; addict = s.addict; rush = 0; savings = s.savings; revivesLeft = s.revivesLeft; tally = s.tally;
-    Object.assign(spoon, { hurt: 0, frozen: 0, slow: 0, venom: 0, sting: 0 }); shieldT = 0; shieldHits = 0; hurtFlash = 0; shake = 0;
+    Object.assign(spoon, { hurt: 0, frozen: 0, slow: 0, venom: 0, sting: 0, vstack: 0, anaph: 0, mark: 0 }); shieldT = 0; shieldHits = 0; hurtFlash = 0; shake = 0;
     let line;
     if (won) {
       const rec = !best.brawl || time < best.brawl;
@@ -1244,30 +1254,40 @@
     }
     if (b.mode === 'dash') { updateDash(dt * (smokeT > 0 ? smokeSlow : 1), b); return; }
     if (b.stun > 0) { b.stun -= dt; b.y = home + (b.yOff || 0) + Math.sin(b.t * 30) * 3 * k; return; } // knocked out of the sky: no moving, no attacks
-    if (b.def.p3attacks && !b.p3 && b.hp / b.max <= 0.25) { // the hornet's slaughter phase
+    if (b.def.p3attacks && !b.p3 && b.hp / b.max <= (b.def.p3at || 0.25)) { // the hornet's slaughter phase
       b.p3 = true;
       floatText(W / 2, H * 0.42, 'SLAUGHTER PHASE', '#ff5a3c', true);
       say(b.def.p3line, { force: true }); b.sayT = b.say.t + 1.5;
       b.forceNext = b.def.p3attacks[0]; b.atkT = Math.min(b.atkT, 1.2);
+      for (const q of proj) if (q.k === 'scout' && q.owner === b) q.life = 0; // his scouts clear off for the slaughter
       sfx.phase2(); shake = reduceMotion ? 0 : 12;
     }
     if (b.def.key === 'hornet') {
+      if (proj.some(q => q.k === 'scout' && !q.dead && q.owner === b && q.t < q.life)) b.atkT = Math.max(b.atkT, 0.8); // his scouts fight first
+      if (b.spray) { // hovering over you, emptying his stingers where you're heading
+        const sp = b.spray; b.tx = clamp(spoon.x, 60, W - 60); b.wanderT = 1; sp.next -= dt;
+        if (sp.next <= 0 && sp.left > 0) { sp.left--; sp.next = sp.every; shootStinger(b, rnd(-0.05, 0.05), { lead: true }); }
+        if (sp.left <= 0) b.spray = null;
+      }
       if (b.p2 && !b.ball) { // bee ball: three or more worker bees mob him and cook him with body heat
         b.ballT = (b.ballT ?? 2) - dt;
-        if (b.ballT <= 0 && bees.length >= 3 && !b.hawk) { b.ball = { t: 0, dur: 3.5, acc: 0 }; floatText(W / 2, H * 0.42, 'BEE BALL', '#ffd36b', true); say("Why is it so hot in here?", { force: true }); }
+        if (b.ballT <= 0 && bees.length >= 6 && !b.hawk) { b.ball = { t: 0, dur: 3.5, acc: 0 }; floatText(W / 2, H * 0.42, 'BEE BALL', '#ffd36b', true); say("Why is it so hot in here?", { force: true }); }
       }
       if (b.ball) {
         const r = b.ball;
-        r.t += dt; r.acc += dt * (3 + 1.6 * bees.length); b.atkT += dt; // he can't attack while he's cooking
+        r.t += dt; r.acc += dt * (3 + 0.8 * bees.length); b.atkT += dt; // he can't attack while he's cooking
         if (r.acc >= 4) { damageBoss(Math.round(r.acc), b); r.acc = 0; if (!fighting(b) || state !== 'play') return; }
-        if (r.t > r.dur || bees.length < 2) { b.ball = null; b.ballT = 22; }
+        if (r.t > r.dur || bees.length < 4) { b.ball = null; b.ballT = 22; }
       }
       if (b.hawk) { // hovering by the hive entrance, snatching honey
         const hk = b.hawk; hk.t += dt; // (returning early below also pauses his attacks)
         let tx = clamp(spoon.x + hk.side * 110 * Math.max(0.7, G), 50, W - 50);
         if (magnetT > 0 && Math.abs(b.x - spoon.x) < magR() * 1.3) { tx = clamp(b.x + Math.sign(b.x - spoon.x || hk.side) * 260, 50, W - 50); if (!hk.pushed) { hk.pushed = true; floatText(b.x, b.y - 40 * k, 'Pushed off', '#ffd36b'); } }
-        const ty = Math.max(home, spoon.y - 170 * k);
+        const ty = Math.max(home, spoon.y - 100 * k + Math.sin(hk.t * 3) * 38 * k); // bobbing low by your spoon: don't go under him
         b.x += (tx - b.x) * Math.min(1, dt * 3); b.y += (ty - b.y) * Math.min(1, dt * 3); b.yOff = b.y - home;
+        hk.shootT = (hk.shootT ?? 0.5) - dt;
+        if (hk.shootT <= 0) { hk.shootT = b.p2 ? 0.75 : 1.0; shootStinger(b, 0); } // point-blank stings
+        if (Math.hypot(b.x - spoon.x, b.y - spoon.y) < 58 * k + spoonSize() * 0.4) { hurtSpoon(10, '#e89a2c', 'Hornet', { boss: b }); if (state !== 'play') return; }
         for (let i = items.length - 1; i >= 0; i--) {
           const it = items[i];
           if (it.kind === 'bad' || it.held || it.suck || Math.hypot(it.x - b.x, it.y - b.y) > 70 * k) continue;
@@ -1283,7 +1303,7 @@
       b.p2 = true;
       floatText(W / 2, H * 0.42, 'PHASE 2', '#ff5a3c', true);
       say(b.def.p2line, { force: true }); b.sayT = b.say.t + 1.5;
-      b.forceNext = b.def.p2attacks[0]; b.atkT = Math.min(b.atkT, 1.2);
+      if (!b.p3) b.forceNext = b.def.p2attacks[0]; b.atkT = Math.min(b.atkT, 1.2); // (a big hit straight into phase 3 keeps the phase 3 opener)
       sfx.phase2(); shake = reduceMotion ? 0 : 10;
       if (b.def.key === 'looks') { chatReact("HE'S ASCENDING", 3); for (let j = 0; j < 5; j++) splat(b.x + rnd(-40, 40) * k, b.y + rnd(-30, 30) * k, '#141416', 8); }
     }
@@ -1308,35 +1328,50 @@
     if (brawlWaiting(b)) b.atkT = Math.max(b.atkT, 0.6); // waiting for his turn: talking only
     else b.atkT -= dt;
     if (b.atkT <= 0) {
-      const list = b.p3 ? b.def.attacks.concat(b.def.p2attacks, b.def.p3attacks) : b.p2 ? b.def.attacks.concat(b.def.p2attacks) : b.def.attacks;
+      const list = b.p3 && b.def.p3only ? b.def.p3attacks : b.p3 ? b.def.attacks.concat(b.def.p2attacks, b.def.p3attacks) : b.p2 ? b.def.attacks.concat(b.def.p2attacks) : b.def.attacks;
       const a = b.forceNext || list[b.atkI++ % list.length];
       b.forceNext = null;
       const cd = ATTACKS[a](b) || 2.5;
-      b.atkT = cd * (b.p2 ? 0.8 : 1) * (b.p3 ? 0.85 : 1) * b.speed;
+      b.atkT = cd * (b.p2 ? 0.8 : 1) * (b.p3 ? b.def.p3pace || 0.85 : 1) * b.speed;
       b.pose = 0.8;
     }
   }
   function updateDash(dt, b) {
     const d = b.dash, k = bossK();
     d.t += dt;
-    if (d.st === 'tele') { if (d.t > 0.85 * teleMul()) { d.st = 'go'; d.t = 0; d.hit = false; sfx.whoosh(); } return; }
+    if (d.st === 'rise') { // between chained dives he pulls up first, so the next one comes from above
+      const u = ease(Math.min(1, d.t / 0.32));
+      b.x = d.bx + (d.rx - d.bx) * u; b.y = d.by + (d.ry - d.by) * u;
+      if (d.t > 0.32) { const aim = hornetAim(); d.st = 'tele'; d.t = 0; d.fx = b.x; d.fy = b.y; d.tx = clamp(aim.x, 40, W - 40); d.ty = aim.queen ? aim.y : spoon.y - 30; sfx.warn(); }
+      return;
+    }
+    if (d.st === 'tele') {
+      if (d.massacre) { b.x += (d.fx - b.x) * Math.min(1, dt * 5); b.y += (d.fy - b.y) * Math.min(1, dt * 5); } // off to the side first
+      if (d.t > (d.tele || 0.85) * teleMul()) { d.st = 'go'; d.t = 0; d.hit = false; sfx.whoosh(); }
+      return;
+    }
     if (d.st === 'go') {
-      const u = Math.min(1, d.t / 0.45);
+      const u = Math.min(1, d.t / (d.dur || 0.45));
       b.x = d.fx + (d.tx - d.fx) * u; b.y = d.fy + (d.ty - d.fy) * u;
       if (!reduceMotion) for (let i = 0; i < 3; i++) particles.push({ x: b.x + rnd(-70, 70) * k, y: b.y + 70 * k, vx: rnd(-90, 90), vy: rnd(-200, -60), r: rnd(1.5, 3.5), life: .5, color: '#f4f8ff' });
       if (b.def.key === 'hornet' && qd && qd.mode === 'boss' && qd.st === 'go' && Math.hypot(b.x - qd.x, b.y - qd.y) < 70 * k) { // queen duel
         if ((upg.queen || 0) >= 6) { b.stun = 2; b.mode = 'fight'; b.dash = null; b.tx = b.x; damageBoss(qd.dmg * 2, b); floatText(b.x, b.y - 46 * k, 'KNOCKED OUT', '#ffd36b'); say('Yo cuh stop doin dat', { force: true }, b); return; }
         killQueen('The hornet got her');
       }
-      if (!d.hit && Math.hypot(b.x - spoon.x, b.y - spoon.y) < 58 * k + spoonSize() * 0.35) {
+      if (d.massacre) for (const bee of bees.slice()) if (Math.abs(bee.x - b.x) < 46 * Math.max(0.7, G)) killBee(bee, 8); // every worker he passes
+      if (!d.hit && d.dmg > 0 && Math.hypot(b.x - spoon.x, b.y - spoon.y) < 58 * k + spoonSize() * 0.35) {
         d.hit = true; hurtSpoon(d.dmg, d.color, d.name, { boss: b });
         if (state !== 'play') return;
       }
-      if (u >= 1) { d.st = 'back'; d.t = 0; d.bx = b.x; d.by = b.y; shake = reduceMotion ? 0 : 6; }
+      if (u >= 1) {
+        if (d.chain > 0) { d.chain--; d.st = 'rise'; d.t = 0; d.bx = b.x; d.by = b.y; d.rx = clamp(b.x + rnd(-170, 170) * Math.max(0.7, G), 60, W - 60); d.ry = bossHome() + 40 * k; }
+        else { d.st = 'back'; d.t = 0; d.bx = b.x; d.by = b.y; }
+        shake = reduceMotion ? 0 : 6;
+      }
       return;
     }
     const u = ease(Math.min(1, d.t / 0.9));
-    b.x = d.bx + (d.fx - d.bx) * u; b.y = d.by + (bossHome() - d.by) * u;
+    b.x = d.bx + ((d.hx ?? d.fx) - d.bx) * u; b.y = d.by + (bossHome() - d.by) * u;
     if (d.t > 0.9) { b.mode = 'fight'; b.tx = b.x; b.dash = null; }
   }
   function damageBoss(d, b = boss) {
@@ -1350,7 +1385,7 @@
     b.hp = 0; b.mode = 'down'; b.t = 0; b.vy = -220; b.dash = null; b.say = null; b.pushup = 0; b.hawk = null; b.ball = null; b.stun = 0;
     if (b.def.key === 'hornet') { // he breaks into pieces, Terraria-style
       shatter('hornet', b.x, b.y, bossK() * 0.9, spoon.x < b.x); b.alpha = 0; b.gone = true;
-      for (const q of proj) if (q.owner === b && (q.k === 'mini' || q.k === 'nest')) q.dead = true;
+      for (const q of proj) if (q.owner === b && (q.k === 'mini' || q.k === 'nest' || q.k === 'scout')) q.dead = true;
       if (b.queenUsed && !b.queenDied) achUnlock('longlive');
     }
     say(b.def.defeat, { force: true, dur: b.def.joins && !b.endless ? 3.2 : 3 }, b);
@@ -1363,6 +1398,7 @@
     }
     for (let i = 0; i < 4; i++) splat(b.x + rnd(-40, 40), b.y + rnd(-40, 40), '#f2a516', 14);
     tally.bosses++; if (b.brawl && brawl) brawl.beaten++;
+    if (!b.brawl) { savings += BOSS_BONUS; fightSaved += BOSS_BONUS; tally.saved += BOSS_BONUS; floatText(W / 2, H * 0.53, '+' + BOSS_BONUS + ' kg for the shed', '#e9d7ff'); } // a reward for every boss
     const h = heal(25);
     floatText(W / 2, H * 0.47, 'DEFEATED!', '#ffd36b', true);
     if (h > 0) floatText(spoon.x, spoon.y - 60, '+' + Math.round(h) + '% purity', '#ffe9a8');
@@ -1502,20 +1538,43 @@
   const hornetOf = () => bosses.find(b => b.def.key === 'hornet' && fighting(b));
   const hornetAim = () => (qd && qd.mode === 'boss' && qd.st !== 'exit' ? { x: qd.x, y: qd.y, queen: true } : { x: spoon.x, y: spoon.y }); // while the queen is out, he goes after her
   function nearestBee(x, y) { let best = null, bd = 1e9; for (const b of bees) { const d = Math.hypot(b.x - x, b.y - y); if (d < bd) { bd = d; best = b; } } return best; }
-  function killBee(bee) {
+  function killBee(bee, down = 4) {
     const i = bees.indexOf(bee); if (i < 0) return;
-    bees.splice(i, 1); beeDown.push(4); // she's back in 4 s
+    bees.splice(i, 1); beeDown.push(down); // she's back in a few seconds
     if (bee.tgt && bee.tgt.bee === bee) bee.tgt.bee = null;
     if (bee.carry) { bee.carry.held = null; bee.carry = null; }
-    splat(bee.x, bee.y, '#f2c94c', 6); floatText(bee.x, bee.y - 14, 'Bee down', '#ff9a8a');
+    shatter('bee', bee.x, bee.y, 0.75 * Math.max(0.7, G), bee.dir < 0); // she falls apart, like the queen
+    splat(bee.x, bee.y, '#f2c94c', 8); floatText(bee.x, bee.y - 14, 'Bee down', '#ff5a3c'); sfx.crunch();
   }
   function spawnMini(b, x, y) {
     if (proj.filter(q => q.k === 'mini' && !q.dead).length >= 8) return;
     proj.push(P({ k: 'mini', name: 'Mini hornet', color: '#e89a2c', x, y, r: 10, dmg: 8, life: 9, owner: b, ph: rnd(0, 6) }));
   }
-  function shootStinger(b, da) {
-    const k = bossK(), x0 = b.x + 24 * k * (spoon.x < b.x ? -1 : 1), y0 = b.y + 22 * k, aim = hornetAim(), a = Math.atan2(aim.y - y0, aim.x - x0) + da;
-    proj.push(P({ k: 'stinger', name: 'Stinger', color: '#2a1606', x: x0, y: y0, vx: Math.cos(a) * 360, vy: Math.sin(a) * 360, r: 7, dmg: 6, ang: a }));
+  const hornetSpd = b => (b && b.p3 ? 1.22 : b && b.p2 ? 1.1 : 1) * Math.max(0.8, Math.min(1, G)); // faster in each phase, a bit slower on small screens
+  function shootStinger(b, da, o = {}) {
+    const k = bossK(), x0 = b.x + 24 * k * (spoon.x < b.x ? -1 : 1), y0 = b.y + 22 * k, aim = hornetAim(), v = 360 * hornetSpd(b);
+    let ax = aim.x;
+    if (o.lead && !aim.queen) ax += clamp(spoon.vx || 0, -900, 900) * (Math.hypot(aim.x - x0, aim.y - y0) / (v * 1.5)) * (W < 560 ? 0.45 : 0.8); // aims where you're going
+    const a = Math.atan2(aim.y - y0, ax - x0) + da;
+    proj.push(P({ k: 'stinger', name: 'Stinger', color: '#2a1606', x: x0, y: y0, vx: Math.cos(a) * v, vy: Math.sin(a) * v, r: 7, dmg: 6, ang: a, owner: b }));
+  }
+  function stingCurtain(b, gx, delay) { // a row of stingers across the whole screen with one gap
+    const S = spoonSize(), gap = Math.max(S * 2.6, 150 * Math.max(0.7, G)), cx = clamp(W * gx, gap / 2 + 10, W - gap / 2 - 10), step = Math.max(34, 46 * G), y0 = combBottom() + 6, v = 200 * hornetSpd(b);
+    proj.push(P({ k: 'gapMark', harmless: true, dmg: 0, x: cx, y: y0, w: gap, delay, life: 2.4, owner: b }));
+    for (let x = step / 2; x < W; x += step) if (Math.abs(x - cx) > gap / 2) proj.push(P({ k: 'curtainSting', name: 'Stinger', color: '#2a1606', x, y: y0, vy: v, r: 6, dmg: 7, ang: Math.PI / 2, delay: delay + 0.6, owner: b }));
+  }
+  function venomHit(n, full) { // stings stack up: three close together and you go into anaphylaxis
+    const w = 1 - 0.05 * (upg.wax || 0);
+    if (full) { spoon.venom = Math.max(spoon.venom, n > 1 ? 3 : 2); spoon.venomDps = (n > 1 ? 2 : 1) * w; }
+    spoon.sting = Math.max(spoon.sting, full ? 1.8 : 1);
+    spoon.vstack = (spoon.vstackT > 0 ? spoon.vstack : 0) + n; spoon.vstackT = 4;
+    if (spoon.vstack < 3) { floatText(spoon.x, spoon.y - 82, 'venom ' + spoon.vstack + '/3', '#9be36b'); return; }
+    spoon.vstack = 0; spoon.vstackT = 0; spoon.anaph = 2.4;
+    const d = Math.max(1, Math.round(12 * w));
+    if (!invincible) { purity = Math.max(0, purity - d); tally.minPurity = Math.min(tally.minPurity, purity); }
+    floatText(spoon.x, spoon.y - 82, 'ANAPHYLAXIS', '#9be36b'); floatText(spoon.x, spoon.y - 104, '−' + d + '% purity', '#ff9a8a');
+    shake = reduceMotion ? 0 : 8; hurtFlash = 0.4; sfx.bad();
+    if (purity <= 0) { lastHit = { name: 'Anaphylaxis', boss: hornetOf() || boss, toxin: false }; gameOver(); }
   }
   // mini hornets hunt your worker bees (or you, if you have none); swipe the spoon through one to swat it
   function updateMini(p, dt, S) {
@@ -1525,8 +1584,31 @@
       return true;
     }
     if (p.t > p.life || p.leave) { p.vx *= 0.96; p.vy = -320; if (p.y < combBottom() - 40) p.dead = true; return false; }
-    if (!p.bee || !bees.includes(p.bee)) p.bee = nearestBee(p.x, p.y);
-    const tg = p.bee || { x: spoon.x, y: spoon.y - 10 }, sp = (p.bee ? 230 : 170) * Math.max(0.7, G);
+    const own = p.owner, ph = hornetSpd(own);
+    if (p.y > combBottom() + 20) { // little stingers at you
+      p.shootT = (p.shootT ?? rnd(0.9, 2)) - dt;
+      if (p.shootT <= 0) {
+        p.shootT = rnd(2.4, 3.4) / ph / (spoon.mark > 0 ? 1.5 : 1);
+        const a = Math.atan2(spoon.y - 10 - p.y, spoon.x - p.x), v = 230 * ph;
+        proj.push(P({ k: 'miniSting', name: 'Little stinger', color: '#2a1606', x: p.x, y: p.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, r: 5, dmg: 3, ang: a, owner: own }));
+      }
+    }
+    if (spoon.mark > 0) p.bee = null; // marked: they all come for you
+    else if (!p.bee || !bees.includes(p.bee)) p.bee = nearestBee(p.x, p.y);
+    if (p.lunge) { // a quick hover, then a dash through the bee
+      const L = p.lunge; L.t += dt;
+      if (!p.bee || L.t > 0.5) p.lunge = null;
+      else if (L.t < 0.16) { p.vx *= 0.7; p.vy *= 0.7; return false; }
+      else {
+        const a = Math.atan2(p.bee.y - p.y, p.bee.x - p.x); p.vx = Math.cos(a) * 640 * Math.max(0.7, G); p.vy = Math.sin(a) * 640 * Math.max(0.7, G);
+        if (!reduceMotion) particles.push({ x: p.x, y: p.y, vx: 0, vy: 0, r: 2.5, life: .3, color: '#ff9a3c' });
+        if (Math.hypot(p.bee.x - p.x, p.bee.y - p.y) < 16 * G + 8) { killBee(p.bee); p.bee = null; p.lunge = null; p.kills = (p.kills || 0) + 1; if (p.kills >= 2) p.leave = true; }
+        return false;
+      }
+    }
+    if (p.bee && !p.lunge && (p.lungeCd || 0) <= 0 && Math.hypot(p.bee.x - p.x, p.bee.y - p.y) < 95 * Math.max(0.7, G)) { p.lunge = { t: 0 }; p.lungeCd = 1.2; sfx.zip(); }
+    p.lungeCd = (p.lungeCd || 0) - dt;
+    const tg = p.bee || { x: spoon.x, y: spoon.y - 10 }, sp = (p.bee ? 230 : spoon.mark > 0 ? 230 : 170) * Math.max(0.7, G);
     const want = Math.atan2(tg.y - p.y, tg.x - p.x), cur = p.vx || p.vy ? Math.atan2(p.vy, p.vx) : want;
     const a = cur + clamp(Math.atan2(Math.sin(want - cur), Math.cos(want - cur)), -4 * dt, 4 * dt);
     p.vx = Math.cos(a) * sp; p.vy = Math.sin(a) * sp;
@@ -1542,7 +1624,7 @@
   }
   // Terraria-style deaths: the body breaks into parts that tumble off the screen
   function shatter(kind, x, y, sc, flip) {
-    const parts = kind === 'hornet' ? ['hwing', 'hwing', 'habdomen', 'hthorax', 'hhead'] : ['qwing', 'qwing', 'qabdomen', 'qthorax', 'qhead'];
+    const parts = kind === 'hornet' ? ['hwing', 'hwing', 'habdomen', 'hthorax', 'hhead'] : kind === 'bee' ? ['qwing', 'qwing', 'babdomen', 'bhead'] : ['qwing', 'qwing', 'qabdomen', 'qthorax', 'qhead'];
     for (const part of parts) gore.push({ part, x: x + rnd(-14, 14) * sc, y: y + rnd(-10, 10) * sc, vx: rnd(-280, 280), vy: rnd(-460, -160), rot: rnd(0, 6), vr: rnd(-9, 9), sc, flip, life: 3.2 });
   }
   function updateGore(dt) {
@@ -1776,12 +1858,12 @@
     resin(b) {
       say(pick(["Don't eat this if you're not married.", 'Is water wet?']));
       const k = bossK(), x0 = b.x, y0 = b.y + 20 * k;
-      fan(fanN(moreE(3), 70 * G), 1).forEach((s, i) => proj.push(P(Object.assign({ k: 'resinBlob', name: 'Shilajit resin', color: '#1a1410', x: x0, y: y0, r: 13, dmg: 10, vr: rnd(-3, 3), delay: i * 0.18, sticky: 'resin' }, lob(x0, y0, clamp(spoon.x + s * 70 * G, 30, W - 30), 1.15, 380)))));
+      fan(fanN(moreE(4), 70 * G), 1).forEach((s, i) => proj.push(P(Object.assign({ k: 'resinBlob', name: 'Shilajit resin', color: '#1a1410', x: x0, y: y0, r: 13, dmg: 10, vr: rnd(-3, 3), delay: i * 0.18, sticky: 'resin' }, lob(x0, y0, clamp(spoon.x + s * 70 * G, 30, W - 30), 1.15, 380)))));
       return 2.6;
     },
     drinks(b) {
       say(pick(['Watermelon juice and saffron water.', '20 grams of creatine a day.', 'Big man ting yeah']));
-      fallers(4, () => { const kind = pick(Object.keys(DRINKS)); return { k: kind, name: DRINKS[kind][0], color: DRINKS[kind][1], vy: rnd(150, 190), r: 15, dmg: 10, vr: rnd(-2, 2) }; }, 0.25);
+      fallers(6, () => { const kind = pick(Object.keys(DRINKS)); return { k: kind, name: DRINKS[kind][0], color: DRINKS[kind][1], vy: rnd(150, 190), r: 15, dmg: 10, vr: rnd(-2, 2) }; }, 0.25);
       return 2.6;
     },
     // 5. The Honey Apologist
@@ -1949,13 +2031,67 @@
       shootStinger(b, 0);
       return 2.2;
     },
+    bigStinger(b) { // a warning line that follows you, turns red and locks, then the big one
+      say(pick(['Hold still.', 'This will sting.', 'Big one.']));
+      const n = b.p3 ? 3 : b.p2 ? 2 : 1;
+      for (let i = 0; i < n; i++) proj.push(P({ k: 'bigSting', name: 'Giant stinger', color: '#2a1606', x: b.x, y: b.y, r: 13, dmg: 14, ang: Math.PI / 2, tele: 0.85 + i * 0.5, owner: b, safe: true }));
+      sfx.warn();
+      return 2.2 + n * 0.5;
+    },
     stingerFan(b) {
       say('One sting for each of your excuses.');
-      for (const da of [-0.24, 0, 0.24]) shootStinger(b, da);
+      for (const da of [-0.36, -0.18, 0, 0.18, 0.36]) shootStinger(b, da);
+      return 2.6;
+    },
+    spray(b) { // like the Queen Bee in Terraria: a stream of stingers aimed where you're heading
+      say(pick(['Keep running.', 'Dance, little bee.', 'Sting sting sting sting.']));
+      const n = (b.p3 ? 11 : b.p2 ? 9 : 7) - (W < 560 ? 2 : 0);
+      b.spray = { left: n, next: 0.35, every: b.p3 ? 0.15 : 0.2 };
+      return 1.6 + n * 0.2;
+    },
+    curtain(b) {
+      say(pick(['Find the gap.', 'Rain.']));
+      stingCurtain(b, rnd(0.15, 0.85), 0);
       return 2.8;
     },
+    curtain2(b) {
+      say('And again.');
+      const g1 = rnd(0.15, 0.85); let g2 = g1 + (Math.random() < 0.5 ? -1 : 1) * rnd(0.25, 0.4);
+      if (g2 < 0.1 || g2 > 0.9) g2 = g1 + (g1 < 0.5 ? 1 : -1) * rnd(0.25, 0.4);
+      stingCurtain(b, g1, 0); stingCurtain(b, g2, 1.0);
+      return 3.6;
+    },
+    mark(b) { // real giant hornets mark a hive for the others
+      say(pick(['Marked.', 'You smell like dinner.', 'Lads. This one.']));
+      const k = bossK(), x0 = b.x, y0 = b.y + 20 * k, a = Math.atan2(spoon.y - 10 - y0, spoon.x - x0), v = 300 * hornetSpd(b);
+      proj.push(P({ k: 'markDart', name: 'Pheromone', color: '#c8102e', x: x0, y: y0, vx: Math.cos(a) * v, vy: Math.sin(a) * v, r: 8, dmg: 2, ang: a, owner: b }));
+      for (let i = 0; i < 2; i++) spawnMini(b, b.x + rnd(-40, 40) * k, b.y + 20 * k);
+      return 2.6;
+    },
+    massacre(b) { // a sweep through the hive: every worker bee he passes goes down, and stays down longer
+      if (bees.length < 2) return ATTACKS.bigStinger(b);
+      say(pick(['Thirty of us. Thirty thousand of you.', 'Your workers. My dinner.', 'Decapitation time.']));
+      floatText(W / 2, H * 0.4, 'MASSACRE', '#ff5a3c', true); sfx.warn();
+      const fromLeft = b.x < W / 2, y = clamp(bees.reduce((m, x) => m + x.y, 0) / bees.length, bossHome() + 20, H * 0.62); // through the middle of the swarm
+      b.mode = 'dash';
+      b.dash = { st: 'tele', t: 0, tele: 0.75, fx: fromLeft ? -90 : W + 90, fy: y, tx: fromLeft ? W + 90 : -90, ty: y, hx: b.x, dmg: 0, massacre: true, dur: 1.0, name: 'Massacre', color: '#ff5a3c' };
+      return 3.2;
+    },
+    scouts(b) { // two scout hornets; he hangs back until they're down
+      say('Scouts. Find the hive.');
+      floatText(W / 2, H * 0.4, 'SCOUTS', '#ff5a3c', true);
+      const k = bossK(), hp = Math.round(30 * (1 + 0.1 * lvOf(b)));
+      for (const sd of [-1, 1]) proj.push(P({ k: 'scout', harmless: true, dmg: 0, name: 'Scout hornet', color: '#e89a2c', x: sd < 0 ? -40 : W + 40, y: bossHome() + 50 * k, hx: sd < 0 ? 0.22 : 0.78, hp, max: hp, shootT: 1.2 + (sd > 0 ? 0.7 : 0), diveT: 3 + (sd > 0 ? 1.8 : 0), life: 12, r: 24 * k, owner: b, ph: rnd(0, 6) }));
+      return 2;
+    },
+    diveChain(b) { // three bites in a row
+      ATTACKS.diveBite(b);
+      b.dash.chain = 2; b.dash.tele = 0.5;
+      say(pick(['Bite. Bite. Bite.', 'Mandibles.']), { force: true });
+      return 4.2;
+    },
     stingAlly(b) {
-      if (!ally || !allyActive()) return ATTACKS.stinger(b);
+      if (!ally || !allyActive()) return ATTACKS.bigStinger(b);
       say('And you, with the invoices.');
       const k = bossK(), x0 = b.x, y0 = b.y + 10 * k, a = Math.atan2(ally.y - y0, ally.x - x0);
       proj.push(P({ k: 'stingerAlly', harmless: true, dmg: 0, name: 'Stinger', color: '#2a1606', x: x0, y: y0, vx: Math.cos(a) * 440, vy: Math.sin(a) * 440, r: 7, ang: a }));
@@ -1984,7 +2120,7 @@
       const aim = hornetAim();
       say(pick(['Bite.', 'Mandibles.', "You're the snack."]));
       b.mode = 'dash';
-      b.dash = { st: 'tele', t: 0, fx: b.x, fy: b.y, tx: clamp(aim.x, 40, W - 40), ty: aim.queen ? aim.y : spoon.y - 30, dmg: 18, name: 'Mandible bite', color: '#ff9a3c' };
+      b.dash = { st: 'tele', t: 0, tele: b.p3 ? 0.55 : 0.8, fx: b.x, fy: b.y, hx: b.x, tx: clamp(aim.x, 40, W - 40), ty: aim.queen ? aim.y : spoon.y - 30, dmg: 18, name: 'Mandible bite', color: '#ff9a3c' };
       sfx.warn();
       return 3.0;
     },
@@ -2000,12 +2136,10 @@
   function projHit(p) {
     const o = p.owner || boss;
     const notation = p.k === 'bishop' ? 'Bx' + square(spoon.x, 1) : p.k === 'pawn' ? square(spoon.x, 1) + '=Q' : null; // a pawn that reaches you promotes
-    if (!hurtSpoon(p.dmg, p.color, p.name, { boss: o, notation })) return;
+    if (!hurtSpoon(p.dmg, p.color, p.name, { boss: o, notation, pierce: p.k === 'bigSting' })) return;
     if (p.k === 'call') { spoon.frozen = 1.0; floatText(spoon.x, spoon.y - 82, 'joined vc', '#9aa4ff'); }
-    else if (p.k === 'stinger') { // venom: purity drains for a few seconds and you're slowed; Beeswax coating weakens both
-      spoon.venom = 3.5; spoon.venomDps = 2.2 * (1 - 0.05 * (upg.wax || 0)); spoon.sting = 2.2;
-      floatText(spoon.x, spoon.y - 82, 'venom', '#9be36b');
-    }
+    else if (p.k === 'stinger' || p.k === 'bigSting' || p.k === 'miniSting') venomHit(p.k === 'bigSting' ? 2 : 1, p.k !== 'miniSting'); // venom: drains purity and slows you; Beeswax coating weakens it
+    else if (p.k === 'markDart') { spoon.mark = 5; floatText(spoon.x, spoon.y - 82, 'MARKED', '#ff5a3c'); for (const q of proj) if (q.k === 'mini') q.bee = null; }
     else if (p.k === 'job') { spoon.slow = 2.5; floatText(spoon.x, spoon.y - 82, 'welcome to loksd corporation', '#ffd36b'); }
     else if (p.k === 'deen' && o && fighting(o)) {
       floatText(spoon.x, spoon.y - 82, 'Downloaded DeenBuddy', '#1f9d8f');
@@ -2137,6 +2271,43 @@
       if (k === 'nest') {
         p.spawnT -= dt;
         if (p.spawnT <= 0 && p.owner && fighting(p.owner)) { spawnMini(p.owner, p.x, p.y + p.r); p.spawnT = 3.4; }
+        p.shootT = (p.shootT ?? 1.6) - dt; // it shoots too, so knock it down
+        if (p.shootT <= 0 && p.owner && fighting(p.owner)) {
+          p.shootT = p.owner.p2 ? 2.6 : 3.2;
+          const a = Math.atan2(spoon.y - 10 - p.y, spoon.x - p.x), v = 300 * hornetSpd(p.owner);
+          proj.push(P({ k: 'stinger', name: 'Stinger', color: '#2a1606', x: p.x, y: p.y + p.r * 0.8, vx: Math.cos(a) * v, vy: Math.sin(a) * v, r: 6, dmg: 5, ang: a, owner: p.owner }));
+        }
+        continue;
+      }
+      if (k === 'gapMark') { if (p.t > p.life) proj.splice(i, 1); continue; }
+      if (k === 'bigSting' && !p.fired) {
+        const o = p.owner, lockAt = p.tele - Math.min(0.34, p.tele * 0.4);
+        if (p.t < lockAt) { // the line follows you...
+          if (o && fighting(o)) { const kk = bossK(); p.x = o.x + 24 * kk * (spoon.x < o.x ? -1 : 1); p.y = o.y + 22 * kk; }
+          const aim = hornetAim(); p.ang = Math.atan2(aim.y - p.y, aim.x - p.x);
+        } else if (!p.locked) { p.locked = true; sfx.hit(); } // ...then turns red and locks
+        if (p.t >= p.tele) { const v = 640 * hornetSpd(o); p.fired = true; p.safe = false; p.vx = Math.cos(p.ang) * v; p.vy = Math.sin(p.ang) * v; sfx.whoosh(); }
+        else continue;
+      }
+      if (k === 'scout') {
+        const o = p.owner, kk = bossK(); p.ph += dt * 30;
+        if (!o || !fighting(o) || p.t > p.life) { p.y -= 320 * dt; if (p.y < -60) proj.splice(i, 1); continue; } // they fly off
+        const dv = p.dive;
+        if (dv) {
+          dv.t += dt;
+          if (dv.st === 'tele') { if (dv.t > 0.6 * teleMul(o)) { dv.st = 'go'; dv.t = 0; sfx.whoosh(); } }
+          else if (dv.st === 'go') {
+            const u = Math.min(1, dv.t / 0.42); p.x = dv.fx + (dv.tx - dv.fx) * u; p.y = dv.fy + (dv.ty - dv.fy) * u;
+            if (!dv.hit && Math.hypot(p.x - spoon.x, p.y - spoon.y) < 30 * kk + spoonSize() * 0.35) { dv.hit = true; hurtSpoon(12, '#ff9a3c', 'Scout hornet', { boss: o }); if (state !== 'play') return; }
+            if (u >= 1) { dv.st = 'back'; dv.t = 0; dv.bx = p.x; dv.by = p.y; }
+          } else { const u = ease(Math.min(1, dv.t / 0.6)); p.x = dv.bx + (dv.fx - dv.bx) * u; p.y = dv.by + (dv.fy - dv.by) * u; if (dv.t > 0.6) p.dive = null; }
+          continue;
+        }
+        p.x += (W * p.hx + Math.sin(p.t * 1.3 + p.ph) * 60 * G - p.x) * Math.min(1, dt * 2); p.y += (bossHome() + 50 * kk + Math.sin(p.t * 2) * 15 - p.y) * Math.min(1, dt * 2);
+        p.shootT -= dt;
+        if (p.shootT <= 0) { p.shootT = 2.0; const a = Math.atan2(spoon.y - 10 - p.y, spoon.x - p.x), v = 330 * hornetSpd(o); proj.push(P({ k: 'stinger', name: 'Stinger', color: '#2a1606', x: p.x, y: p.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, r: 6, dmg: 6, ang: a, owner: o })); }
+        p.diveT -= dt;
+        if (p.diveT <= 0) { p.diveT = 4.5; p.dive = { st: 'tele', t: 0, fx: p.x, fy: p.y, tx: clamp(spoon.x, 40, W - 40), ty: spoon.y - 30 }; sfx.warn(); }
         continue;
       }
       if (k === 'knightBack') {
@@ -2289,6 +2460,10 @@
     }
   }
 
+  function scoutDown(n) {
+    shatter('hornet', n.x, n.y, bossK() * 0.4, spoon.x < n.x);
+    floatText(n.x, n.y - 20, 'Scout down', '#ffd36b'); sfx.bossDown();
+  }
   function nestDown(n) {
     for (let i = 0; i < 6; i++) splat(n.x + rnd(-20, 20), n.y + rnd(-20, 20), '#cfc3a8', 8);
     floatText(n.x, n.y + 30, 'Nest destroyed', '#ffd36b'); sfx.bossDown();
@@ -2297,10 +2472,10 @@
     const k = bossK();
     for (let i = globs.length - 1; i >= 0; i--) {
       const g = globs[i];
-      const nest = proj.find(n => n.k === 'nest' && !n.dead && Math.abs(n.x - g.x) < 90 * k && (!g.tgt || Math.abs(n.x - g.x) < Math.abs(g.tgt.x - g.x)));
+      const nest = proj.find(n => (n.k === 'nest' || (n.k === 'scout' && n.t < n.life)) && !n.dead && Math.abs(n.x - g.x) < 90 * k && (!g.tgt || Math.abs(n.x - g.x) < Math.abs(g.tgt.x - g.x)));
       if (nest) { // honey flicked under the paper nest goes into it instead
         g.vx = clamp((nest.x - g.x) * 5, -700, 700); g.x += g.vx * dt; g.y += g.vy * dt;
-        if (Math.hypot(g.x - nest.x, g.y - nest.y) < nest.r + g.r + 6) { globs.splice(i, 1); splat(g.x, g.y, '#f2a516', 5); nest.hp -= g.dmg; if (nest.hp <= 0) { nest.dead = true; nestDown(nest); } }
+        if (Math.hypot(g.x - nest.x, g.y - nest.y) < nest.r + g.r + 6) { globs.splice(i, 1); splat(g.x, g.y, '#f2a516', 5); nest.hp -= g.dmg; if (nest.hp <= 0) { nest.dead = true; if (nest.k === 'scout') scoutDown(nest); else nestDown(nest); } }
         else if (g.y < -30) globs.splice(i, 1);
         continue;
       }
@@ -2334,7 +2509,7 @@
     spoon.fill = Math.max(0, spoon.fill - dt * .35);
     spoon.frozen = Math.max(0, spoon.frozen - dt);
     spoon.slow = Math.max(0, spoon.slow - dt);
-    spoon.sting = Math.max(0, spoon.sting - dt);
+    spoon.sting = Math.max(0, spoon.sting - dt); spoon.anaph = Math.max(0, spoon.anaph - dt); spoon.vstackT = Math.max(0, spoon.vstackT - dt); spoon.mark = Math.max(0, spoon.mark - dt);
     if (spoon.venom > 0) {
       spoon.venom -= dt;
       if (!invincible) {
@@ -2349,6 +2524,7 @@
     let slow = spoon.sticky ? 1 - 0.9 * waxGrip() : 1;
     if (spoon.slow > 0) slow = Math.min(slow, 0.35);
     if (spoon.sting > 0) slow = Math.min(slow, 1 - 0.5 * waxGrip()); // stung: slower, less so with Beeswax coating
+    if (spoon.anaph > 0) slow = Math.min(slow, 1 - 0.75 * waxGrip());
     if (spoon.frozen > 0) slow = 0;
     let belt = null;
     for (const p of proj) if (p.k === 'belt' && !(p.delay > 0) && p.t < p.life && spoon.x > p.x0 && spoon.x < p.x1) belt = p;
@@ -3360,7 +3536,7 @@
     ctx.quadraticCurveTo(13, -10, 12, -4); ctx.lineTo(4, -6); ctx.quadraticCurveTo(2, 2, 9, 10); ctx.closePath(); ctx.fill(); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(-5, -13); ctx.quadraticCurveTo(-10, -5, -7, 2); ctx.stroke();
   }
-  const SPECIAL = { knight: 1, ring: 1, smoke: 1, bar: 1, beam: 1, belt: 1, rope: 1, crowFly: 1, blendSrc: 1, allyFee: 1, hyper: 1, hammer: 1, chop: 1 };
+  const SPECIAL = { gapMark: 1, knight: 1, ring: 1, smoke: 1, bar: 1, beam: 1, belt: 1, rope: 1, crowFly: 1, blendSrc: 1, allyFee: 1, hyper: 1, hammer: 1, chop: 1 };
   function drawProj(p, t) {
     if (p.dead) return;
     if (p.k === 'stamp' && p.delay > 0) { drawStampTele(p, t); return; }
@@ -3375,6 +3551,9 @@
       case 'hyper': drawHyper(p, t); return;
       case 'knight': drawKnight(p, t); return;
       case 'nest': drawNest(p, t); return;
+      case 'bigSting': drawBigSting(p, t); return;
+      case 'gapMark': drawGapMark(p, t); return;
+      case 'scout': drawScout(p, t); return;
       case 'hammer': drawHammer(p, t); return;
       case 'chop': drawChop(p, t); return;
       case 'crowFly': ctx.save(); ctx.translate(p.x, p.y); ctx.scale(p.dir, 1); drawCrow(t, 1.3 * G, false); ctx.restore(); return;
@@ -3430,7 +3609,10 @@
             break;
           case 'knightBack': ctx.scale(p.c / 34 * 0.8, p.c / 34 * 0.8); knightShape(); break;
           case 'mini': ctx.scale((p.vx < 0 ? -1 : 1) * 0.24, 0.24); drawHornetBody(t, Math.sin(p.ph) * 0.4); break;
+          case 'miniSting': ctx.rotate(p.ang); ctx.scale(0.6, 0.6); ctx.fillStyle = '#2a1606'; ctx.beginPath(); ctx.moveTo(12, 0); ctx.lineTo(-8, -3.5); ctx.lineTo(-8, 3.5); ctx.closePath(); ctx.fill(); ctx.fillStyle = '#ff9a3c'; ctx.fillRect(-12, -3, 5, 6); break;
+          case 'curtainSting': case 'markDart':
           case 'stinger': case 'stingerAlly':
+            if (p.k === 'markDart') { ctx.fillStyle = 'rgba(200,16,46,.35)'; circle(0, 0, 11); ctx.fill(); }
             ctx.rotate(p.ang); ctx.fillStyle = '#2a1606'; ctx.beginPath(); ctx.moveTo(12, 0); ctx.lineTo(-8, -3.5); ctx.lineTo(-8, 3.5); ctx.closePath(); ctx.fill();
             ctx.fillStyle = '#f2a516'; ctx.fillRect(-12, -3, 5, 6); break;
           case 'hexBig':
@@ -3858,6 +4040,11 @@
       const abd = () => { ctx.beginPath(); ctx.moveTo(30, -8); ctx.bezierCurveTo(8, -10, -14, -6, -28, 0); ctx.bezierCurveTo(-14, 6, 8, 10, 30, 8); ctx.closePath(); };
       abd(); ctx.fillStyle = '#e8b040'; ctx.fill(); ctx.save(); abd(); ctx.clip(); ctx.fillStyle = '#9a560e'; for (let i = 0; i < 5; i++) ctx.fillRect(20 - i * 10, -11, 4.5, 22); ctx.restore();
     }
+    else if (part === 'babdomen') {
+      ctx.fillStyle = '#f2c94c'; ctx.beginPath(); ctx.ellipse(0, 0, 13, 9, 0, 0, TAU); ctx.fill();
+      ctx.fillStyle = '#2a1606'; for (let i = 0; i < 3; i++) ctx.fillRect(-8 + i * 6, -8, 3, 16);
+    }
+    else if (part === 'bhead') { ctx.fillStyle = '#2a1606'; ctx.beginPath(); ctx.ellipse(0, 0, 6.5, 6, 0, 0, TAU); ctx.fill(); }
     else if (part === 'qthorax') { ctx.fillStyle = '#b8761a'; ctx.beginPath(); ctx.ellipse(0, 0, 11, 9, 0, 0, TAU); ctx.fill(); }
     else if (part === 'qhead') {
       ctx.fillStyle = '#d99a22'; ctx.beginPath(); ctx.ellipse(0, 0, 7, 6.5, 0, 0, TAU); ctx.fill();
@@ -3868,6 +4055,34 @@
   function drawGore() {
     for (const g of gore) { ctx.save(); ctx.translate(g.x, g.y); ctx.rotate(g.rot); ctx.scale(g.flip ? -g.sc : g.sc, g.sc); ctx.globalAlpha = Math.min(1, g.life * 1.5); drawPart(g.part); ctx.restore(); }
     ctx.globalAlpha = 1;
+  }
+  function drawBigSting(p, t) {
+    if (!p.fired) { // the warning line: amber while it follows you, red once it's locked
+      const L = Math.hypot(W, H), ex = p.x + Math.cos(p.ang) * L, ey = p.y + Math.sin(p.ang) * L;
+      ctx.setLineDash([12, 9]); ctx.lineWidth = p.locked ? 4 : 2.5; ctx.strokeStyle = p.locked ? `rgba(226,32,48,${0.6 + 0.4 * Math.sin(t * 30)})` : 'rgba(255,170,60,.55)';
+      ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(ex, ey); ctx.stroke(); ctx.setLineDash([]);
+    } else {
+      const g = ctx.createRadialGradient(p.x, p.y, 1, p.x, p.y, 34 * G); g.addColorStop(0, 'rgba(226,32,48,.35)'); g.addColorStop(1, 'rgba(226,32,48,0)');
+      ctx.fillStyle = g; circle(p.x, p.y, 34 * G); ctx.fill();
+    }
+    ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.ang); ctx.scale(2.3 * G, 2.3 * G);
+    ctx.fillStyle = '#2a1606'; ctx.beginPath(); ctx.moveTo(13, 0); ctx.lineTo(-8, -4); ctx.lineTo(-8, 4); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#f2a516'; ctx.fillRect(-13, -3.5, 6, 7); ctx.fillStyle = '#9be36b'; circle(13, 0, 1.6); ctx.fill(); // a drop of venom on the tip
+    ctx.restore();
+  }
+  function drawGapMark(p, t) { // shows where the gap in the stinger curtain will be
+    const a = Math.min(1, p.t * 4) * Math.max(0, Math.min(1, (p.life - p.t) * 2)) * (0.55 + 0.25 * Math.sin(t * 10));
+    ctx.globalAlpha = a; ctx.fillStyle = 'rgba(255,214,107,.16)'; ctx.fillRect(p.x - p.w / 2, p.y, p.w, H - p.y);
+    ctx.strokeStyle = '#ffd36b'; ctx.lineWidth = 2; ctx.setLineDash([8, 8]);
+    ctx.beginPath(); ctx.moveTo(p.x - p.w / 2, p.y); ctx.lineTo(p.x - p.w / 2, H); ctx.moveTo(p.x + p.w / 2, p.y); ctx.lineTo(p.x + p.w / 2, H); ctx.stroke(); ctx.setLineDash([]);
+    outlined('GAP', p.x, p.y + 26, 18, '#ffd36b'); ctx.globalAlpha = 1;
+  }
+  function drawScout(p, t) {
+    const k = bossK(), dv = p.dive;
+    if (dv && dv.st === 'tele') { ctx.setLineDash([10, 8]); ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(255,154,60,.8)'; ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(dv.tx, dv.ty); ctx.stroke(); ctx.setLineDash([]); circle(dv.tx, dv.ty, 20); ctx.stroke(); }
+    ctx.save(); ctx.translate(p.x, p.y); ctx.scale((spoon.x < p.x ? -1 : 1) * 0.5 * k, 0.5 * k);
+    drawHornetBody(t, Math.sin(p.ph) * 0.4); ctx.restore();
+    const w = 46 * k; ctx.fillStyle = 'rgba(0,0,0,.45)'; ctx.fillRect(p.x - w / 2, p.y - 34 * k, w, 5); ctx.fillStyle = '#c8102e'; ctx.fillRect(p.x - w / 2, p.y - 34 * k, w * Math.max(0, p.hp / p.max), 5);
   }
   function drawNest(p, t) {
     const k = p.r / 26;
@@ -3974,6 +4189,7 @@
     ctx.fillStyle = b.p2 ? '#ff5a3c' : '#c8102e'; roundRect(x, y + 16, Math.max(6, w * b.hp / b.max), 10, 5); ctx.fill();
     ctx.lineWidth = 1.5; ctx.strokeStyle = 'rgba(246,227,180,.5)'; roundRect(x, y + 16, w, 10, 5); ctx.stroke();
     ctx.fillStyle = 'rgba(246,227,180,.4)'; ctx.fillRect(cx - 1, y + 14, 2, 14);
+    if (b.def.p3at) { ctx.fillStyle = 'rgba(255,90,60,.85)'; ctx.fillRect(x + w * b.def.p3at - 1, y + 14, 2, 14); } // where the slaughter phase starts
     if (bw && !brawlWaiting(b)) { ctx.lineWidth = 2; ctx.strokeStyle = '#ffd36b'; roundRect(x - 2, y + 14, w + 4, 14, 7); ctx.stroke(); } // his turn to attack
     ctx.globalAlpha = 1;
     if (b.pushup > 0) outlined((bw ? 'PUSHUPS  ' : 'DAY 1 OF 500 PUSHUPS  ') + b.reps + '/500', cx, y + 44, two ? 12 : 16, '#ffd36b');
@@ -4018,6 +4234,8 @@
   }
   function drawPowerFx(t) {
     if (!spoon) return;
+    if (spoon.mark > 0) { ctx.strokeStyle = `rgba(226,32,48,${0.5 + 0.4 * Math.sin(t * 12)})`; ctx.lineWidth = 3; circle(spoon.x, spoon.y - 10, spoonSize() * 0.75); ctx.stroke(); txt('MARKED', spoon.x, spoon.y - spoonSize() * 0.75 - 18, 11, '#ff5a3c', 900); }
+    if (spoon.vstack > 0 && spoon.vstackT > 0) for (let i = 0; i < 3; i++) { ctx.fillStyle = i < spoon.vstack ? '#9be36b' : 'rgba(155,227,107,.25)'; circle(spoon.x - 14 + i * 14, spoon.y + 18, 5); ctx.fill(); }
     if (shieldHits > 0) { // a wax hexagon over the spoon, cracking as it soaks up hits
       const R = spoonSize() * 0.95, a = Math.min(1, shieldT * 2) * (0.75 + 0.25 * Math.sin(t * 5)), lost = shieldMax - shieldHits;
       ctx.save(); ctx.translate(spoon.x, spoon.y - spoonSize() * 0.32); ctx.globalAlpha = a;
@@ -4263,7 +4481,7 @@
   function revive() {
     if (revivesLeft <= 0) return;
     revivesLeft--;
-    purity = 50; spoon.hurt = 2.2; spoon.frozen = 0; spoon.slow = 0; spoon.venom = 0; spoon.sting = 0;
+    purity = 50; spoon.hurt = 2.2; spoon.frozen = 0; spoon.slow = 0; spoon.venom = 0; spoon.sting = 0; spoon.vstack = 0; spoon.anaph = 0; spoon.mark = 0;
     items = items.filter(i => i.kind !== 'bad'); proj = []; sticky = []; globs = [];
     for (const b of bosses) {
       if (b.mode === 'dash') { b.mode = 'fight'; b.dash = null; b.y = bossHome(); }
@@ -4277,7 +4495,7 @@
   }
   // ---------- achievements ----------
   let achDirty = false, achTimer = 0;
-  function achSave() { achDirty = false; try { localStorage.setItem('honey-gobbler-ach', JSON.stringify(achData)); } catch (e) {} }
+  function achSave() { achDirty = false; try { localStorage.setItem('honey-gobbler-ach', JSON.stringify(achData)); } catch (e) {} lbSyncSoon(); }
   function achSaveSoon() { achDirty = true; if (!achTimer) achTimer = setTimeout(() => { achTimer = 0; if (achDirty) achSave(); }, 2000); }
   addEventListener('pagehide', () => { if (achDirty) achSave(); });
   function achUnlock(id) {
@@ -4673,13 +4891,36 @@
       toast('Your ' + lbValText(j.board, p.entry.value) + ' is on the ' + LB_NAMES[j.board] + ' board: <b>#' + j.rank + '</b>');
     } catch (e) { if (e.code !== 'net' && e.code !== 'server') try { localStorage.removeItem(LB_PEND); } catch (e2) {} toast(esc(e.message)); }
   }
+  // achievements, counters and records follow the account
+  let lbSyncT = 0, lbSyncing = false;
+  const lbSaveData = () => ({ done: achData.done, stats: achData.stats, best: { kg: best.kg, time: best.time, endless: best.endless, brawl: best.brawl } });
+  function lbSyncSoon() { if (!LB || !LB.token) return; clearTimeout(lbSyncT); lbSyncT = setTimeout(lbSync, 3000); }
+  async function lbSync() {
+    lbSyncT = 0;
+    if (!LB || !LB.token || lbSyncing) return;
+    lbSyncing = true;
+    try {
+      const m = await lbCall('/api/sync', { token: LB.token, data: lbSaveData() });
+      let changed = false;
+      for (const [k, v] of Object.entries(m.done || {})) if (!achData.done[k] && ACH.some(a => a.id === k)) { achData.done[k] = v; changed = true; }
+      for (const [k, v] of Object.entries(m.stats || {})) if (v > (achData.stats[k] || 0)) { achData.stats[k] = v; changed = true; }
+      const bb = m.best || {}, b0 = JSON.stringify(best);
+      if (bb.kg > best.kg) best.kg = Math.min(GOAL, bb.kg);
+      if (bb.endless > best.endless) best.endless = bb.endless;
+      if (bb.time && (!best.time || bb.time < best.time)) best.time = bb.time;
+      if (bb.brawl && (!best.brawl || bb.brawl < best.brawl)) best.brawl = bb.brawl;
+      if (changed) { try { localStorage.setItem('honey-gobbler-ach', JSON.stringify(achData)); } catch (e) {} updateAchCount(); }
+      if (JSON.stringify(best) !== b0) try { localStorage.setItem('honey-gobbler-3', JSON.stringify(best)); } catch (e) {}
+    } catch (e) {}
+    lbSyncing = false;
+  }
   function lbStartLine() {
     const el = $('lbStartLine');
     if (!LB.token) { lbLine(el, 'Log in to get on the leaderboard. Do it before you play: logging in reloads the page. <button type="button" data-lblogin>Log in</button>'); el.querySelector('[data-lblogin]').onclick = () => lbGoLogin(null); return; }
     if (!lbMe) return;
     let pend = null; try { pend = JSON.parse(localStorage.getItem(LB_PEND) || 'null'); } catch (e) {}
     if (!lbMe.name) { lbLine(el, (pend ? 'Pick a name to put your ' + lbValText(pend.entry.board, pend.entry.value) + ' on the leaderboard.' : 'Pick a name for the leaderboard.') + ' <button type="button" data-lbname>Pick a name</button>'); el.querySelector('[data-lbname]').onclick = () => lbOpen(pend ? pend.entry.board : 'endless', true); return; }
-    lbLine(el, 'On the leaderboard as ' + esc(lbMe.name) + '.');
+    lbLine(el, 'On the leaderboard as ' + esc(lbMe.name) + '. Your achievements save to your account.');
   }
   function lbBoot() {
     if (!LB) return;
@@ -4692,6 +4933,14 @@
     $('lbLogin').addEventListener('click', () => lbGoLogin(null));
     lbStartLine();
     if (LB.token) lbEnsureMe().then(() => { lbStartLine(); return lbSendPending(); }).then(lbStartLine).catch(() => {});
+    $('achWhere').textContent = LB.token ? 'Saved to your account, so they follow you to any device.' : 'Saved in this browser. Log in to keep them on your account.';
+    if (LB.token) {
+      lbSync();
+      addEventListener('pagehide', () => { // anything not sent yet goes out as the page closes
+        if (!lbSyncT) return;
+        try { navigator.sendBeacon(LB.api + '/api/sync', new Blob([JSON.stringify({ token: LB.token, data: lbSaveData() })], { type: 'text/plain' })); } catch (e) {}
+      });
+    }
   }
   PKEYS.forEach(k => {
     const el = $('pw-' + k);
@@ -4713,4 +4962,4 @@
   };
   window.claude?.hot?.ready ? window.claude.hot.ready(boot) : boot(window.claude?.hot?.data ?? {});
 })();
-window.HG_BUILD = 'Honey Gobbler IX (ed1795)';
+window.HG_BUILD = 'Honey Gobbler IX (8bf157)';

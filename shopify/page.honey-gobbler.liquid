@@ -1,5 +1,5 @@
 {% layout none %}
-{% comment %} Honey Gobbler IX (ed1795): this template loads the asset honey-gobbler-ix.js {% endcomment %}
+{% comment %} Honey Gobbler IX (8bf157): this template loads the asset honey-gobbler-ix.js {% endcomment %}
 <!doctype html>
 <html lang="en">
 <head>
@@ -337,7 +337,7 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
       <div class="card">
         <h2>Grandad's Shed</h2>
         <div class="wallet"><span>Savings</span><b id="shedSav">0 kg</b><span id="shedKg"></span><span id="shedNext"></span></div>
-        <p class="hint">Honey from boss fights goes into your savings and gets spent first, then the honey you've harvested. Spending never pushes the next boss back.</p>
+        <p class="hint">Honey from boss fights goes into your savings, plus 50 kg for every boss you beat. Savings get spent first, then the honey you've harvested. Spending never pushes the next boss back.</p>
         <div class="shop" id="shop"></div>
         <div class="detail" id="detail">
           <h3 id="dName"></h3>
@@ -401,7 +401,7 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
         <h2>Achievements</h2>
         <div class="achtotal"><span id="achCount"></span> unlocked<div class="prog"><i id="achTotal"></i></div></div>
         <div class="achlist" id="achList"></div>
-        <p class="hint">Saved in this browser.</p>
+        <p class="hint" id="achWhere">Saved in this browser.</p>
         <button class="btn" id="achClose" type="button">Close</button>
       </div>
     </div>
@@ -450,9 +450,9 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
 <script src="{{ 'honey-gobbler-ix.js' | asset_url }}" defer></script>
 <script>
 window.addEventListener('load', function () { // shows a red bar if this template and the game script come from different builds
-  if (window.HG_BUILD === 'Honey Gobbler IX (ed1795)') return;
+  if (window.HG_BUILD === 'Honey Gobbler IX (8bf157)') return;
   var d = document.createElement('div');
-  d.textContent = 'Wrong game script. This template is Honey Gobbler IX (ed1795) and needs the asset honey-gobbler-ix.js, but the page loaded ' + (window.HG_BUILD ? window.HG_BUILD : 'an older script or none') + '. Paste the new honey-gobbler-ix.js into Assets.';
+  d.textContent = 'Wrong game script. This template is Honey Gobbler IX (8bf157) and needs the asset honey-gobbler-ix.js, but the page loaded ' + (window.HG_BUILD ? window.HG_BUILD : 'an older script or none') + '. Paste the new honey-gobbler-ix.js into Assets.';
   d.style.cssText = 'position:fixed;left:0;right:0;top:0;z-index:99999;background:#c8102e;color:#fff;font:600 15px/1.4 system-ui,sans-serif;padding:10px 14px;text-align:center';
   document.body.appendChild(d);
 });
