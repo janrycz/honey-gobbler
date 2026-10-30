@@ -34,17 +34,18 @@
   // powers start weak at level 1 and recharge faster and hit harder each level
   const PW = {
     smoker: lv => ({ cd: 30 - (lv - 1) * 15 / 9, dur: 3 + (lv - 1) / 3, slow: 0.6 - (lv - 1) * 0.3 / 9 }),
-    magnet: lv => ({ cd: 35 - (lv - 1) * 17 / 9, dur: 5 + (lv - 1) * 5 / 9, reach: 0.15 + (lv - 1) * 0.15 / 9 }),
+    magnet: lv => ({ cd: 35 - (lv - 1) * 17 / 9, dur: 4.5 + (lv - 1) * 4 / 9, reach: 0.15 + (lv - 1) * 0.15 / 9 }),
     extractor: lv => ({ cd: 60 - (lv - 1) * 30 / 9, grab: EXTRACT_GRAB[lv] }),
     queen: lv => ({ cd: 35 - (lv - 1), charges: lv < 4 ? 2 : lv < 8 ? 3 : 4, dmg: 14 + (lv - 1) * 10 / 9 }),
   };
   const PKEY = { smoker: '1', magnet: '2', extractor: '3', queen: '4' };
   const PKEYS = ['smoker', 'magnet', 'extractor', 'queen'];
   const BEE_SPEED = 300, BELT_PUSH = 290;
-  const ENDLESS_STEP = 3; // endless: levels a boss gains each time you meet him again
+  const ENDLESS_STEP = 4; // endless: levels a boss gains each time you meet him again
   const QUARK_TURN = 2.4; // how fast quarks can turn towards you, radians a second (the faster they fly, the wider they turn)
   const lvOf = b => (endless && b && b.endless ? b.elv || 0 : 0);
-  const magR = () => W * magnetReach * (endless ? 1 + Math.min(0.4, 0.08 * Math.max(0, fallMul() - 3)) : 1); // reaches further in endless as things fall faster
+  const magSize = () => 0.75 + 0.25 * clamp((1100 - W) / 725, 0, 1); // 75% on a computer screen, full size on a phone
+  const magR = () => W * magnetReach * magSize() * (endless ? 1 + Math.min(0.4, 0.08 * Math.max(0, fallMul() - 3)) : 1); // reaches further in endless as things fall faster
   const waxGrip = () => 1 / (1 + 0.1 * (upg.wax || 0)); // Beeswax coating: sticky stuff and belts grip half as hard when maxed
   const BEE_COMBO = 1 / 3, BEE_HOLD = 1; // a bee's catch counts a third towards your combo, and holds off its drop by a second
   const G_PER_BEE = 0.6; // a worker bee makes about 1/12 teaspoon of honey in her life
@@ -120,7 +121,7 @@
     { id: 'smoker', name: 'Smoker', cost: costs(0.8), desc: 'Slows every fake and boss attack for a few seconds.',
       lvText: lv => { if (!lv) return 'Not owned'; const q = PW.smoker(lv); return `Slows them to ${Math.round(q.slow * 100)}% speed for ${q.dur.toFixed(1)} s. Recharges in ${Math.round(q.cd)} s.`; } },
     { id: 'magnet', name: 'Honey magnet', cost: costs(1.4), desc: 'Pulls nearby honey into your spoon and pushes fakes and boss attacks away, for a few seconds. In endless it reaches further as things fall faster.',
-      lvText: lv => { if (!lv) return 'Not owned'; const q = PW.magnet(lv); return `Reaches ${Math.round(q.reach * 100)}% of the screen's width for ${q.dur.toFixed(1)} s. Recharges in ${Math.round(q.cd)} s.`; } },
+      lvText: lv => { if (!lv) return 'Not owned'; const q = PW.magnet(lv); return `Reaches ${Math.round(q.reach * magSize() * 100)}% of the screen's width for ${q.dur.toFixed(1)} s. Recharges in ${Math.round(q.cd)} s.`; } },
     { id: 'extractor', name: 'Extractor', cost: costs(1.0), desc: 'Pulls honey into your spoon one piece at a time, as it falls, until it has pulled in its full amount. In boss fights that honey gets flicked at the boss too.',
       lvText: lv => { if (!lv) return 'Not owned'; const q = PW.extractor(lv); return `${q.grab === Infinity ? 'Pulls in all the honey for ' + EXTRACT_ALL_TIME + ' s' : 'Pulls in ' + q.grab + ' pieces of honey'}. Recharges in ${Math.round(q.cd)} s once it's done.`; } },
     { id: 'queen', name: 'Queen bee', cost: costs(1.3), desc: 'A huge queen bee who buzzes in and charges at the boss, smashing any attacks in her way. Each hit knocks the boss off his next attack for a second. She only comes out in boss fights.',
@@ -757,7 +758,7 @@
   }
   function hurtSpoon(dmg, color, name, opts = {}) {
     if (spoon.hurt > 0 || state !== 'play') return false;
-    if (opts.boss && endless) dmg = Math.round(dmg * (1 + Math.min(0.6, 0.04 * lvOf(opts.boss)))); // endless bosses hit harder each time you meet them
+    if (opts.boss && endless) dmg = Math.round(dmg * (1 + Math.min(1.5, 0.04 * lvOf(opts.boss)))); // endless bosses hit 4% harder per level, slowly up to +150%
     if (upg.wax) dmg = Math.max(1, Math.round(dmg * (1 - 0.05 * upg.wax))); // Beeswax coating
     if (!invincible) { purity = Math.max(0, purity - dmg); tally.minPurity = Math.min(tally.minPurity, purity); }
     if (combo > 1) { combo = Math.max(1, combo - 0.5); streak = (combo - 1) * 10; } else streak = 0;
@@ -838,7 +839,12 @@
   const queenScale = () => 1.45 * Math.max(0.7, G);
   const queenEdge = () => Math.max(W * 0.08, 80 * queenScale());
   const queenOk = () => phase === 'boss' && bosses.some(b => b.mode === 'intro' || fighting(b));
-  function queenTarget() { const f = bosses.filter(fighting); return f.length ? f.reduce((a, c) => (a.hp <= c.hp ? a : c)) : null; }
+  function queenTarget() {
+    const f = bosses.filter(fighting);
+    if (!f.length) return null;
+    if (f.length > 1 && qd) return f.reduce((a, c) => (Math.abs(a.x - qd.x) >= Math.abs(c.x - qd.x) ? a : c)); // two at once: aim at the far one, through the near one
+    return f.reduce((a, c) => (a.hp <= c.hp ? a : c));
+  }
   function queenTrail(n = 1) {
     if (reduceMotion) return;
     for (let i = 0; i < n; i++) particles.push({ x: qd.x - Math.cos(qd.ang) * 55 * G, y: qd.y - Math.sin(qd.ang) * 55 * G + rnd(-4, 4), vx: rnd(-30, 30), vy: rnd(-10, 50), r: rnd(2, 4.5), life: .8, color: pick(['#f2a516', '#ffd36b', '#e08e0b']) });
@@ -856,18 +862,27 @@
       qd.x += qd.vx * sp * dt; qd.y += qd.vy * sp * dt; queenTrail(2);
       const qr = 70 * queenScale(); // she smashes boss attacks she flies through (not the warning lines or the ground)
       for (const p of proj) if (p.owner && !p.dead && (!p.harmless || p.k === 'knight') && !(p.delay > p.t) && Math.hypot(p.x - qd.x, p.y - qd.y) < qr + (p.r || 14)) { p.dead = true; splat(p.x, p.y, '#f2a516', 5); }
-      if (!qd.hit && tg && fighting(tg) && Math.hypot(tg.x - qd.x, tg.y - qd.y) < 62 * bossK()) {
-        qd.hit = true; shake = reduceMotion ? 0 : 8;
-        for (const ob of bosses.filter(fighting)) { // in crazy mode one charge hits both bosses at the same time
-          for (let i = 0; i < 3; i++) splat(ob.x + rnd(-30, 30), ob.y + rnd(-30, 30), '#f2a516', 10);
-          floatText(ob.x, ob.y - 30 * bossK(), 'ROYAL CHARGE', '#ffd36b');
-          damageBoss(qd.dmg, ob);
-          if (ob.mode === 'down') achUnlock('royal');
-          else if (fighting(ob)) ob.atkT = Math.max(ob.atkT, 0) + 1; // knocked off his next attack for a second
-          if (state !== 'play' || !qd) return;
+      const fl = bosses.filter(fighting);
+      if (fl.length > 1) { // two at once: she bends a little towards the next one ahead of her, so one charge goes through both
+        const ahead = fl.filter(ob => !qd.hitList.includes(ob) && (ob.x - qd.x) * qd.vx + (ob.y - qd.y) * qd.vy > 0);
+        const next = ahead.sort((a, c) => Math.hypot(a.x - qd.x, a.y - qd.y) - Math.hypot(c.x - qd.x, c.y - qd.y))[0];
+        if (next) {
+          const cur = Math.atan2(qd.vy, qd.vx), want = Math.atan2(next.y - qd.y, next.x - qd.x);
+          const a = cur + clamp(Math.atan2(Math.sin(want - cur), Math.cos(want - cur)), -3 * dt, 3 * dt);
+          qd.vx = Math.cos(a); qd.vy = Math.sin(a); qd.ang = a;
         }
       }
-      if (qd.x < -110 || qd.x > W + 110 || qd.y < combBottom() - 60 || qd.y > H + 60 || qd.t > 1.3) {
+      for (const ob of fl) { // each boss she flies through takes the hit
+        if (qd.hitList.includes(ob) || Math.hypot(ob.x - qd.x, ob.y - qd.y) >= 62 * bossK()) continue;
+        qd.hitList.push(ob); shake = reduceMotion ? 0 : 8;
+        for (let i = 0; i < 3; i++) splat(ob.x + rnd(-30, 30), ob.y + rnd(-30, 30), '#f2a516', 10);
+        floatText(ob.x, ob.y - 30 * bossK(), 'ROYAL CHARGE', '#ffd36b');
+        damageBoss(qd.dmg, ob);
+        if (ob.mode === 'down') achUnlock('royal');
+        else if (fighting(ob)) ob.atkT = Math.max(ob.atkT, 0) + 1; // knocked off his next attack for a second
+        if (state !== 'play' || !qd) return;
+      }
+      if (qd.x < -110 || qd.x > W + 110 || qd.y < combBottom() - 60 || qd.y > H + 60 || qd.t > (fl.length > 1 ? 1.8 : 1.3)) {
         qd.left--;
         if (qd.left > 0 && phase === 'boss' && anyFighting()) { qd.st = 'enter'; qd.t = 0; qd.tgt = null; qd.x = clamp(qd.x, -90, W + 90); qd.y = clamp(qd.y, combBottom() + 40, H * 0.7); }
         else { qd.st = 'exit'; qd.ang = qd.x < W / 2 ? -2.2 : -0.9; }
@@ -880,7 +895,10 @@
       qd.st = 'exit'; qd.ang = qd.x < W / 2 ? -2.2 : -0.9; return;
     }
     if (qd.st === 'enter') { // glide to her side of the screen, level with the boss
-      const lx = qd.x < W / 2 ? queenEdge() : W - queenEdge(), ly = clamp(tg.y + 20 * bossK(), combBottom() + 60, H * 0.6);
+      const lx = qd.x < W / 2 ? queenEdge() : W - queenEdge(), f2b = bosses.filter(fighting);
+      let ly = tg.y + 20 * bossK();
+      if (f2b.length > 1) { const [a, c] = f2b; ly = a.y + (c.y - a.y) * (lx - a.x) / ((c.x - a.x) || 1) + 20 * bossK(); } // on the line through both
+      ly = clamp(ly, combBottom() + 60, H * 0.6);
       qd.x += (lx - qd.x) * Math.min(1, dt * 6); qd.y += (ly - qd.y) * Math.min(1, dt * 6);
       qd.ang = Math.atan2(tg.y - qd.y, tg.x - qd.x); queenTrail();
       if (qd.t > 0.55) { qd.st = 'tele'; qd.t = 0; }
@@ -889,7 +907,7 @@
     qd.ang = Math.atan2(tg.y - qd.y, tg.x - qd.x); // 'tele': the warning line, then the buzz
     if (qd.t > 0.5) {
       const d = Math.hypot(tg.x - qd.x, tg.y - qd.y) || 1;
-      qd.st = 'go'; qd.t = 0; qd.hit = false; qd.vx = (tg.x - qd.x) / d; qd.vy = (tg.y - qd.y) / d;
+      qd.st = 'go'; qd.t = 0; qd.hitList = []; qd.vx = (tg.x - qd.x) / d; qd.vy = (tg.y - qd.y) / d;
       sfx.buzz();
     }
   }
@@ -1046,8 +1064,9 @@
   // `boss` points at it, so say(), the attacks and the projectiles they throw all know who they belong to.
   function makeBoss(i, isEndless, slot, n) {
     const def = BOSSES[i], k = bossK();
-    // endless: how hard this boss is depends on how many times you've met him this run (first time 0, then 3, 6, 9...)
-    const elv = isEndless ? ENDLESS_STEP * ((endlessSeen[i] = (endlessSeen[i] || 0) + 1) - 1) : 0;
+    // endless: how hard this boss is depends on how many times you've met him this run (first time 0, then 4, 8, 12...);
+    // in crazy mode they count as met once more
+    const elv = isEndless ? ENDLESS_STEP * ((endlessSeen[i] = (endlessSeen[i] || 0) + 1) - 1 + (n > 1 ? 1 : 0)) : 0;
     const hp = isEndless ? Math.round((def.ehp || def.hp) * (0.8 + 0.25 * elv)) : def.hp;
     const x = n > 1 ? W * (slot ? 0.75 : 0.25) : W / 2;
     return {
@@ -1230,7 +1249,8 @@
     if (ally.shootT <= 0) {
       const L = allyStats(upg.colonex);
       ally.shootT = rnd(L.lo, L.hi);
-      proj.push(P({ k: 'allyFee', harmless: true, dmg: L.dmg, x: ally.x + 16, y: ally.y - 20, text: feeText(pick(ALLY_FEES), L.fee), r: 12, tgt: pick(bosses.filter(fighting)), owner: null }));
+      const text = feeText(pick(ALLY_FEES), L.fee), vat = Math.random() < 0.35 ? Math.max(1, Math.round((parseInt(text, 10) || 0) * 0.05)) : 0; // some invoices come with 5% VAT
+      proj.push(P({ k: 'allyFee', harmless: true, dmg: L.dmg * (vat ? 1.05 : 1), x: ally.x + 16, y: ally.y - 20, text, vat, r: 12, tgt: pick(bosses.filter(fighting)), owner: null }));
     }
     if (ally.say) { ally.say.t -= dt; if (ally.say.t <= 0) ally.say = null; }
     ally.sayT -= dt;
@@ -1254,8 +1274,8 @@
     return p;
   };
   function lob(x0, y0, tx, Tf, g) { return { vx: (tx - x0) / Tf, vy: (spoon.y - y0 - 0.5 * g * Tf * Tf) / Tf, g }; }
-  // Endless bosses get a level each time you meet the same one again (0, 3, 6, 9...). Per level they throw 10% more (up to
-  // double), hit 4% harder (up to +60%) and give 3.75% less warning (down to 70%). Attacks spread across the screen also
+  // Endless bosses gain levels each time you meet the same one again (0, 4, 8, 12...). Per level they throw 10% more (up to
+  // double), hit 4% harder (slowly, up to +150%) and give 3.75% less warning (down to 70%). Attacks spread across the screen also
   // scale with its width; attacks aimed at you don't.
   const endlessMore = (b = boss) => endless ? Math.min(2, 1 + 0.1 * lvOf(b)) : 1;
   const teleMul = (b = boss) => endless ? Math.max(0.7, 1 - 0.0375 * lvOf(b)) : 1;
@@ -1784,6 +1804,7 @@
         continue;
       }
       if (k === 'bar') {
+        p.t += rdt - dt; // bar charts ignore the smoker, or they'd just block you for longer
         const t0 = p.t - p.tele;
         p.cur = t0 < 0 ? 0 : t0 < 0.25 ? ease(t0 / 0.25) * p.H0 : t0 < 1.15 ? p.H0 : t0 < 1.45 ? p.H0 * (1 - (t0 - 1.15) / 0.3) : 0;
         if (t0 >= 0 && !p.thud) { p.thud = true; sfx.hit(); }
@@ -1822,9 +1843,22 @@
         p.x += dx / d * 420 * rdt; p.y += dy / d * 420 * rdt; p.rot += 8 * rdt;
         if (d < 40 * bossK()) {
           proj.splice(i, 1);
-          floatText(b.x, b.y - 40 * bossK(), p.text, '#b48cff'); // on the boss, clear of his name bar
-          const billed = parseInt(p.text, 10) || 0;
+          floatText(b.x, b.y - (p.vat ? 16 : 40) * bossK(), p.text, '#b48cff', false, p.vat ? '+' + p.vat + '$ VAT' : ''); // on the boss, clear of his name bar (VAT adds a line, so a bit lower)
+          const billed = (parseInt(p.text, 10) || 0) + (p.vat || 0);
           tally.billed += billed; achAdd('billed', billed, true);
+          damageBoss(p.dmg, b);
+          if (!anyFighting() || state !== 'play') return;
+        }
+        continue;
+      }
+      if (k === 'knightBack') {
+        let b = p.tgt;
+        if (!b || !fighting(b)) b = p.tgt = nearestFighting(p.x);
+        if (!b) { proj.splice(i, 1); continue; }
+        const dx = b.x - p.x, dy = b.y - p.y, d = Math.hypot(dx, dy) || 1;
+        p.x += dx / d * 760 * rdt; p.y += dy / d * 760 * rdt; p.rot += p.vr * rdt;
+        if (d < 40 * bossK()) {
+          proj.splice(i, 1); splat(b.x, b.y, '#f4f1ea', 10);
           damageBoss(p.dmg, b);
           if (!anyFighting() || state !== 'play') return;
         }
@@ -1836,6 +1870,8 @@
           const a = p.psx - p.x, b2 = spoon.x - p.x;
           if ((a < 0 && b2 >= 0) || (a > 0 && b2 <= 0)) {
             proj.splice(i, 1); splat(p.x, p.y, '#f4f1ea', 12); floatText(p.x, p.y - c * 0.7, 'Sx' + square(p.x, knightRank(p, p.y)) + '!', '#ffd36b', false, 'Spoon takes knight'); achAdd('knights', 1);
+            const kb = p.owner && fighting(p.owner) ? p.owner : nearestFighting(p.x); // and it flies back at the boss who sent it
+            if (kb) proj.push(P({ k: 'knightBack', harmless: true, dmg: 6 * thickMul(upg.thick || 0), x: p.x, y: p.y, c, tgt: kb, owner: null, vr: 9 }));
             seq([523, 784], 70, 'triangle', 0.1, 0.12);
             continue;
           }
@@ -3000,12 +3036,15 @@
       txt('N' + square(p.tx, knightRank(p, p.ty)), p.tx, p.ty, Math.round(clamp(c * 0.3, 11, 18)), '#ffe9e4', 800); // its move, e.g. Nf3
     }
     ctx.save(); ctx.translate(p.x, p.y); ctx.scale(c / 34, c / 34); if (spoon.x < p.x) ctx.scale(-1, 1);
+    knightShape();
+    ctx.restore();
+  }
+  function knightShape() { // the white knight piece, 34 units tall, centred on 0,0
     ctx.fillStyle = '#f4f1ea'; ctx.strokeStyle = '#1a1a1a'; ctx.lineWidth = 1.8;
     roundRect(-12, 10, 24, 7, 2); ctx.fill(); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(-9, 10); ctx.lineTo(-7, 0); ctx.quadraticCurveTo(-12, -6, -6, -14); ctx.quadraticCurveTo(-2, -20, 4, -19); ctx.lineTo(7, -23); ctx.lineTo(8, -16);
     ctx.quadraticCurveTo(13, -10, 12, -4); ctx.lineTo(4, -6); ctx.quadraticCurveTo(2, 2, 9, 10); ctx.closePath(); ctx.fill(); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(-5, -13); ctx.quadraticCurveTo(-10, -5, -7, 2); ctx.stroke();
-    ctx.restore();
   }
   const SPECIAL = { knight: 1, ring: 1, smoke: 1, bar: 1, beam: 1, belt: 1, rope: 1, crowFly: 1, blendSrc: 1, allyFee: 1, hyper: 1, hammer: 1, chop: 1 };
   function drawProj(p, t) {
@@ -3071,7 +3110,10 @@
           case 'pawn': case 'bishop': ctx.rotate(-p.rot); drawChess(p); break;
           case 'deen': drawDeen(); break;
           case 'stamp': ctx.rotate(-p.rot); drawStamp(); break;
-          case 'allyFee': roundRect(-13, -8, 26, 16, 2); ctx.fillStyle = '#fbf8f0'; ctx.fill(); txt('$', 0, 1, 11, '#c8102e', 900); break;
+          case 'allyFee': roundRect(-13, -8, 26, 16, 2); ctx.fillStyle = '#fbf8f0'; ctx.fill(); txt('$', 0, 1, 11, '#c8102e', 900);
+            if (p.vat) { roundRect(-13, 8, 26, 9, 2); ctx.fillStyle = '#ffd36b'; ctx.fill(); txt('+VAT', 0, 12.5, 6.5, '#2a1606', 900); }
+            break;
+          case 'knightBack': ctx.scale(p.c / 34 * 0.8, p.c / 34 * 0.8); knightShape(); break;
           case 'hexBig':
             hexPath(0, 0, p.r); ctx.fillStyle = 'rgba(242,165,22,.18)'; ctx.fill(); ctx.lineWidth = 4; ctx.strokeStyle = '#f2a516'; ctx.stroke();
             ctx.rotate(-p.rot); txt('cos(kπ/3)', 0, 0, 9, '#ffd36b', 700);
@@ -3641,7 +3683,7 @@
       const pulse = .5 + .5 * Math.sin(t * 22), tg = qd.tgt;
       ctx.setLineDash([12, 9]); ctx.lineDashOffset = -t * 60; ctx.lineWidth = 3; ctx.strokeStyle = `rgba(255,211,107,${.5 + pulse * .45})`;
       ctx.beginPath(); ctx.moveTo(qd.x, qd.y); ctx.lineTo(tg.x, tg.y); ctx.stroke();
-      circle(tg.x, tg.y, 44 * bossK()); ctx.stroke();
+      for (const ob of bosses.filter(fighting)) { circle(ob.x, ob.y, 44 * bossK()); ctx.stroke(); } // with two bosses the line runs through both
       ctx.setLineDash([]); ctx.lineDashOffset = 0;
     }
     drawQueen(qd.x, qd.y, qd.ang, t, queenScale());
@@ -4101,4 +4143,4 @@
   };
   window.claude?.hot?.ready ? window.claude.hot.ready(boot) : boot(window.claude?.hot?.data ?? {});
 })();
-window.HG_BUILD = 'Honey Gobbler VIII (de4cea)';
+window.HG_BUILD = 'Honey Gobbler VIII (7a7be6)';
