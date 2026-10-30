@@ -50,6 +50,7 @@ export default {
       if (url.pathname === '/api/me') return json(await me(env, body));
       if (url.pathname === '/api/name') return json(await setName(env, body));
       if (url.pathname === '/api/submit') return json(await submit(env, body));
+      if (url.pathname === '/api/sync') return json(await sync(env, body));
       return json({ error: 'not_found' }, 404);
     } catch (e) {
       if (e instanceof Bad) return json({ error: e.code, message: e.message }, e.status);
@@ -96,6 +97,36 @@ async function start(env, req) {
   await env.DB.prepare('INSERT INTO runs (id, created, ip) VALUES (?, ?, ?)').bind(id, t, ip.slice(0, 32)).run();
   if (Math.random() < 0.02) await env.DB.prepare('DELETE FROM runs WHERE created < ?').bind(t - TICKET_DAYS * 86400).run();
   return { ticket: id, at: t };
+}
+
+// Achievements and records follow the account: each device sends what it has, the server keeps the union
+// (an achievement unlocked anywhere stays unlocked, counters keep their highest value) and sends the result back.
+const KEY = /^[A-Za-z0-9_]{1,32}$/;
+function cleanSave(d) {
+  const out = { done: {}, stats: {}, best: {} };
+  if (!d || typeof d !== 'object') return out;
+  for (const [k, v] of Object.entries(d.done || {}).slice(0, 200)) if (KEY.test(k) && Number.isFinite(+v) && +v > 0) out.done[k] = Math.floor(+v);
+  for (const [k, v] of Object.entries(d.stats || {}).slice(0, 200)) if (KEY.test(k) && Number.isFinite(+v) && +v >= 0) out.stats[k] = Math.min(+v, 1e12);
+  for (const k of ['kg', 'time', 'endless', 'brawl']) { const v = +((d.best || {})[k]); if (Number.isFinite(v) && v > 0) out.best[k] = Math.min(v, 1e9); }
+  return out;
+}
+function mergeSave(a, b) {
+  const m = { done: { ...a.done }, stats: { ...a.stats }, best: { ...a.best } };
+  for (const [k, v] of Object.entries(b.done)) m.done[k] = m.done[k] ? Math.min(m.done[k], v) : v; // keeps the first time it was unlocked
+  for (const [k, v] of Object.entries(b.stats)) m.stats[k] = Math.max(m.stats[k] || 0, v);
+  for (const [k, v] of Object.entries(b.best)) m.best[k] = k === 'time' || k === 'brawl' ? (m.best[k] ? Math.min(m.best[k], v) : v) : Math.max(m.best[k] || 0, v); // fastest times, biggest kg
+  return m;
+}
+async function sync(env, b) {
+  const cid = await customer(env, b.token);
+  const row = await env.DB.prepare('SELECT data FROM saves WHERE cid = ?').bind(cid).first();
+  let have = cleanSave(null);
+  if (row) try { have = cleanSave(JSON.parse(row.data)); } catch (e) {}
+  const merged = mergeSave(have, cleanSave(b.data));
+  const text = JSON.stringify(merged);
+  if (text.length > 32000) throw bad('size', 'That save is too big.');
+  if (!row || row.data !== text) await env.DB.prepare('INSERT INTO saves (cid, data, updated) VALUES (?, ?, ?) ON CONFLICT(cid) DO UPDATE SET data = excluded.data, updated = excluded.updated').bind(cid, text, now()).run();
+  return merged;
 }
 
 const better = (board, a, b) => BOARDS[board].desc ? (a.value > b.value || (a.value === b.value && a.tie > b.tie)) : a.value < b.value;

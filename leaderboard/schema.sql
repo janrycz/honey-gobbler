@@ -24,3 +24,8 @@ CREATE TABLE IF NOT EXISTS scores (
   PRIMARY KEY (board, cid)
 );
 CREATE INDEX IF NOT EXISTS scores_rank ON scores (board, value, tie);
+CREATE TABLE IF NOT EXISTS saves (
+  cid TEXT PRIMARY KEY,            -- achievements, counters and records for this account (JSON)
+  data TEXT NOT NULL,
+  updated INTEGER NOT NULL
+);
