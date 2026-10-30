@@ -1,0 +1,405 @@
+{% layout none %}
+{% comment %} Honey Gobbler VIII (de4cea): this template loads the asset honey-gobbler-viii.js {% endcomment %}
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>html,body{margin:0}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);box-sizing:border-box}</style>
+{% raw %}
+<title>Honey Gobbler VIII</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gluten:wght@500;700;900&family=Instrument+Sans:wght@400;600;700&display=swap">
+<style>
+/* Layout: one-screen arcade. A scoreboard strip with an April-to-September harvest track over a full-bleed hive canvas; overlays centred on the comb. */
+/* Single committed look: the inside of a dark hive lit by honey, with a sus-stamp red for danger. Same in both host themes. */
+:root {
+  --hive: #1d1108;
+  --hive-2: #2e1a0b;
+  --wax: #f6e3b4;
+  --honey: #f2a516;
+  --honey-deep: #b8640a;
+  --sus: #c8102e;
+  --ink: #2a1606;
+  --display: "Gluten", "Chalkboard SE", "Comic Sans MS", cursive;
+  --body: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: dark;
+}
+html, body { height: 100%; }
+body {
+  background: var(--hive);
+  color: var(--wax);
+  font-family: var(--body);
+  overflow: hidden;
+  -webkit-user-select: none; user-select: none;
+}
+.app { height: 100%; display: flex; flex-direction: column; }
+.bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px 14px; flex-wrap: wrap;
+  padding-block: 10px 12px;
+  padding-left: 16px; padding-right: 16px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  background: var(--hive-2);
+  border-bottom: 2px solid color-mix(in srgb, var(--honey) 35%, transparent);
+}
+.brand { font-family: var(--display); font-weight: 900; font-size: 1.5rem; color: var(--honey); line-height: 1; letter-spacing: .01em; }
+.brand small { display: block; font-family: var(--body); font-weight: 600; font-size: .66rem; letter-spacing: .12em; text-transform: uppercase; color: color-mix(in srgb, var(--wax) 60%, transparent); margin-top: 4px; }
+.nav { display: flex; gap: 20px; }
+.nav a { color: var(--wax); text-decoration: none; font: 700 .92rem var(--body); padding: 6px 2px; border-bottom: 2px solid transparent; }
+.nav a:hover { color: var(--honey); border-bottom-color: var(--honey); }
+.nav a:focus-visible { outline: 2px solid var(--honey); outline-offset: 3px; border-radius: 4px; }
+.stats { display: flex; gap: 16px; align-items: flex-end; font-variant-numeric: tabular-nums; }
+.stat { display: flex; flex-direction: column; align-items: flex-end; }
+.stat b { font-family: var(--display); font-weight: 700; font-size: 1.35rem; line-height: 1; color: var(--wax); }
+.stat span { font-size: .64rem; letter-spacing: .12em; text-transform: uppercase; color: color-mix(in srgb, var(--wax) 55%, transparent); margin-top: 3px; white-space: nowrap; }
+.pbar { width: 108px; height: 15px; border-radius: 999px; background: color-mix(in srgb, var(--wax) 12%, transparent); overflow: hidden; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--honey) 45%, transparent); }
+.pbar i { display: block; height: 100%; width: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--honey-deep), var(--honey)); transition: width .2s; }
+.pbar.low i { background: linear-gradient(90deg, #6e0b18, var(--sus)); }
+.cbar { width: 100%; min-width: 36px; height: 3px; margin-top: 3px; border-radius: 2px; background: color-mix(in srgb, var(--wax) 14%, transparent); overflow: hidden; }
+.cbar i { display: block; height: 100%; width: 0; border-radius: inherit; background: var(--honey); }
+.track { position: relative; flex: 1 1 100%; height: 8px; margin: 6px 10px 2px; border-radius: 999px; background: color-mix(in srgb, var(--wax) 12%, transparent); }
+.tfill { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: inherit; background: linear-gradient(90deg, var(--honey-deep), var(--honey)); }
+.mk {
+  position: absolute; top: 50%; width: 20px; height: 22px; transform: translate(-50%, -50%);
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+  background: #5a3d1c; color: var(--wax);
+  display: grid; place-items: center; font: 700 .62rem var(--body);
+}
+.mk.done { background: var(--honey); color: var(--ink); }
+.mk.live { background: var(--sus); color: #fff; animation: pulse .7s ease-in-out infinite alternate; }
+@keyframes pulse { to { transform: translate(-50%, -50%) scale(1.25); } }
+.stage { position: relative; flex: 1; min-height: 0; touch-action: none; cursor: none; }
+canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; -webkit-touch-callout: none; }
+.overlay {
+  position: absolute; inset: 0; display: grid; place-items: center; cursor: auto;
+  padding-block: 12px;
+  padding-left: 16px; padding-right: 16px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  background: color-mix(in srgb, var(--hive) 60%, transparent);
+  backdrop-filter: blur(3px);
+}
+.card {
+  width: min(440px, 100%); max-height: 100%; overflow: auto; text-align: center;
+  background: var(--wax); color: var(--ink);
+  border-radius: 22px; padding: 24px 22px 20px;
+  box-shadow: 0 0 0 6px var(--honey), 0 20px 60px rgba(0,0,0,.5);
+  display: flex; flex-direction: column; gap: 12px;
+}
+.card h1, .card h2 { font-family: var(--display); font-weight: 900; margin: 0; line-height: .95; text-wrap: balance; color: var(--honey-deep); }
+.card h1 { font-size: 2.6rem; }
+.card h2 { font-size: 2rem; }
+.card p { margin: 0; line-height: 1.45; font-size: .93rem; }
+.kicker { font-family: var(--display); font-weight: 700; font-size: 1.05rem !important; color: var(--ink); }
+.legend { display: grid; grid-template-columns: 1fr 1fr; gap: 7px 14px; text-align: left; font-size: .8rem; }
+.legend div { display: flex; align-items: center; gap: 7px; min-width: 0; }
+.legend em { font-style: normal; font-variant-numeric: tabular-nums; font-weight: 700; margin-left: auto; color: var(--honey-deep); white-space: nowrap; }
+.legend .bad em { color: var(--sus); }
+.swatch { width: 14px; height: 14px; border-radius: 4px; flex: none; }
+.roster { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.roster span { background: var(--ink); color: var(--wax); border-radius: 10px; padding: 7px 2px 6px; font: 700 .66rem var(--body); line-height: 1.25; font-variant-numeric: tabular-nums; }
+.roster span b { display: block; font-family: var(--display); font-size: .98rem; color: var(--honey); }
+.btn {
+  font-family: var(--display); font-weight: 700; font-size: 1.25rem; text-decoration: none; display: inline-block;
+  background: var(--honey); color: var(--ink); border: 0; border-radius: 999px;
+  padding: 12px 22px 9px; cursor: pointer;
+  box-shadow: inset 0 -4px 0 var(--honey-deep);
+  transition: transform .12s;
+}
+.btn:hover { transform: translateY(-2px); }
+.btn:active { transform: translateY(1px); }
+.btn:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+.btn.ghost { background: transparent; color: var(--honey-deep); box-shadow: inset 0 0 0 2px var(--honey-deep); }
+.btn.revive { background: #2f7a3a; color: #fff; box-shadow: inset 0 -4px 0 #1d4f25; }
+.actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.hint { font-size: .76rem !important; color: color-mix(in srgb, var(--ink) 65%, transparent); }
+.tally { display: flex; flex-direction: column; gap: 4px; font-size: .86rem; font-variant-numeric: tabular-nums; text-align: left; }
+.tally div { display: flex; justify-content: space-between; gap: 10px; border-bottom: 1px dashed color-mix(in srgb, var(--ink) 20%, transparent); padding-bottom: 3px; }
+.tally .yuck { color: #a3321c; }
+.tally .loksd { color: #6a3fb5; }
+.heard { text-align: left; font-size: .84rem; background: color-mix(in srgb, var(--ink) 7%, transparent); border-radius: 12px; padding: 9px 12px; }
+.heard summary { cursor: pointer; font-weight: 700; color: var(--ink); }
+.heard summary:focus-visible { outline: 2px solid var(--honey-deep); outline-offset: 2px; border-radius: 4px; }
+.heard h4 { margin: 10px 0 3px; font: 700 .7rem var(--body); text-transform: uppercase; letter-spacing: .1em; color: var(--honey-deep); }
+.heard q { display: block; margin: 3px 0; line-height: 1.35; }
+.big { font-family: var(--display); font-weight: 900; font-size: 3rem; line-height: 1; color: var(--ink); font-variant-numeric: tabular-nums; }
+.stamp {
+  align-self: center; font-family: var(--display); font-weight: 900; font-size: 2.6rem; line-height: 1;
+  color: var(--sus); border: 5px solid var(--sus); border-radius: 12px; padding: 8px 18px 2px;
+  transform: rotate(-7deg); letter-spacing: .04em; opacity: .92;
+  animation: thump .35s cubic-bezier(.3,1.6,.5,1) both;
+}
+@keyframes thump { from { transform: rotate(-7deg) scale(2.2); opacity: 0; } }
+.stock { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.stock span { background: var(--ink); color: var(--wax); border-radius: 8px; padding: 7px 11px 6px; font: 700 .82rem var(--body); text-transform: uppercase; letter-spacing: .06em; }
+.stock span b { color: var(--sus); font-family: var(--display); font-size: 1.05rem; margin-right: 4px; }
+.quote { font-family: var(--display); font-weight: 700; font-size: 1.05rem !important; line-height: 1.3 !important; }
+.quote span { display: block; color: var(--honey-deep); }
+.credit { font-size: .72rem !important; color: color-mix(in srgb, var(--ink) 60%, transparent); }
+.credit a { color: var(--honey-deep); }
+.topbtns { position: absolute; right: 12px; right: max(12px, env(safe-area-inset-right, 0px)); top: 10px; display: flex; gap: 8px; }
+.mute {
+  background: color-mix(in srgb, var(--hive) 70%, transparent); color: var(--wax);
+  border: 1px solid color-mix(in srgb, var(--honey) 40%, transparent);
+  border-radius: 999px; font: 600 .75rem var(--body); padding: 6px 12px; cursor: pointer;
+}
+.mute:focus-visible { outline: 2px solid var(--honey); outline-offset: 2px; }
+[hidden] { display: none !important; }
+.powers { position: absolute; right: 10px; right: max(10px, env(safe-area-inset-right, 0px)); bottom: 30%; display: flex; flex-direction: column; gap: 12px; }
+.pbtn {
+  --p: 1; position: relative; width: 56px; height: 56px; border-radius: 50%; border: 0; padding: 0; cursor: pointer;
+  background: conic-gradient(var(--honey) calc(var(--p) * 1turn), rgba(246, 227, 180, .16) 0);
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+.pbtn i { position: absolute; inset: 4px; border-radius: 50%; background: var(--hive-2); display: grid; place-items: center; opacity: .55; transition: opacity .2s; }
+.pbtn svg { width: 32px; height: 32px; }
+.pbtn kbd { position: absolute; right: -5px; top: -5px; min-width: 18px; padding: 2px 4px 1px; border-radius: 6px; background: var(--wax); color: var(--ink); font: 700 .7rem var(--body); text-align: center; }
+.pbtn.ready i { opacity: 1; }
+.pbtn.ready { animation: ready .8s ease-in-out infinite alternate; }
+.pbtn.active i { opacity: 1; background: #6b4512; }
+.pbtn .lk { display: none; position: absolute; left: 50%; top: 50%; width: 22px; height: 22px; transform: translate(-50%, -50%); }
+.pbtn.locked .lk { display: block; }
+.pbtn.locked i { opacity: .2; }
+.pbtn:focus-visible { outline: 3px solid var(--wax); outline-offset: 3px; }
+@keyframes ready { from { box-shadow: 0 0 0 0 rgba(255, 211, 107, 0); } to { box-shadow: 0 0 0 5px rgba(255, 211, 107, .35), 0 0 18px rgba(255, 211, 107, .7); } }
+@media (hover: none) { .pbtn kbd { display: none; } }
+.overlay.shed { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; }
+.overlay.shed .card { min-height: 0; flex: 0 1 auto; width: min(640px, 100%); gap: 9px; padding: 16px 18px 14px; }
+.overlay.shed h2 { font-size: 1.75rem; }
+.gbubble {
+  align-self: flex-start; position: relative; margin-left: -2px; margin-left: calc(14px - max(16px, env(safe-area-inset-left, 0px)));
+  max-width: min(440px, 88%); background: #fbf8f0; color: var(--ink); border: 2px solid var(--ink); border-radius: 14px;
+  padding: 8px 14px 9px; font: 600 1rem/1.35 var(--body);
+}
+.gbubble b { display: block; font: 700 .68rem var(--body); letter-spacing: .12em; text-transform: uppercase; color: var(--honey-deep); margin-bottom: 2px; }
+.gbubble::before, .gbubble::after { content: ""; position: absolute; top: 50%; border-style: solid; transform: translateY(-50%); }
+.gbubble::before { left: -17px; border-width: 9px 17px 9px 0; border-color: transparent var(--ink) transparent transparent; }
+.gbubble::after { left: -12px; border-width: 7px 13px 7px 0; border-color: transparent #fbf8f0 transparent transparent; }
+.gbubble.pop { animation: pop .3s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes pop { from { transform: scale(.85); opacity: .4; } }
+.wallet { display: flex; justify-content: center; align-items: baseline; gap: 8px; flex-wrap: wrap; font-size: .86rem; }
+.wallet b { font-family: var(--display); font-size: 1.4rem; color: var(--ink); font-variant-numeric: tabular-nums; }
+.shop { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.tile {
+  font: inherit; text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 3px;
+  background: var(--ink); color: var(--wax); border: 2px solid transparent; border-radius: 12px; padding: 7px 10px 6px;
+}
+.tile .nm { font: 700 .84rem/1.2 var(--body); }
+.tile .pips { font-size: .72rem; color: var(--honey); min-height: 1.1em; }
+.tile .pr { font: 700 .8rem var(--body); color: var(--honey); font-variant-numeric: tabular-nums; }
+.tile .pr s { color: color-mix(in srgb, var(--wax) 50%, transparent); font-weight: 600; margin-right: 2px; }
+.tile.sel { border-color: var(--honey); box-shadow: 0 0 0 2px rgba(242, 165, 22, .3); }
+.tile.cant .pr { color: #e9907f; }
+.tile.done .pr { color: #9ad08a; }
+.tile.locked { opacity: .5; }
+.tile:focus-visible { outline: 3px solid var(--honey-deep); outline-offset: 2px; }
+.detail { text-align: left; background: color-mix(in srgb, var(--ink) 7%, transparent); border-radius: 12px; padding: 8px 12px 10px; display: flex; flex-direction: column; gap: 3px; }
+.detail h3 { margin: 0; font: 700 1rem var(--body); color: var(--ink); }
+.detail p { font-size: .86rem !important; }
+.detail .now { color: color-mix(in srgb, var(--ink) 70%, transparent); }
+.detail .nxt { color: var(--honey-deep); font-weight: 700; }
+.detail .actions { justify-content: flex-start; margin-top: 4px; }
+.btn.small { font-size: 1.05rem; padding: 9px 16px 7px; }
+.btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+.confirm { display: flex; flex-direction: column; gap: 6px; }
+.confirm p { font-weight: 700; }
+.cmsg { text-align: left; background: #313338; color: #dbdee1; border-radius: 10px; padding: 8px 12px; font-size: .88rem; }
+.cmsg b { display: block; color: #b48cff; }
+.btn.cta { font-size: 1.45rem; padding: 15px 28px 12px; animation: cta 1.4s ease-in-out infinite alternate; }
+@keyframes cta { to { box-shadow: inset 0 -4px 0 var(--honey-deep), 0 0 0 6px rgba(242, 165, 22, .25), 0 0 26px rgba(242, 165, 22, .55); } }
+.achlist { display: flex; flex-direction: column; gap: 8px; text-align: left; }
+.ach { display: grid; grid-template-columns: 34px 1fr; gap: 10px; align-items: center; background: color-mix(in srgb, var(--ink) 6%, transparent); border-radius: 12px; padding: 9px 12px; }
+.ach .ico { width: 34px; height: 36px; display: grid; place-items: center; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); background: #cdbb92; color: var(--wax); font: 900 .95rem var(--display); }
+.ach.done .ico { background: var(--honey); color: var(--ink); }
+.ach h4 { margin: 0; font: 700 .9rem var(--body); color: var(--ink); }
+.ach p { font-size: .8rem !important; color: color-mix(in srgb, var(--ink) 70%, transparent); }
+.ach .prog, .achtotal .prog { height: 6px; border-radius: 999px; background: color-mix(in srgb, var(--ink) 12%, transparent); overflow: hidden; margin-top: 5px; }
+.ach .prog i, .achtotal .prog i { display: block; height: 100%; background: linear-gradient(90deg, var(--honey-deep), var(--honey)); border-radius: inherit; }
+.ach .num { float: right; font: 700 .72rem var(--body); color: var(--honey-deep); margin-left: 8px; }
+.achtotal { text-align: left; font: 700 .86rem var(--body); }
+.achtotal .prog { height: 10px; }
+.toast { position: absolute; z-index: 6; left: 50%; top: 48px; transform: translateX(-50%); max-width: calc(100% - 32px); background: var(--ink); color: var(--wax); border: 2px solid var(--honey); border-radius: 999px; padding: 8px 16px 7px; font: 600 .85rem var(--body); pointer-events: none; transition: opacity .35s, transform .35s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.toast b { color: var(--honey); }
+.toast.hide { opacity: 0; transform: translate(-50%, -10px); }
+.toast.low { top: auto; bottom: 14px; }
+@media (max-width: 520px) {
+  .shop { grid-template-columns: repeat(2, 1fr); }
+  .gbubble { font-size: .9rem; }
+  .pbtn { width: 46px; height: 46px; }
+  .pbtn svg { width: 26px; height: 26px; }
+}
+@media (max-width: 520px) {
+  .bar { padding-block: 6px 7px; gap: 4px 12px; }
+  .track { margin: 3px 8px 0; }
+  .brand { font-size: 1.2rem; } .brand small { display: none; }
+  .nav { gap: 16px; } .nav a { font-size: .84rem; }
+  .stats { gap: 12px; } .stat b { font-size: 1.1rem; }
+  .pbar { width: 84px; }
+  .card h1 { font-size: 2.1rem; } .card { padding: 20px 16px 16px; }
+  .legend { font-size: .74rem; gap: 6px 10px; }
+  .roster span { font-size: .56rem; } .roster span b { font-size: .8rem; }
+}
+@media (max-width: 520px) { /* on a phone the start button comes straight after the title, not below a screen of text */
+  #startScreen .card > * { order: 2; }
+  #startScreen .card > h1, #startScreen .card > .kicker { order: 0; }
+  #startScreen #startBtn { order: 1; align-self: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mk.live, .stamp, .pbtn.ready, .gbubble.pop, .btn.cta { animation: none; }
+}
+</style>
+{% endraw %}
+</head>
+<body>
+{% raw %}
+<div class="app">
+  <header class="bar">
+    <div class="brand">Honey Gobbler VIII<small>Jan Ryczkowski Honey Corporation</small></div>
+    <nav class="nav" aria-label="Ryczkowski Honey"><a href="/">Home</a><a href="/pages/contact">Waitlist</a></nav>
+    <div class="stats">
+      <div class="stat"><b id="kg">0.0 kg</b><span id="next">March · boss at 150 kg</span></div>
+      <div class="stat"><b id="combo">×1</b><div class="cbar" aria-hidden="true"><i id="cfill"></i></div><span>combo</span></div>
+      <div class="stat"><div class="pbar" id="pbar"><i id="pfill"></i></div><span id="plabel">purity 100%</span></div>
+    </div>
+    <div class="track" id="track" aria-hidden="true"><div class="tfill" id="tfill"></div></div>
+  </header>
+  <main class="stage" id="stage">
+    <canvas id="cv"></canvas>
+    <div class="topbtns"><button class="mute" id="pauseBtn" type="button" hidden>Pause</button><button class="mute" id="mute" type="button">Sound on</button></div>
+
+    <div class="powers" id="powers">
+      <button class="pbtn" id="pw-smoker" type="button" hidden aria-label="Smoker"><i><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="8" y="14" width="13" height="15" rx="2" fill="#c9ced6"/><path d="M8 14 L14.5 8 L21 14 Z" fill="#9aa0a8"/><rect x="13" y="5" width="3" height="4" fill="#9aa0a8"/><rect x="21" y="17" width="7" height="9" rx="1.5" fill="#8a5a2b"/><circle cx="11" cy="4.5" r="3" fill="#e8e2d4" opacity=".85"/><circle cx="6.5" cy="3" r="2.2" fill="#e8e2d4" opacity=".6"/></svg></i><kbd>1</kbd></button>
+      <button class="pbtn" id="pw-magnet" type="button" hidden aria-label="Honey magnet"><i><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M7 5v11a9 9 0 0 0 18 0V5h-6v11a3 3 0 0 1-6 0V5z" fill="#e2492f"/><rect x="7" y="5" width="6" height="4" fill="#d9d9de"/><rect x="19" y="5" width="6" height="4" fill="#d9d9de"/><path d="M16 24c-2 3-2.4 5 0 5s2-2 0-5z" fill="#f2a516"/></svg></i><kbd>2</kbd></button>
+      <button class="pbtn" id="pw-extractor" type="button" hidden aria-label="Extractor"><i><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="18" r="10" fill="#c9ced6" stroke="#6a6e76" stroke-width="2"/><path d="M16 11v14M9 18h14M11 13l10 10M21 13 11 23" stroke="#6a6e76" stroke-width="1.6"/><circle cx="16" cy="18" r="2.6" fill="#f2a516"/><path d="M16 8V4h8" stroke="#8a5a2b" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg></i><kbd>3</kbd></button>
+      <button class="pbtn" id="pw-queen" type="button" hidden aria-label="Queen bee"><i><svg viewBox="0 0 32 32" aria-hidden="true"><ellipse cx="15" cy="11" rx="7" ry="3.2" fill="rgba(255,255,255,.75)" transform="rotate(-20 15 11)"/><ellipse cx="20" cy="11" rx="6" ry="2.8" fill="rgba(255,255,255,.6)" transform="rotate(15 20 11)"/><ellipse cx="11" cy="19" rx="9" ry="4.2" fill="#f2b81a"/><path d="M7 15.4v7.2M11 15v8M15 15.4v7.2" stroke="#7a4a0c" stroke-width="1.8"/><ellipse cx="22" cy="18" rx="4" ry="3.6" fill="#c8901a"/><circle cx="27" cy="17" r="2.6" fill="#a8700f"/><path d="M24.6 13.6 25.2 11l1.2 1.6.8-2 .8 2 1.2-1.6.4 2.6z" fill="#ffd36b"/></svg></i><svg class="lk" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="8" rx="1.5" fill="#f6e3b4"/><path d="M5 7V5a3 3 0 0 1 6 0v2" stroke="#f6e3b4" stroke-width="2" fill="none"/></svg><kbd>4</kbd></button>
+    </div>
+
+    <div class="overlay" id="startScreen">
+      <div class="card">
+        <h1>Honey Gobbler VIII</h1>
+        <p class="kicker">The best honey in the universe is under attack.</p>
+        <p>Grandad's hives are dripping with raw honeydew from the Subcarpathian hills. The season runs March to September. Every 150 kg you harvest, someone turns up to ruin it. Beat all seven and you sell out.</p>
+        <div class="legend">
+          <div><span class="swatch" style="background:#9a4a12;border-radius:50%;box-shadow:0 0 6px #ffd36b"></span>Honeydew drop<em>50–200 g</em></div>
+          <div><span class="swatch" style="background:linear-gradient(#e2b23a 0 30%,#7a2f0c 30%);box-shadow:0 0 6px #ffd36b"></span>Ryczkowski jar<em>1.2 kg</em></div>
+          <div><span class="swatch" style="background:#c89a5b;box-shadow:inset 0 5px 0 #a8773d,0 0 6px #ffd36b"></span>Box of honey<em>10 kg</em></div>
+          <div><span class="swatch" style="background:#f2a516;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)"></span>Grandad's comb<em>+18%</em></div>
+          <div><span class="swatch" style="background:linear-gradient(#111 0 30%,#2b1406 30%);box-shadow:0 0 6px #ffd36b"></span>Shilajit of honey<em>rush</em></div>
+          <div><span class="swatch" style="background:linear-gradient(#c8102e 0 25%,#e9f9ff 25% 55%,#7cf3ff 55%);border-radius:4px 4px 7px 7px"></span>Lab test<em>clears fakes</em></div>
+          <div class="bad"><span class="swatch" style="background:#ffe600;border-radius:3px 3px 6px 6px;box-shadow:0 0 0 2px #c8102e"></span>Fake syrups<em>✕ avoid</em></div>
+          <div class="bad"><span class="swatch" style="background:#7cff6b;border-radius:50%;box-shadow:0 0 0 2px #c8102e"></span>Ra, U, As<em>✕ avoid</em></div>
+        </div>
+        <p><b>Purity</b> is your health. Hit 0% and your honey is officially sus. Anything with a red ring is fake. Real honey tops your purity up a little, Grandad's comb a lot. Fill the <b>Addictive</b> meter for a rush. In boss fights, every drop you catch gets flicked back at the boss and saved for <b>Grandad's Shed</b>, where you shop after each boss.</p>
+        <div class="roster" aria-label="Boss checkpoints">
+          <span><b>150</b>Mar</span><span><b>300</b>Apr</span><span><b>450</b>May</span><span><b>600</b>Jun</span><span><b>750</b>Jul</span><span><b>900</b>Aug</span><span><b>1050</b>Sep</span>
+        </div>
+        <button class="btn" id="startBtn" type="button">Start the harvest</button>
+        <div class="actions"><button class="btn ghost small" data-ach type="button">Achievements <span class="achcount"></span></button></div>
+        <p class="hint">On a phone, drag your thumb anywhere on the screen, no need to touch the spoon. On a computer, use the mouse or arrow keys. The mouse stays locked to the game while you play: Esc frees it and pauses, and so does P.</p>
+      </div>
+    </div>
+
+    <div class="overlay" id="pauseScreen" hidden>
+      <div class="card">
+        <h2>Paused</h2>
+        <p>Grandad says the bees don't take breaks.</p>
+        <button class="btn" id="resumeBtn" type="button">Back to the hives</button>
+        <div class="actions"><button class="btn ghost small" id="pauseShed" type="button">Grandad's Shed</button><button class="btn ghost small" data-ach type="button">Achievements <span class="achcount"></span></button></div>
+        <div class="actions"><button class="btn ghost small" id="lockBtn" type="button" hidden>Mouse lock: on</button></div>
+        <p class="hint" id="pauseRevive"></p>
+      </div>
+    </div>
+
+    <div class="overlay shed" id="shedScreen" hidden>
+      <div class="gbubble" id="gBubble"><b>Grandad</b><span id="gLine"></span></div>
+      <div class="card">
+        <h2>Grandad's Shed</h2>
+        <div class="wallet"><span>Savings</span><b id="shedSav">0 kg</b><span id="shedKg"></span><span id="shedNext"></span></div>
+        <p class="hint">Honey from boss fights goes into your savings and gets spent first, then the honey you've harvested. Spending never pushes the next boss back.</p>
+        <div class="shop" id="shop"></div>
+        <div class="detail" id="detail">
+          <h3 id="dName"></h3>
+          <p id="dDesc"></p>
+          <p class="now" id="dNow"></p>
+          <p class="nxt" id="dNext"></p>
+          <div class="actions"><button class="btn small" id="buyBtn" type="button">Buy</button></div>
+          <div class="confirm" id="confirm" hidden>
+            <p id="confirmText"></p>
+            <div class="actions"><button class="btn small" id="confirmYes" type="button">Buy</button><button class="btn small ghost" id="confirmNo" type="button">Cancel</button></div>
+          </div>
+        </div>
+        <div class="cmsg" id="colonexMsg" hidden><b>Colonex</b><span id="cmsgText"></span></div>
+        <div class="actions shedacts"><button class="btn" id="shedDone" type="button">Back to the hives</button><button class="btn ghost small" data-ach type="button">Achievements <span class="achcount"></span></button></div>
+      </div>
+    </div>
+
+    <div class="overlay" id="overScreen" hidden>
+      <div class="card">
+        <div class="stamp">SUS</div>
+        <h2 id="overTitle">Purity hit 0%</h2>
+        <div class="big" id="finalKg">0 kg</div>
+        <p id="overText"></p>
+        <div class="actions" id="reviveRow" hidden><button class="btn revive" id="reviveBtn" type="button">Grandad found a spare frame: keep going</button></div>
+        <p id="reviveNote" class="hint" hidden>2 second chances left this run. You come back at 50% purity.</p>
+        <p id="beeFact" class="hint"></p>
+        <div class="tally" id="tally"></div>
+        <details class="heard" id="heardOver" hidden></details>
+        <p id="bestLine" class="hint"></p>
+        <div class="actions"><button class="btn" id="againBtn" type="button">Try again</button><button class="btn ghost small" data-ach type="button">Achievements <span class="achcount"></span></button></div>
+        <p class="credit">The real thing: raw, unfiltered honeydew honey from a family apiary in Podkarpacie, Poland. Currently sold out, so join the waitlist at <a href="/pages/contact">janhoney.com</a>.</p>
+      </div>
+    </div>
+
+    <div class="overlay" id="soldScreen" hidden>
+      <div class="card">
+        <div class="stamp">SOLD OUT</div>
+        <h2>We sold out</h2>
+        <div class="big">1,050 kg</div>
+        <p>That's 875 of our 1.2 kg jars. In your tea, your coffee, your oats, your eggs. Every last one is gone.</p>
+        <div class="stock"><span><b>0</b>left in the EU</span><span><b>0</b>left in the UK</span></div>
+        <p class="quote">Is it really the best honey in the universe?<span>Try it yourself and let me know.</span></p>
+        <p>It's autumn. The bees don't make honey now. Join the waitlist and you'll hear first when the next harvest is in.</p>
+        <div class="tally" id="soldTally"></div>
+        <details class="heard" id="heardSold" hidden></details>
+        <p id="soldBest" class="hint"></p>
+        <div class="actions"><button class="btn cta" id="endlessBtn" type="button">Keep eating: endless mode</button></div>
+        <p class="hint">The bosses keep coming back, stronger every round. Your upgrades and shed savings carry on.</p>
+        <div class="actions">
+          <a class="btn" id="waitBtn" href="/pages/contact">Join the waitlist</a>
+          <button class="btn ghost" id="againBtn2" type="button">Harvest again</button>
+        </div>
+        <div class="actions"><button class="btn ghost small" data-ach type="button">Achievements <span class="achcount"></span></button></div>
+        <p class="credit">A fan game for Ryczkowski Honey, the best honey in the universe. All bosses are parodies.</p>
+      </div>
+    </div>
+    <div class="overlay" id="achScreen" hidden>
+      <div class="card">
+        <h2>Achievements</h2>
+        <div class="achtotal"><span id="achCount"></span> unlocked<div class="prog"><i id="achTotal"></i></div></div>
+        <div class="achlist" id="achList"></div>
+        <p class="hint">Saved in this browser.</p>
+        <button class="btn" id="achClose" type="button">Close</button>
+      </div>
+    </div>
+    <div class="toast hide" id="toast" aria-live="polite"></div>
+  </main>
+</div>
+
+{% endraw %}
+<script src="{{ 'honey-gobbler-viii.js' | asset_url }}" defer></script>
+<script>
+window.addEventListener('load', function () { // shows a red bar if this template and the game script come from different builds
+  if (window.HG_BUILD === 'Honey Gobbler VIII (de4cea)') return;
+  var d = document.createElement('div');
+  d.textContent = 'Wrong game script. This template is Honey Gobbler VIII (de4cea) and needs the asset honey-gobbler-viii.js, but the page loaded ' + (window.HG_BUILD ? window.HG_BUILD : 'an older script or none') + '. Paste the new honey-gobbler-viii.js into Assets.';
+  d.style.cssText = 'position:fixed;left:0;right:0;top:0;z-index:99999;background:#c8102e;color:#fff;font:600 15px/1.4 system-ui,sans-serif;padding:10px 14px;text-align:center';
+  document.body.appendChild(d);
+});
+</script>
+{% raw %}
+
+{% endraw %}
+</body>
+</html>
