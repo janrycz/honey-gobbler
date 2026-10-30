@@ -12,7 +12,7 @@
   const TAU = Math.PI * 2;
 
   // ---------- tuning ----------
-  const STAGE_KG = 150, BOSS_COUNT = 7, GOAL = STAGE_KG * BOSS_COUNT;
+  const STAGE_KG = 150, BOSS_COUNT = 8, GOAL = STAGE_KG * BOSS_COUNT;
   const thresholdFor = i => STAGE_KG * (i + 1); // 150 ... 1050
   const KG = { jar: 1.2, box: 10, comb: 0.5, shilajit: 1.2, lab: 0 }; // drops carry their own 50-200 g
   const FILL = { drop: .035, jar: .07, box: .12, comb: .05, shilajit: 0, lab: 0 };
@@ -37,9 +37,10 @@
     magnet: lv => ({ cd: 35 - (lv - 1) * 17 / 9, dur: 4.5 + (lv - 1) * 4 / 9, reach: 0.15 + (lv - 1) * 0.15 / 9 }),
     extractor: lv => ({ cd: 60 - (lv - 1) * 30 / 9, grab: EXTRACT_GRAB[lv] }),
     queen: lv => ({ cd: 35 - (lv - 1), charges: lv < 4 ? 2 : lv < 8 ? 3 : 4, dmg: 14 + (lv - 1) * 10 / 9 }),
+    shield: lv => ({ cd: 40 - (lv - 1) * 15 / 9, hits: [2, 2, 2, 3, 3, 3, 4, 4, 4, 5][lv - 1], dur: 6 + (lv - 1) * 0.5 }),
   };
-  const PKEY = { smoker: '1', magnet: '2', extractor: '3', queen: '4' };
-  const PKEYS = ['smoker', 'magnet', 'extractor', 'queen'];
+  const PKEY = { smoker: '1', magnet: '2', extractor: '3', queen: '4', shield: '5' };
+  const PKEYS = ['smoker', 'magnet', 'extractor', 'queen', 'shield'];
   const BEE_SPEED = 300, BELT_PUSH = 290;
   const ENDLESS_STEP = 4; // endless: levels a boss gains each time you meet him again
   const QUARK_TURN = 2.4; // how fast quarks can turn towards you, radians a second (the faster they fly, the wider they turn)
@@ -59,6 +60,7 @@
     { m: 'July', name: 'High summer', col: '#ffb347', top: '#47230a', mid: '#2a1509', glow: 'rgba(255,150,40,.2)', part: 'heat' },
     { m: 'August', name: 'Honeydew season', col: '#b9d98a', top: '#2f220e', mid: '#1f160a', glow: 'rgba(170,200,100,.12)', part: 'needle' },
     { m: 'September', name: 'Last of the season', col: '#ff8a3c', top: '#3b1b0b', mid: '#241008', glow: 'rgba(220,90,30,.16)', part: 'leaf' },
+    { m: 'October', name: 'The hornets come', col: '#e0913a', top: '#3a1c08', mid: '#230f06', glow: 'rgba(230,130,50,.15)', part: 'leaf' },
     { m: 'Winter', name: 'Endless mode', col: '#cfe8ff', top: '#1f1b26', mid: '#140f15', glow: 'rgba(150,190,255,.12)', part: 'snow' },
   ];
 
@@ -100,6 +102,7 @@
     apologist: 'honey apologist pls check ur notes, there is a fee',
     looks: 'looksmaxxer pls stop mewing in vc',
     disprover: 'disprover has been disproved by loksd corporation',
+    hornet: 'vespa mandarinia owes loksd corporation 500$ sting fee',
   };
   const ALLY_LINES = ['boss fee', 'honey fee', 'damage fee', 'herp owes loksd corporation 500$', 'loksd corporation has issued a damage fee', 'U are herp', '500$ herp fee', 'this boss owes loksd corporation 4000$', 'stop playing roblox'];
 
@@ -126,6 +129,8 @@
       lvText: lv => { if (!lv) return 'Not owned'; const q = PW.extractor(lv); return `${q.grab === Infinity ? 'Pulls in all the honey for ' + EXTRACT_ALL_TIME + ' s' : 'Pulls in ' + q.grab + ' pieces of honey'}. Recharges in ${Math.round(q.cd)} s once it's done.`; } },
     { id: 'queen', name: 'Queen bee', cost: costs(1.3), desc: 'A huge queen bee who buzzes in and charges at the boss, smashing any attacks in her way. Each hit knocks the boss off his next attack for a second. She only comes out in boss fights.',
       lvText: lv => { if (!lv) return 'Not owned'; const q = PW.queen(lv); return `${q.charges} charge${q.charges > 1 ? 's' : ''} of ${Math.round(q.dmg)} damage. Recharges in ${Math.round(q.cd)} s.`; } },
+    { id: 'shield', name: 'Honeycomb shield', cost: costs(1.2), desc: 'A wax hexagon over your spoon that soaks up the next few hits, then cracks. It wears off after a few seconds if nothing hits it.',
+      lvText: lv => { if (!lv) return 'Not owned'; const q = PW.shield(lv); return `Soaks up ${q.hits} hits, lasts ${q.dur.toFixed(1)} s. Recharges in ${Math.round(q.cd)} s.`; } },
     { id: 'wax', name: 'Beeswax coating', cost: costs(1.2), desc: 'Coats your spoon in beeswax. Everything that hits you does less damage, and sticky syrup, resin and the factory belt get less grip on it.',
       lvText: lv => { if (!lv) return 'Not owned'; return `${lv * 5}% less damage. Sticky stuff and belts grip ${Math.round(100 * (1 - 1 / (1 + 0.1 * lv)))}% less.`; } },
     { id: 'sweet', name: 'Sweet tooth', max: 5, cost: geo(60, 1.115, 5), desc: 'Raises the highest combo you can reach, and makes it drop more slowly when you stop catching.',
@@ -139,7 +144,7 @@
   SHOP.forEach(x => { x.max = x.max || MAX_LV; x.key = PKEY[x.id]; });
   const COLONEX_RAISE = ['loksd corporation has issued a fee increase fee', 'loksd corporation board of directors has approved this', 'loksd corporation can afford', 'premium fees for premium bosses'];
   const GRANDAD_HI = ["Honey doesn't grow on trees. Spend it wisely.", "The bees worked hard for that. Don't waste it.", 'Spend it how you like. The bosses come either way.', 'In my day we had a spoon and nothing else.'];
-  const GRANDAD_BUY = { wax: 'Beeswax. Keeps the rain off the hives and the syrup off your spoon.', thick: 'Leave it in the frame longer. Thicker honey.', bee: "Take one of mine. She's a hard worker.", colonex: 'Who is this boy and why does he keep sending me invoices?', smoker: "Don't point it at your own face.", magnet: 'It pulls honey. And my spare keys.', extractor: 'Mind your fingers.', queen: 'Be gentle with her.', crazy: "Two at once? You're crazier than the bees.", sweet: 'Eat faster, boy.', hives: 'I moved the hives to the lime trees. Richer flow.' };
+  const GRANDAD_BUY = { shield: "Wax from the old frames. It'll hold. For a bit.", wax: 'Beeswax. Keeps the rain off the hives and the syrup off your spoon.', thick: 'Leave it in the frame longer. Thicker honey.', bee: "Take one of mine. She's a hard worker.", colonex: 'Who is this boy and why does he keep sending me invoices?', smoker: "Don't point it at your own face.", magnet: 'It pulls honey. And my spare keys.', extractor: 'Mind your fingers.', queen: 'Be gentle with her.', crazy: "Two at once? You're crazier than the bees.", sweet: 'Eat faster, boy.', hives: 'I moved the hives to the lime trees. Richer flow.' };
   const PRICE_HIKE = 2; // after the Shilajit Coach: "If you really have a premium product, raise your prices."
   const GRANDAD_HIKE = 'The Shilajit Coach told me: if you really have a premium product, raise your prices. So I doubled them.';
   const GRANDAD_BROKE = "You can't afford that. Go catch more honey.";
@@ -157,14 +162,15 @@
     { id: 'mogger', name: 'Mogger', desc: 'Beat the Looksmaxxer.' },
     { id: 'blocked', name: 'Blocked', desc: 'Beat the Disprover.' },
     { id: 'sold', name: 'Sold out', desc: 'Finish a run.', stat: 'season', goal: BOSS_COUNT, show: n => n + ' / ' + BOSS_COUNT + ' bosses' },
-    { id: 'fast', name: 'Sold out fast', desc: 'Finish a run in under 12 minutes.' },
-    { id: 'spoon', name: 'A spoon and nothing else', desc: 'Beat all seven bosses without buying anything in the shed.' },
+    { id: 'fast', name: 'Sold out fast', desc: 'Finish a run in under 14 minutes.' },
+    { id: 'spoon', name: 'A spoon and nothing else', desc: 'Beat all eight bosses without buying anything in the shed.' },
     { id: 'nospare', name: 'No spare frames', desc: 'Finish a run without using a second chance.' },
     { id: 'raw', name: 'Raw and unfiltered', desc: 'Finish a run without your purity ever dropping below 50%.' },
     { id: 'endless', name: 'Endless', desc: 'Reach round 5 of endless mode.', stat: 'round', goal: 5, show: n => 'round ' + n + ' / 5' },
     { id: 'going', name: 'Still going', desc: 'Reach round 15 of endless mode.', stat: 'round', goal: 15, show: n => 'round ' + n + ' / 15' },
     { id: 'crazy', name: 'Crazy', desc: 'Beat two bosses at once.' },
     { id: 'crazier', name: 'Crazier', desc: 'Win 10 crazy mode fights.', stat: 'crazyWins', goal: 10 },
+    { id: 'brawl', name: 'Everyone at once', desc: 'Beat every boss at the same time.' },
     { id: 'herp', name: 'U are herp', desc: 'Colonex bills the bosses over 10,000,000$ in total.', stat: 'billed', goal: 1e7, show: n => Math.floor(n).toLocaleString('en-GB') + '$ / 10,000,000$' },
     { id: 'premium', name: 'Premium product', desc: 'Buy something after the price rise.' },
     { id: 'married', name: "Don't eat this if you're married", desc: 'Eat 10 Shilajit jars in one run.', stat: 'shilajit', goal: 10, show: n => n + ' / 10 in one run' },
@@ -177,6 +183,9 @@
     { id: 'hive', name: 'Hive mind', desc: 'Your bees catch 5,000 things in total.', stat: 'beeCatches', goal: 5000, show: n => Math.floor(n).toLocaleString('en-GB') + ' / 5,000' },
     { id: 'regular', name: 'Supermarket regular', desc: 'Get hurt 100 times in total, by anything.', stat: 'hurts', goal: 100 },
     { id: 'real', name: 'The real thing', desc: 'Join the waitlist.' },
+    { id: 'pest', name: 'Pest control', desc: 'Beat Vespa mandarinia.' },
+    { id: 'longlive', name: 'Long live the queen', desc: 'Beat Vespa mandarinia with the queen bee, without her ever going down.' },
+    { id: 'swatter', name: 'Swatter', desc: 'Swat 50 mini hornets with the spoon.', stat: 'swats', goal: 50 },
   ];
   const LOCK_SVG = '<svg viewBox="0 0 16 16" width="11" height="11" aria-hidden="true" style="vertical-align:-1px"><rect x="3" y="7" width="10" height="8" rx="1.5" fill="currentColor"/><path d="M5 7V5a3 3 0 0 1 6 0v2" stroke="currentColor" stroke-width="2" fill="none"/></svg>';
   const CHECK_SVG = '<svg viewBox="0 0 16 16" width="16" height="16"><path d="M3 8.5l3.2 3.2L13 4.8" stroke="currentColor" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -247,6 +256,18 @@
       lose: 'The Disprover proved his point. Zero IQ.',
       attacks: ['barrage', 'hexagons', 'missingLink', 'quarks', 'fishLegs', 'bigbang'],
     },
+    {
+      key: 'hornet', name: 'Vespa mandarinia', tag: 'Giant hornet', sub: 'The northern giant hornet. It came for the hives.', hp: 640,
+      intro: 'I am a talking hornet.',
+      lines: ['I am a talking hornet.', "I don't make honey. I take it.", 'Thirty of us. Thirty thousand of you. Do the maths.', "I'm not invasive. I'm expanding.",
+        "Murder hornet? It's called meal prep.", 'They misrepresented me in Ant-Man.', 'Your grandad has a tennis racket. I have a stinger.', 'Nice hive. Shame if someone raided it.',
+        'Bees dance. Hornets eat.', 'October is my season.', 'Raw honey? I prefer raw bees.'],
+      p2line: 'Fine. Bring your whole hive.', p2attacks: ['stingerFan'],
+      p3line: 'Slaughter phase.', p3attacks: ['swarm', 'diveBite', 'diveBite'],
+      defeat: 'Tell Ant-Man... he was right.',
+      lose: 'Vespa mandarinia raided the hive. Thirty of them. One of you.',
+      attacks: ['minis', 'stinger', 'hawk', 'nest', 'stinger', 'stingAlly', 'minis', 'hawk'],
+    },
   ];
 
   let W = 0, H = 0, DPR = 1, WR = 1, G = 1, GT = 1, WX = 1, HS = 1, NF = 1, THUMB = 0; // G: halfway between fixed size and full width scaling; GT: gentler, for text
@@ -296,10 +317,14 @@
   const REVIVES = 2; // second chances per run, usable anywhere, and two more for endless mode
   let endless = false, endlessNext = 0, endlessRound = 0, revivesLeft = REVIVES, endlessSeen = {};
   let invincible = false, bot = false, frozen = false; // test switches, only reachable with #debug
+  let shieldT = 0, shieldHits = 0, shieldMax = 0; // Honeycomb shield
+  let brawl = null; // fight every boss at once: just for fun, nothing lost either way
+  let runStats = { endlessFights: 0, crazyFights: 0 }; // for the leaderboard
+  let gore = [], beeDown = []; // body parts flying off (Terraria-style deaths); worker bees waiting to come back
   let upg, pcd, readyAt, bees = [], smokeT = 0, magnetT = 0, extractT = 0, extractRun = null, shedFromPause = false, allyQueue = null, shedSel = null, shedPending = null, shedPinned = false, hikeSaid = false, smokeSlow = 0.6, smokeDur = 3, magnetReach = 0.15;
   let knightHint = false, qd = null, savings = 0, fightSaved = 0, crazyOn = false, chat = null, fightHits = 0, comboT = 0, kgSpent = 0, endlessBag = [], lastEndless = -1;
-  let best = { kg: 0, time: 0, endless: 0 };
-  try { const s = JSON.parse(localStorage.getItem('honey-gobbler-3') || '{}'); best.kg = +s.kg || 0; best.time = +s.time || 0; best.endless = +s.endless || 0; } catch (e) {}
+  let best = { kg: 0, time: 0, endless: 0, brawl: 0 };
+  try { const s = JSON.parse(localStorage.getItem('honey-gobbler-3') || '{}'); best.kg = +s.kg || 0; best.time = +s.time || 0; best.endless = +s.endless || 0; best.brawl = +s.brawl || 0; } catch (e) {}
   function saveBest() { try { localStorage.setItem('honey-gobbler-3', JSON.stringify(best)); } catch (e) {} }
   let achData = { done: {}, stats: {} };
   try { const s = JSON.parse(localStorage.getItem('honey-gobbler-ach') || '{}'); if (s.done) achData.done = s.done; if (s.stats) achData.stats = s.stats; } catch (e) {}
@@ -311,7 +336,11 @@
   let achPrev = null, toastQ = [], toastBusy = false;
 
   function spoonSize() { return Math.max(44, 70 * G); }
-  function bossK() { return Math.min(1.3 * (0.3 + 0.7 * WR), Math.max(0.6, H / 520)); }
+  function bossK() { const k = Math.min(1.3 * (0.3 + 0.7 * WR), Math.max(0.6, H / 520)); return brawl ? Math.min(k * 0.8, Math.max(0.36, laneW() / 200)) : k; } // smaller when everyone is on screen
+  const brawlSlots = () => W >= 1000 ? 8 : W >= 760 ? 5 : W >= 520 ? 4 : 3; // how many fit side by side; the rest wait their turn
+  const laneR = () => W - (W < 560 ? 64 : 76); // clear of the power buttons on the right
+  const laneW = () => (laneR() - 6) / brawl.S;
+  const laneX = (slot, f) => 6 + laneW() * (slot + f);
   function bossHome() { return combBottom() + 50 + 74 * bossK(); }
   function seasonIdx() { return endless ? SEASONS.length - 1 : Math.min(bossIdx, BOSS_COUNT - 1); }
   function endlessLevel() { return endless ? endlessRound + clamp((score - endlessNext + STAGE_KG) / STAGE_KG, 0, 1) : 0; }
@@ -328,16 +357,16 @@
   function nearestFighting(x) { let best = null; for (const b of bosses) if (fighting(b) && (!best || Math.abs(b.x - x) < Math.abs(best.x - x))) best = b; return best; }
 
   function reset() {
-    spoon = { x: W / 2, y: H - spoonSize() * 0.9 - THUMB, tx: W / 2, glow: 0, chew: 0, hurt: 0, fill: 0, tint: '#7cff6b', frozen: 0, slow: 0, drift: 0 };
-    items = []; proj = []; globs = []; particles = []; floaters = []; puddles = []; sticky = []; ambient = [];
+    spoon = { x: W / 2, y: H - spoonSize() * 0.9 - THUMB, tx: W / 2, glow: 0, chew: 0, hurt: 0, fill: 0, tint: '#7cff6b', frozen: 0, slow: 0, drift: 0, venom: 0, venomDps: 0, sting: 0, vx: 0, px: W / 2 };
+    items = []; proj = []; globs = []; particles = []; floaters = []; puddles = []; sticky = []; ambient = []; gore = []; beeDown = [];
     score = 0; purity = 100; combo = 1; streak = 0; comboT = 0; kgSpent = 0; endlessBag = []; lastEndless = -1; addict = 0; elapsed = 0; spawnT = 0.2; rush = 0; shake = 0; flash = 0; hurtFlash = 0; praiseT = 0;
     tally = { drops: 0, jars: 0, boxes: 0, comb: 0, labs: 0, bosses: 0, billed: 0, beeDrops: 0, spent: 0, shilajit: 0, saved: 0, bad: {}, minPurity: 100 };
     lastHit = null; bossIdx = 0; boss = null; bosses = []; phase = 'harvest'; ally = null;
     ev = null; evT = rnd(13, 17); lastEv = ''; heard = new Map(); seenFakes = new Set();
     endless = false; endlessNext = 0; endlessRound = 0; revivesLeft = REVIVES; endlessSeen = {};
-    upg = { thick: 0, bee: 0, colonex: 0, smoker: 0, magnet: 0, extractor: 0, queen: 0, wax: 0, sweet: 0, hives: 0, crazy: 0 }; pcd = { smoker: 0, magnet: 0, extractor: 0, queen: 0 }; readyAt = { smoker: 0, magnet: 0, extractor: 0, queen: 0 };
-    bees = []; smokeT = 0; magnetT = 0; extractT = 0; extractRun = null; allyQueue = null; hikeSaid = false;
-    qd = null; savings = 0; fightSaved = 0; crazyOn = false; chat = null; fightHits = 0; knightHint = false;
+    upg = { thick: 0, bee: 0, colonex: 0, smoker: 0, magnet: 0, extractor: 0, queen: 0, shield: 0, wax: 0, sweet: 0, hives: 0, crazy: 0 }; pcd = { smoker: 0, magnet: 0, extractor: 0, queen: 0, shield: 0 }; readyAt = { smoker: 0, magnet: 0, extractor: 0, queen: 0, shield: 0 };
+    bees = []; smokeT = 0; magnetT = 0; extractT = 0; extractRun = null; shieldT = 0; shieldHits = 0; allyQueue = null; hikeSaid = false;
+    qd = null; savings = 0; fightSaved = 0; crazyOn = false; chat = null; fightHits = 0; knightHint = false; brawl = null; runStats = { endlessFights: 0, crazyFights: 0 };
     updateHud();
   }
 
@@ -359,7 +388,7 @@
   function updateHud() {
     setText('kg', fmtKg(score));
     let next;
-    if (phase === 'boss') next = 'boss fight · shed +' + fmtAdd(fightSaved);
+    if (phase === 'boss') next = brawl ? 'everyone at once · ' + fmtTime(brawl.t) + ' · ' + (BOSS_COUNT - brawl.beaten) + ' left' : 'boss fight · shed +' + fmtAdd(fightSaved);
     else if (endless) next = (crazyOn ? 'Crazy' : 'Endless') + ' · boss at ' + endlessNext + ' kg';
     else if (bossIdx >= BOSS_COUNT) next = 'sold out';
     else next = SEASONS[seasonIdx()].m + ' · boss at ' + thresholdFor(bossIdx) + ' kg';
@@ -388,7 +417,7 @@
       if (!own) continue;
       const p = Math.max(0, 1 - pcd[k] / PW[k](upg[k]).cd).toFixed(2);
       if (hudCache[id] !== p) { hudCache[id] = p; el.style.setProperty('--p', p); }
-      const active = (k === 'smoker' && smokeT > 0) || (k === 'magnet' && magnetT > 0) || (k === 'extractor' && !!extractRun) || (k === 'queen' && !!qd);
+      const active = (k === 'smoker' && smokeT > 0) || (k === 'magnet' && magnetT > 0) || (k === 'extractor' && !!extractRun) || (k === 'queen' && !!qd) || (k === 'shield' && shieldHits > 0);
       const lockQ = k === 'queen' && !queenOk();
       const cls = 'pbtn' + (pcd[k] <= 0 && !lockQ && !(k === 'extractor' && extractRun) ? ' ready' : '') + (active ? ' active' : '') + (lockQ ? ' locked' : '');
       if (el.className !== cls) el.className = cls;
@@ -510,6 +539,7 @@
   addEventListener('keydown', e => {
     keys[e.key] = true;
     if (!$('achScreen').hidden) { if (e.key === 'Escape') { e.preventDefault(); closeAch(); } return; }
+    if (!$('lbScreen').hidden) { if (e.key === 'Escape') { e.preventDefault(); lbClose(); } else if (e.key === 'Enter' && document.activeElement === $('lbName')) { e.preventDefault(); lbSaveName(); } return; }
     if (state === 'shed' && shedFromPause && e.key === 'Escape') { e.preventDefault(); if ($('confirm').hidden) closeShed(); else cancelBuy(); return; }
     if ((e.key === 'p' || e.key === 'P' || e.key === 'Escape') && (state === 'play' || state === 'pause')) {
       if (e.key === 'Escape' && state === 'pause' && performance.now() - lockLostAt < 500) return; // that Escape just freed the mouse and paused
@@ -517,7 +547,7 @@
     }
     if (e.key.startsWith('Arrow')) e.preventDefault();
     if (state === 'play') {
-      const pk = { 1: 'smoker', 2: 'magnet', 3: 'extractor', 4: 'queen' }[e.key];
+      const pk = { 1: 'smoker', 2: 'magnet', 3: 'extractor', 4: 'queen', 5: 'shield' }[e.key];
       if (pk) firePower(pk);
       if (e.key === ' ' && !(e.target instanceof HTMLButtonElement)) { e.preventDefault(); fireReady(); }
     }
@@ -673,6 +703,7 @@
     if (!b) return false;
     if (!o.force && b.say && b.say.t > 1) return false;
     if (!o.force && b.recent.includes(text)) return false; // a line can't come back until two other lines have been said
+    if (!o.force && brawl) { const talk = bosses.filter(x => x !== b && x.say && x.say.t > 0.5); if (talk.length >= 2 || talk.some(x => Math.abs(x.x - b.x) < Math.min(250, W * 0.44) + 24)) return false; } // everyone at once: two at a time, never side by side
     b.say = { text, t: o.dur || lineDur(text) };
     b.recent.push(text); if (b.recent.length > 2) b.recent.shift();
     hear(b.def.name, text);
@@ -727,6 +758,7 @@
   // Honey eaten during a boss fight goes into Grandad's Shed savings at its plain weight (no combo, no Addictive bonus).
   // It never counts towards the next boss, so a long fight can't skip a harvest.
   function fightKg(kg, x, y) {
+    if (brawl) return; // no honey from fighting everyone at once
     savings += kg; fightSaved += kg; tally.saved += kg;
     floatText(x, y - 10, '+' + fmtAdd(kg), '#e9d7ff');
   }
@@ -736,7 +768,7 @@
     if (endless) {
       if (score >= endlessNext) {
         score = endlessNext;
-        const avoid = endlessRound === 0 ? [BOSSES.findIndex(b => b.key === 'disprover')] : []; // you've just beaten him
+        const avoid = endlessRound === 0 ? [BOSS_COUNT - 1] : []; // you've just beaten the last story boss
         const a = nextEndless(avoid);
         if (crazyOn) startFight([a, nextEndless(avoid.concat(a))], true);
         else startFight([a], true);
@@ -758,6 +790,13 @@
   }
   function hurtSpoon(dmg, color, name, opts = {}) {
     if (spoon.hurt > 0 || state !== 'play') return false;
+    if (shieldHits > 0) { // the Honeycomb shield takes it
+      shieldHits--; spoon.hurt = 0.35; spoon.tint = '#ffd36b'; shake = reduceMotion ? 0 : 4; sfx.hit();
+      floatText(spoon.x, spoon.y - 58, shieldHits ? 'Blocked' : 'Shield cracked', '#ffd36b');
+      for (let i = 0; i < 5; i++) splat(spoon.x + rnd(-24, 24), spoon.y - 24 + rnd(-12, 12), '#f2a516', 5);
+      if (!shieldHits) shieldT = 0;
+      return false;
+    }
     if (opts.boss && endless) dmg = Math.round(dmg * (1 + Math.min(1.5, 0.04 * lvOf(opts.boss)))); // endless bosses hit 4% harder per level, slowly up to +150%
     if (upg.wax) dmg = Math.max(1, Math.round(dmg * (1 - 0.05 * upg.wax))); // Beeswax coating
     if (!invincible) { purity = Math.max(0, purity - dmg); tally.minPurity = Math.min(tally.minPurity, purity); }
@@ -790,6 +829,7 @@
     pcd[k] = st.cd;
     if (k === 'smoker') { smokeT = smokeDur = st.dur; smokeSlow = st.slow; floatText(W / 2, H * 0.42, 'SMOKER', '#e8e2d4', true); sfx.smoke(); }
     else if (k === 'magnet') { magnetT = st.dur; magnetReach = st.reach; floatText(W / 2, H * 0.42, 'HONEY MAGNET', '#ffd36b', true); sfx.comb(); }
+    else if (k === 'shield') { shieldT = st.dur; shieldHits = shieldMax = st.hits; floatText(W / 2, H * 0.42, 'HONEYCOMB SHIELD', '#ffd36b', true); sfx.comb(); }
     else launchQueen(st);
     updatePowerUi();
     return true;
@@ -826,6 +866,7 @@
   }
   function updatePowers(dt) {
     smokeT = Math.max(0, smokeT - dt); magnetT = Math.max(0, magnetT - dt); extractT = Math.max(0, extractT - dt);
+    if (shieldT > 0) { shieldT -= dt; if (shieldT <= 0) { shieldT = 0; if (shieldHits) floatText(spoon.x, spoon.y - 58, 'Shield wore off', '#e8e2d4'); shieldHits = 0; } }
     updateExtract(dt);
     for (const k of PKEYS) if (upg[k] && pcd[k] > 0) { pcd[k] -= dt; if (pcd[k] <= 0) { pcd[k] = 0; readyAt[k] = elapsed; sfx.ready(); } }
   }
@@ -875,13 +916,20 @@
       for (const ob of fl) { // each boss she flies through takes the hit
         if (qd.hitList.includes(ob) || Math.hypot(ob.x - qd.x, ob.y - qd.y) >= 62 * bossK()) continue;
         qd.hitList.push(ob); shake = reduceMotion ? 0 : 8;
+        if (ob.def.key === 'hornet') { ob.queenUsed = true; say('Yo cuh stop doin dat', { force: true }, ob); }
         for (let i = 0; i < 3; i++) splat(ob.x + rnd(-30, 30), ob.y + rnd(-30, 30), '#f2a516', 10);
         floatText(ob.x, ob.y - 30 * bossK(), 'ROYAL CHARGE', '#ffd36b');
         damageBoss(qd.dmg, ob);
         if (ob.mode === 'down') achUnlock('royal');
         else if (fighting(ob)) ob.atkT = Math.max(ob.atkT, 0) + 1; // knocked off his next attack for a second
         if (state !== 'play' || !qd) return;
+        if (ob.def.key === 'hornet' && fighting(ob)) { // below the top level the hornet gets her partway through her attack
+          qd.hornetHits = (qd.hornetHits || 0) + 1;
+          const lv = upg.queen || 0, charges = PW.queen(lv).charges;
+          if (lv < MAX_LV && qd.hornetHits >= charges - 1) { killQueen(); return; }
+        }
       }
+      for (const n of proj) if (n.k === 'nest' && !n.dead && Math.hypot(n.x - qd.x, n.y - qd.y) < 70 * queenScale() + n.r) { n.dead = true; nestDown(n); } // she smashes the nest
       if (qd.x < -110 || qd.x > W + 110 || qd.y < combBottom() - 60 || qd.y > H + 60 || qd.t > (fl.length > 1 ? 1.8 : 1.3)) {
         qd.left--;
         if (qd.left > 0 && phase === 'boss' && anyFighting()) { qd.st = 'enter'; qd.t = 0; qd.tgt = null; qd.x = clamp(qd.x, -90, W + 90); qd.y = clamp(qd.y, combBottom() + 40, H * 0.7); }
@@ -913,10 +961,19 @@
   }
   function updateBees(dt) {
     const bs = beeStats(upg.bee);
-    while (bees.length < bs.n) bees.push({ x: spoon.x + rnd(-40, 40), y: spoon.y - 90, tgt: null, rest: 0.4, ph: rnd(0, 6), dir: 1 });
+    for (let i = beeDown.length - 1; i >= 0; i--) { beeDown[i] -= dt; if (beeDown[i] <= 0) beeDown.splice(i, 1); }
+    const ballOf = bosses.find(b => b.ball && fighting(b));
+    while (bees.length + beeDown.length < bs.n) bees.push({ x: spoon.x + rnd(-40, 40), y: spoon.y - 90, tgt: null, rest: 0.4, ph: rnd(0, 6), dir: 1 });
     const sp = BEE_SPEED * G * bs.speed * (0.6 + 0.4 * fallMul());
     bees.forEach((b, bi) => {
       b.ph += dt; b.rest = Math.max(0, b.rest - dt);
+      if (ballOf) { // bee ball: every bee piles onto the hornet
+        const a = b.ph * 5 + bi * 1.3, rr = 30 * bossK();
+        const tx = ballOf.x + Math.cos(a) * rr, ty = ballOf.y + Math.sin(a * 1.3) * rr * 0.8;
+        b.x += (tx - b.x) * Math.min(1, dt * 8); b.y += (ty - b.y) * Math.min(1, dt * 8); b.dir = Math.cos(a) < 0 ? 1 : -1;
+        if (b.tgt) { b.tgt.bee = null; b.tgt = null; }
+        return;
+      }
       if (b.tgt && !items.includes(b.tgt)) b.tgt = null;
       if (b.carry && !items.includes(b.carry)) b.carry = null;
       if (b.carry) { // flying a fake off the nearest side of the screen
@@ -1062,33 +1119,78 @@
   // ---------- boss flow ----------
   // `bosses` holds the boss you're fighting, or two of them in crazy mode. While one of them acts, the global
   // `boss` points at it, so say(), the attacks and the projectiles they throw all know who they belong to.
-  function makeBoss(i, isEndless, slot, n) {
-    const def = BOSSES[i], k = bossK();
+  function makeBoss(i, isEndless, slot, n, bl) {
+    const def = BOSSES[i], k = bossK(), inBrawl = bl !== undefined;
     // endless: how hard this boss is depends on how many times you've met him this run (first time 0, then 4, 8, 12...);
-    // in crazy mode they count as met once more
-    const elv = isEndless ? ENDLESS_STEP * ((endlessSeen[i] = (endlessSeen[i] || 0) + 1) - 1 + (n > 1 ? 1 : 0)) : 0;
-    const hp = isEndless ? Math.round((def.ehp || def.hp) * (0.8 + 0.25 * elv)) : def.hp;
-    const x = n > 1 ? W * (slot ? 0.75 : 0.25) : W / 2;
+    // in crazy mode they count as met once more. Fighting everyone at once doesn't count as meeting them.
+    const elv = inBrawl ? bl : isEndless ? ENDLESS_STEP * ((endlessSeen[i] = (endlessSeen[i] || 0) + 1) - 1 + (n > 1 ? 1 : 0)) : 0;
+    const hp = isEndless ? Math.round((def.ehp || def.hp) * (0.8 + 0.25 * elv) * (inBrawl ? BRAWL_HP * (brawl.S >= 5 ? 1 : 0.8) : 1)) : def.hp; // fewer fit on a phone, so a bit less each
+    const x = inBrawl ? laneX(slot, 0.5) : n > 1 ? W * (slot ? 0.75 : 0.25) : W / 2;
     return {
       def, i, slot, n, x, tx: x, y: -160 * k, hp, max: hp, t: 0, mode: 'intro', endless: isEndless, done: false,
       atkT: 1.2 + slot * 1.5, atkI: 0, sayT: 4.5 + slot * 3, say: null, recent: [], hurt: 0, pose: 0, wanderT: 1, rot: 0, vy: 0, alpha: 1, scale: 1,
       forceNext: null, p2: false, pushup: 0, repT: 0, reps: 0,
       // two at once each attack a little less often
-      speed: (isEndless ? Math.max(0.45, 0.9 - 0.06 * elv) : 1) * (n > 1 ? 1.25 : 1) * (def.pace || 1), elv,
+      speed: (isEndless ? Math.max(0.45, 0.9 - 0.06 * elv) : 1) * (inBrawl ? BRAWL_PACE : n > 1 ? 1.25 : 1) * (def.pace || 1), elv, brawl: inBrawl,
     };
   }
   function startFight(ids, isEndless = false) {
     phase = 'boss'; ev = null;
     items.forEach(it => { if (it.kind === 'bad') splat(it.x, it.y, it.f.color, 6); });
     items = []; proj = []; globs = [];
-    bosses = ids.map((i, sl) => makeBoss(i, isEndless, sl, ids.length));
+    bosses = ids.map((i, sl) => makeBoss(i, isEndless, sl, ids.length, brawl ? brawl.lv : undefined));
     boss = bosses[0];
     ally = null; fightSaved = 0; fightHits = 0;
-    chat = bosses.some(b => b.def.key === 'looks') ? { msgs: [], nextT: 2.4, viewers: 38000 + Math.floor(rnd(0, 3000)), flood: 0, recent: [], reactT: 0 } : null;
+    chat = bosses.some(b => b.def.key === 'looks') ? newChat() : null;
     spawnT = 1.4;
     sfx.bossIn();
   }
   function startBoss(i) { startFight([i]); }
+  function newChat() { return { msgs: [], nextT: 2.4, viewers: 38000 + Math.floor(rnd(0, 3000)), flood: 0, recent: [], reactT: 0 }; }
+  const BRAWL_HP = 0.35, BRAWL_PACE = 1.35;
+  // Fight every boss at once. Bought with crazy mode. Everything about your run is put back afterwards, win or lose.
+  function startBrawl() {
+    if (state !== 'shed' || shedFromPause || !upg.crazy || brawl) return;
+    const order = [...Array(BOSS_COUNT).keys()].sort(() => Math.random() - .5), S = Math.min(BOSS_COUNT, brawlSlots());
+    brawl = {
+      snap: { purity, combo, streak, comboT, addict, savings, revivesLeft, tally: JSON.parse(JSON.stringify(tally)) },
+      t: 0, S, queue: order.slice(S), beaten: 0, active: [], rotT: 0, rotI: 0,
+      lv: ENDLESS_STEP * (1 + Math.floor(runStats.crazyFights / 4)), // harder the further you've got in crazy mode
+      atkN: S >= 5 ? 3 : 2, // how many attack at a time; the rest only talk
+    };
+    $('shedScreen').hidden = true; state = 'play'; last = performance.now(); $('toast').classList.remove('low');
+    purity = 100; combo = 1; streak = 0; addict = 0; rush = 0; items = []; sticky = [];
+    Object.assign(spoon, { hurt: 0, frozen: 0, slow: 0, venom: 0, sting: 0 });
+    startFight(order.slice(0, S), true);
+    updateHud(); lockMouse();
+  }
+  function brawlTurns(dt) { // a few attack at a time, taking turns from left to right
+    brawl.active = brawl.active.filter(fighting);
+    brawl.rotT -= dt;
+    if (brawl.rotT <= 0) { brawl.rotT = 8; brawl.active = []; }
+    const want = Math.min(4, brawl.atkN + (brawl.lv >= 16 ? 1 : 0));
+    const free = bosses.filter(b => fighting(b) && !brawl.active.includes(b)).sort((a, c) => a.slot - c.slot);
+    while (brawl.active.length < want && free.length) {
+      const j = free.findIndex(b => b.slot >= brawl.rotI), b = free.splice(j >= 0 ? j : 0, 1)[0];
+      brawl.rotI = b.slot + 1; brawl.active.push(b); b.atkT = Math.min(b.atkT, rnd(0.5, 1.5));
+    }
+  }
+  const brawlWaiting = b => !!(brawl && b.brawl && fighting(b) && !brawl.active.includes(b));
+  function brawlEnd(won) {
+    const s = brawl.snap, time = brawl.t, beaten = brawl.beaten;
+    brawl = null; boss = null; bosses = []; chat = null; qd = null; ally = null; proj = []; globs = []; sticky = [];
+    purity = s.purity; combo = s.combo; streak = s.streak; comboT = s.comboT; addict = s.addict; rush = 0; savings = s.savings; revivesLeft = s.revivesLeft; tally = s.tally;
+    Object.assign(spoon, { hurt: 0, frozen: 0, slow: 0, venom: 0, sting: 0 }); shieldT = 0; shieldHits = 0; hurtFlash = 0; shake = 0;
+    let line;
+    if (won) {
+      const rec = !best.brawl || time < best.brawl;
+      if (rec) { best.brawl = time; saveBest(); }
+      achUnlock('brawl');
+      line = 'All eight at once, in ' + fmtTime(time) + '.' + (rec ? " That's your best." : ' Your best is ' + fmtTime(best.brawl) + '.') + ' Nothing lost, boy.';
+    } else line = 'You beat ' + beaten + ' of ' + BOSS_COUNT + ' in ' + fmtTime(time) + '. Nothing lost. Your run carries on.';
+    openShed();
+    grandadSay(line);
+  }
   // a boss can't repeat a line until two other lines have been said
   function nextLine(b) {
     const fresh = b.def.lines.filter(l => !b.recent.includes(l));
@@ -1101,6 +1203,16 @@
       updateBoss(dt, b);
       if (state !== 'play' || phase !== 'boss') return;
     }
+    if (brawl) {
+      brawl.t += dt;
+      for (let j = 0; j < bosses.length; j++) {
+        if (!bosses[j].done || !brawl.queue.length) continue;
+        const nb = bosses[j] = makeBoss(brawl.queue.shift(), true, bosses[j].slot, BOSS_COUNT, brawl.lv); // the next one drops into the gap
+        nb.quiet = true; sfx.bossIn();
+        if (nb.def.key === 'looks' && !chat) chat = newChat();
+      }
+      brawlTurns(dt);
+    }
     if (bosses.every(b => b.done)) { finishFight(); return; }
     boss = bosses.find(fighting) || bosses.find(b => !b.done);
   }
@@ -1111,7 +1223,7 @@
     const home = bossHome();
     if (b.mode === 'intro') {
       b.y = -160 * k + (home + 160 * k) * ease(Math.min(1, b.t / 1.5));
-      if (b.t > 2.9) { b.mode = 'fight'; b.t = 0; say(b.def.intro, { force: true }); b.sayT = b.say.t + 1.5 + b.slot * 2; }
+      if (b.t > 2.9) { b.mode = 'fight'; b.t = 0; b.sayT = say(b.def.intro, { force: !b.brawl }) ? b.say.t + 1.5 + b.slot * 2 : rnd(1, 5); }
       return;
     }
     if (b.mode === 'down') {
@@ -1124,13 +1236,49 @@
         b.alpha = b.t > 7.2 ? Math.max(0, 1 - (b.t - 7.2) / 0.4) : 1;
         if (b.t > 7.6) b.done = true;
       } else {
-        b.vy += 520 * dt; b.y += b.vy * dt; b.rot += dt * 2.2 * (b.i % 2 ? -1 : 1); b.alpha = Math.max(0, 1 - b.t / 2.2);
+        b.vy += 520 * dt; b.y += b.vy * dt; b.rot += dt * 2.2 * (b.i % 2 ? -1 : 1); b.alpha = b.gone ? 0 : Math.max(0, 1 - b.t / 2.2);
         if (Math.random() < 0.3) splat(b.x + rnd(-30, 30), b.y + rnd(-30, 30), '#f2a516', 3);
         if (b.t > 3.2) b.done = true;
       }
       return;
     }
     if (b.mode === 'dash') { updateDash(dt * (smokeT > 0 ? smokeSlow : 1), b); return; }
+    if (b.stun > 0) { b.stun -= dt; b.y = home + (b.yOff || 0) + Math.sin(b.t * 30) * 3 * k; return; } // knocked out of the sky: no moving, no attacks
+    if (b.def.p3attacks && !b.p3 && b.hp / b.max <= 0.25) { // the hornet's slaughter phase
+      b.p3 = true;
+      floatText(W / 2, H * 0.42, 'SLAUGHTER PHASE', '#ff5a3c', true);
+      say(b.def.p3line, { force: true }); b.sayT = b.say.t + 1.5;
+      b.forceNext = b.def.p3attacks[0]; b.atkT = Math.min(b.atkT, 1.2);
+      sfx.phase2(); shake = reduceMotion ? 0 : 12;
+    }
+    if (b.def.key === 'hornet') {
+      if (b.p2 && !b.ball) { // bee ball: three or more worker bees mob him and cook him with body heat
+        b.ballT = (b.ballT ?? 2) - dt;
+        if (b.ballT <= 0 && bees.length >= 3 && !b.hawk) { b.ball = { t: 0, dur: 3.5, acc: 0 }; floatText(W / 2, H * 0.42, 'BEE BALL', '#ffd36b', true); say("Why is it so hot in here?", { force: true }); }
+      }
+      if (b.ball) {
+        const r = b.ball;
+        r.t += dt; r.acc += dt * (3 + 1.6 * bees.length); b.atkT += dt; // he can't attack while he's cooking
+        if (r.acc >= 4) { damageBoss(Math.round(r.acc), b); r.acc = 0; if (!fighting(b) || state !== 'play') return; }
+        if (r.t > r.dur || bees.length < 2) { b.ball = null; b.ballT = 22; }
+      }
+      if (b.hawk) { // hovering by the hive entrance, snatching honey
+        const hk = b.hawk; hk.t += dt; // (returning early below also pauses his attacks)
+        let tx = clamp(spoon.x + hk.side * 110 * Math.max(0.7, G), 50, W - 50);
+        if (magnetT > 0 && Math.abs(b.x - spoon.x) < magR() * 1.3) { tx = clamp(b.x + Math.sign(b.x - spoon.x || hk.side) * 260, 50, W - 50); if (!hk.pushed) { hk.pushed = true; floatText(b.x, b.y - 40 * k, 'Pushed off', '#ffd36b'); } }
+        const ty = Math.max(home, spoon.y - 170 * k);
+        b.x += (tx - b.x) * Math.min(1, dt * 3); b.y += (ty - b.y) * Math.min(1, dt * 3); b.yOff = b.y - home;
+        for (let i = items.length - 1; i >= 0; i--) {
+          const it = items[i];
+          if (it.kind === 'bad' || it.held || it.suck || Math.hypot(it.x - b.x, it.y - b.y) > 70 * k) continue;
+          items.splice(i, 1); splat(it.x, it.y, '#b05a14', 5);
+          if (hk.said <= 0) { floatText(b.x, b.y - 46 * k, 'Snatched!', '#ff9a8a'); hk.said = 0.8; }
+        }
+        hk.said -= dt;
+        if (hk.t > hk.dur) b.hawk = null;
+        return;
+      }
+    }
     if (!b.p2 && b.hp / b.max <= 0.5) {
       b.p2 = true;
       floatText(W / 2, H * 0.42, 'PHASE 2', '#ff5a3c', true);
@@ -1151,18 +1299,20 @@
       }
     }
     b.wanderT -= dt;
-    if (b.wanderT <= 0) { b.tx = b.n > 1 ? W * (b.slot ? rnd(0.62, 0.88) : rnd(0.12, 0.38)) : W * rnd(0.2, 0.8); b.wanderT = rnd(1.4, 2.8); }
+    if (b.wanderT <= 0) { b.tx = b.brawl ? laneX(b.slot, rnd(0.3, 0.7)) : b.n > 1 ? W * (b.slot ? rnd(0.62, 0.88) : rnd(0.12, 0.38)) : W * rnd(0.2, 0.8); b.wanderT = rnd(1.4, 2.8); }
     if (b.pushup <= 0) b.x += (b.tx - b.x) * Math.min(1, dt * 1.8);
-    b.y = home + Math.sin(b.t * 2.2 + b.slot * 1.7) * 6 * k;
+    b.yOff = (b.yOff || 0) * Math.max(0, 1 - dt * 3); // easing back after hawking low
+    b.y = home + Math.sin(b.t * 2.2 + b.slot * 1.7) * 6 * k + b.yOff;
     b.sayT -= dt;
     if (b.sayT <= 0) { b.sayT = say(nextLine(b)) ? b.say.t + rnd(1.5, 3) + (b.n > 1 ? 2.5 : 0) : 1; }
-    b.atkT -= dt;
+    if (brawlWaiting(b)) b.atkT = Math.max(b.atkT, 0.6); // waiting for his turn: talking only
+    else b.atkT -= dt;
     if (b.atkT <= 0) {
-      const list = b.p2 ? b.def.attacks.concat(b.def.p2attacks) : b.def.attacks;
+      const list = b.p3 ? b.def.attacks.concat(b.def.p2attacks, b.def.p3attacks) : b.p2 ? b.def.attacks.concat(b.def.p2attacks) : b.def.attacks;
       const a = b.forceNext || list[b.atkI++ % list.length];
       b.forceNext = null;
       const cd = ATTACKS[a](b) || 2.5;
-      b.atkT = cd * (b.p2 ? 0.8 : 1) * b.speed;
+      b.atkT = cd * (b.p2 ? 0.8 : 1) * (b.p3 ? 0.85 : 1) * b.speed;
       b.pose = 0.8;
     }
   }
@@ -1174,6 +1324,10 @@
       const u = Math.min(1, d.t / 0.45);
       b.x = d.fx + (d.tx - d.fx) * u; b.y = d.fy + (d.ty - d.fy) * u;
       if (!reduceMotion) for (let i = 0; i < 3; i++) particles.push({ x: b.x + rnd(-70, 70) * k, y: b.y + 70 * k, vx: rnd(-90, 90), vy: rnd(-200, -60), r: rnd(1.5, 3.5), life: .5, color: '#f4f8ff' });
+      if (b.def.key === 'hornet' && qd && qd.mode === 'boss' && qd.st === 'go' && Math.hypot(b.x - qd.x, b.y - qd.y) < 70 * k) { // queen duel
+        if ((upg.queen || 0) >= 6) { b.stun = 2; b.mode = 'fight'; b.dash = null; b.tx = b.x; damageBoss(qd.dmg * 2, b); floatText(b.x, b.y - 46 * k, 'KNOCKED OUT', '#ffd36b'); say('Yo cuh stop doin dat', { force: true }, b); return; }
+        killQueen('The hornet got her');
+      }
       if (!d.hit && Math.hypot(b.x - spoon.x, b.y - spoon.y) < 58 * k + spoonSize() * 0.35) {
         d.hit = true; hurtSpoon(d.dmg, d.color, d.name, { boss: b });
         if (state !== 'play') return;
@@ -1193,7 +1347,12 @@
     if (b.hp <= 0) defeatBoss(b);
   }
   function defeatBoss(b) {
-    b.hp = 0; b.mode = 'down'; b.t = 0; b.vy = -220; b.dash = null; b.say = null; b.pushup = 0;
+    b.hp = 0; b.mode = 'down'; b.t = 0; b.vy = -220; b.dash = null; b.say = null; b.pushup = 0; b.hawk = null; b.ball = null; b.stun = 0;
+    if (b.def.key === 'hornet') { // he breaks into pieces, Terraria-style
+      shatter('hornet', b.x, b.y, bossK() * 0.9, spoon.x < b.x); b.alpha = 0; b.gone = true;
+      for (const q of proj) if (q.owner === b && (q.k === 'mini' || q.k === 'nest')) q.dead = true;
+      if (b.queenUsed && !b.queenDied) achUnlock('longlive');
+    }
     say(b.def.defeat, { force: true, dur: b.def.joins && !b.endless ? 3.2 : 3 }, b);
     if (bosses.some(o => o !== b && fighting(o))) {
       // the other boss fights on, so only this one's attacks disappear
@@ -1203,20 +1362,22 @@
       proj = []; globs = []; ally = null;
     }
     for (let i = 0; i < 4; i++) splat(b.x + rnd(-40, 40), b.y + rnd(-40, 40), '#f2a516', 14);
-    tally.bosses++;
+    tally.bosses++; if (b.brawl && brawl) brawl.beaten++;
     const h = heal(25);
     floatText(W / 2, H * 0.47, 'DEFEATED!', '#ffd36b', true);
     if (h > 0) floatText(spoon.x, spoon.y - 60, '+' + Math.round(h) + '% purity', '#ffe9a8');
     sfx.bossDown(); shake = reduceMotion ? 0 : 12;
     if (b.def.key === 'looks') chatReact('Clipping this', 3);
-    const a = { keeper: fightHits === 0 ? 'trust' : null, colonex: 'blacklist', ceo: 'fired', ironfit: 'bigman', apologist: 'notes', looks: 'mogger', disprover: 'blocked' }[b.def.key];
+    const a = { keeper: fightHits === 0 ? 'trust' : null, colonex: 'blacklist', ceo: 'fired', ironfit: 'bigman', apologist: 'notes', looks: 'mogger', disprover: 'blocked', hornet: 'pest' }[b.def.key];
     if (a) achUnlock(a);
   }
   function finishFight() {
+    if (brawl) { brawlEnd(true); return; }
     const wasEndless = bosses[0].endless, two = bosses.length > 1;
+    if (wasEndless) { runStats.endlessFights++; if (two) runStats.crazyFights++; }
     boss = null; bosses = []; chat = null; qd = null; ally = null;
     if (two) { achUnlock('crazy'); achAdd('crazyWins', 1); }
-    if (wasEndless) { endlessRound++; endlessNext += STAGE_KG; achStat('round', endlessRound + 1); openShed(); return; }
+    if (wasEndless) { endlessRound++; endlessNext += STAGE_KG; achStat('round', endlessRound + 1); lbSubmit(lbEntry(), null); openShed(); return; } // saved after every round, quietly
     bossIdx++;
     achStat('season', bossIdx);
     if (bossIdx >= BOSS_COUNT) { phase = 'done'; win(); return; }
@@ -1226,7 +1387,7 @@
   // ---------- Colonex as an ally ----------
   // He fights with you once you've beaten him, but never against himself: if he's one of the bosses, he isn't on your side.
   function allyPos() { return W < 560 ? { x: 36, y: H * 0.64 } : { x: 60, y: H * (chat ? 0.66 : 0.5) }; }
-  function allyActive() { return (endless || bossIdx >= 2) && anyFighting() && !bosses.some(b => b.def.key === 'colonex'); }
+  function allyActive() { return (endless || bossIdx >= 2) && anyFighting() && !brawl && !bosses.some(b => b.def.key === 'colonex'); } // when everyone's against you, so is he
   function allyLine() {
     const tb = pick(bosses.filter(fighting));
     for (let tries = 0; tries < 10; tries++) {
@@ -1245,8 +1406,9 @@
     if (!ally) ally = { t: 0, shootT: 2.2, sayT: allyQueue ? 0.5 : 1.2, say: null, recent: [] };
     const p = allyPos();
     ally.t += dt; ally.x = p.x; ally.y = p.y + Math.sin(ally.t * 1.6) * 10;
+    if (ally.stun > 0) ally.stun -= dt;
     ally.shootT -= dt;
-    if (ally.shootT <= 0) {
+    if (ally.shootT <= 0 && !(ally.stun > 0)) {
       const L = allyStats(upg.colonex);
       ally.shootT = rnd(L.lo, L.hi);
       const text = feeText(pick(ALLY_FEES), L.fee), vat = Math.random() < 0.35 ? Math.max(1, Math.round((parseInt(text, 10) || 0) * 0.05)) : 0; // some invoices come with 5% VAT
@@ -1336,6 +1498,65 @@
     });
     sfx.whoosh();
   }
+  // ---------- the hornet ----------
+  const hornetOf = () => bosses.find(b => b.def.key === 'hornet' && fighting(b));
+  const hornetAim = () => (qd && qd.mode === 'boss' && qd.st !== 'exit' ? { x: qd.x, y: qd.y, queen: true } : { x: spoon.x, y: spoon.y }); // while the queen is out, he goes after her
+  function nearestBee(x, y) { let best = null, bd = 1e9; for (const b of bees) { const d = Math.hypot(b.x - x, b.y - y); if (d < bd) { bd = d; best = b; } } return best; }
+  function killBee(bee) {
+    const i = bees.indexOf(bee); if (i < 0) return;
+    bees.splice(i, 1); beeDown.push(4); // she's back in 4 s
+    if (bee.tgt && bee.tgt.bee === bee) bee.tgt.bee = null;
+    if (bee.carry) { bee.carry.held = null; bee.carry = null; }
+    splat(bee.x, bee.y, '#f2c94c', 6); floatText(bee.x, bee.y - 14, 'Bee down', '#ff9a8a');
+  }
+  function spawnMini(b, x, y) {
+    if (proj.filter(q => q.k === 'mini' && !q.dead).length >= 8) return;
+    proj.push(P({ k: 'mini', name: 'Mini hornet', color: '#e89a2c', x, y, r: 10, dmg: 8, life: 9, owner: b, ph: rnd(0, 6) }));
+  }
+  function shootStinger(b, da) {
+    const k = bossK(), x0 = b.x + 24 * k * (spoon.x < b.x ? -1 : 1), y0 = b.y + 22 * k, aim = hornetAim(), a = Math.atan2(aim.y - y0, aim.x - x0) + da;
+    proj.push(P({ k: 'stinger', name: 'Stinger', color: '#2a1606', x: x0, y: y0, vx: Math.cos(a) * 360, vy: Math.sin(a) * 360, r: 7, dmg: 6, ang: a }));
+  }
+  // mini hornets hunt your worker bees (or you, if you have none); swipe the spoon through one to swat it
+  function updateMini(p, dt, S) {
+    p.ph += dt * 40;
+    if (Math.abs(spoon.vx) > 650 * G && Math.abs(p.x - spoon.x) < S * 0.65 && Math.abs(p.y - (spoon.y - 10)) < S * 0.6) {
+      p.dead = true; splat(p.x, p.y, '#e89a2c', 8); floatText(p.x, p.y - 16, 'Swatted!', '#ffd36b'); achAdd('swats', 1, true); sfx.hit();
+      return true;
+    }
+    if (p.t > p.life || p.leave) { p.vx *= 0.96; p.vy = -320; if (p.y < combBottom() - 40) p.dead = true; return false; }
+    if (!p.bee || !bees.includes(p.bee)) p.bee = nearestBee(p.x, p.y);
+    const tg = p.bee || { x: spoon.x, y: spoon.y - 10 }, sp = (p.bee ? 230 : 170) * Math.max(0.7, G);
+    const want = Math.atan2(tg.y - p.y, tg.x - p.x), cur = p.vx || p.vy ? Math.atan2(p.vy, p.vx) : want;
+    const a = cur + clamp(Math.atan2(Math.sin(want - cur), Math.cos(want - cur)), -4 * dt, 4 * dt);
+    p.vx = Math.cos(a) * sp; p.vy = Math.sin(a) * sp;
+    if (p.bee && Math.hypot(p.bee.x - p.x, p.bee.y - p.y) < 16 * G + 6) { killBee(p.bee); p.bee = null; p.kills = (p.kills || 0) + 1; if (p.kills >= 2) p.leave = true; }
+    return false;
+  }
+  function stunAlly() {
+    if (!ally) return;
+    ally.stun = Math.max(1.2, 4 - 0.25 * (upg.colonex || 0)); // a better-paid Colonex shakes it off faster
+    ally.shootT = Math.max(ally.shootT, ally.stun);
+    ally.say = { text: '500$ sting fee', t: 3 }; ally.sayT = 4;
+    floatText(ally.x, ally.y - 50, 'STUNG', '#ff9a8a');
+  }
+  // Terraria-style deaths: the body breaks into parts that tumble off the screen
+  function shatter(kind, x, y, sc, flip) {
+    const parts = kind === 'hornet' ? ['hwing', 'hwing', 'habdomen', 'hthorax', 'hhead'] : ['qwing', 'qwing', 'qabdomen', 'qthorax', 'qhead'];
+    for (const part of parts) gore.push({ part, x: x + rnd(-14, 14) * sc, y: y + rnd(-10, 10) * sc, vx: rnd(-280, 280), vy: rnd(-460, -160), rot: rnd(0, 6), vr: rnd(-9, 9), sc, flip, life: 3.2 });
+  }
+  function updateGore(dt) {
+    for (let i = gore.length - 1; i >= 0; i--) { const g = gore[i]; g.vy += 950 * dt; g.x += g.vx * dt; g.y += g.vy * dt; g.rot += g.vr * dt; g.life -= dt; if (g.y > H + 90 || g.life <= 0) gore.splice(i, 1); }
+  }
+  function killQueen(why) { // the hornet gets her; she's back next time you call her
+    if (!qd) return;
+    const h = hornetOf();
+    if (h) h.queenDied = true;
+    shatter('queen', qd.x, qd.y, queenScale(), Math.cos(qd.ang) < 0);
+    floatText(qd.x, qd.y - 40, why || 'Queen down', '#ff9a8a');
+    sfx.bossDown(); qd = null;
+  }
+
   const ATTACKS = {
     // 1. The Sus Beekeeper
     toss(b) {
@@ -1715,6 +1936,58 @@
       }
       return 3.0;
     },
+    // 8. Vespa mandarinia
+    minis(b) {
+      say(pick(['Lads. The bees.', 'Go get the workers.', 'Thirty of us. Thirty thousand of you. Do the maths.']));
+      const n = Math.min(5, 2 + (b.p2 ? 1 : 0) + Math.floor(lvOf(b) / 6)), k = bossK();
+      for (let i = 0; i < n; i++) spawnMini(b, b.x + rnd(-40, 40) * k, b.y + 20 * k);
+      sfx.whoosh();
+      return 3.0;
+    },
+    stinger(b) {
+      say(pick(['Sting.', 'Hold still.', 'This will sting.']));
+      shootStinger(b, 0);
+      return 2.2;
+    },
+    stingerFan(b) {
+      say('One sting for each of your excuses.');
+      for (const da of [-0.24, 0, 0.24]) shootStinger(b, da);
+      return 2.8;
+    },
+    stingAlly(b) {
+      if (!ally || !allyActive()) return ATTACKS.stinger(b);
+      say('And you, with the invoices.');
+      const k = bossK(), x0 = b.x, y0 = b.y + 10 * k, a = Math.atan2(ally.y - y0, ally.x - x0);
+      proj.push(P({ k: 'stingerAlly', harmless: true, dmg: 0, name: 'Stinger', color: '#2a1606', x: x0, y: y0, vx: Math.cos(a) * 440, vy: Math.sin(a) * 440, r: 7, ang: a }));
+      return 2.4;
+    },
+    hawk(b) { // hovers by your spoon and snatches honey; the magnet pushes him off
+      say(pick(["I'll just wait by the entrance.", 'Hawking. Look it up.', "Is that honey? That's mine now."]));
+      b.hawk = { t: 0, dur: 4.5, side: Math.random() < 0.5 ? -1 : 1, said: 0 };
+      return 5.4;
+    },
+    nest(b) { // a paper nest on the ceiling keeps sending mini hornets until you knock it down with honey
+      if (proj.some(q => q.k === 'nest' && !q.dead)) return ATTACKS.minis(b);
+      say(pick(['Paper nest. Very sustainable.', 'I made this out of your fence.']));
+      const k = bossK(), hp = Math.round(18 * (1 + 0.1 * lvOf(b)));
+      proj.push(P({ k: 'nest', harmless: true, dmg: 0, name: 'Paper nest', color: '#cfc3a8', x: W * rnd(0.15, 0.85), y: combBottom() + 40 * k, r: 26 * k, hp, max: hp, spawnT: 1.4 }));
+      return 2.4;
+    },
+    swarm(b) {
+      say('All of you. Now.');
+      floatText(W / 2, H * 0.4, 'THE SWARM', '#ff5a3c', true);
+      const side = Math.random() < 0.5 ? -1 : 1;
+      for (let i = 0; i < 5; i++) spawnMini(b, side < 0 ? -30 - i * 40 : W + 30 + i * 40, H * 0.3 + (i % 2) * 40);
+      return 3.4;
+    },
+    diveBite(b) {
+      const aim = hornetAim();
+      say(pick(['Bite.', 'Mandibles.', "You're the snack."]));
+      b.mode = 'dash';
+      b.dash = { st: 'tele', t: 0, fx: b.x, fy: b.y, tx: clamp(aim.x, 40, W - 40), ty: aim.queen ? aim.y : spoon.y - 30, dmg: 18, name: 'Mandible bite', color: '#ff9a3c' };
+      sfx.warn();
+      return 3.0;
+    },
     bigbang(b) {
       say('The Big Bang has no legs!');
       sfx.warn();
@@ -1729,6 +2002,10 @@
     const notation = p.k === 'bishop' ? 'Bx' + square(spoon.x, 1) : p.k === 'pawn' ? square(spoon.x, 1) + '=Q' : null; // a pawn that reaches you promotes
     if (!hurtSpoon(p.dmg, p.color, p.name, { boss: o, notation })) return;
     if (p.k === 'call') { spoon.frozen = 1.0; floatText(spoon.x, spoon.y - 82, 'joined vc', '#9aa4ff'); }
+    else if (p.k === 'stinger') { // venom: purity drains for a few seconds and you're slowed; Beeswax coating weakens both
+      spoon.venom = 3.5; spoon.venomDps = 2.2 * (1 - 0.05 * (upg.wax || 0)); spoon.sting = 2.2;
+      floatText(spoon.x, spoon.y - 82, 'venom', '#9be36b');
+    }
     else if (p.k === 'job') { spoon.slow = 2.5; floatText(spoon.x, spoon.y - 82, 'welcome to loksd corporation', '#ffd36b'); }
     else if (p.k === 'deen' && o && fighting(o)) {
       floatText(spoon.x, spoon.y - 82, 'Downloaded DeenBuddy', '#1f9d8f');
@@ -1851,6 +2128,17 @@
         }
         continue;
       }
+      if (k === 'stingerAlly') { // flies at Colonex and stuns him
+        p.x += p.vx * rdt; p.y += p.vy * rdt;
+        if (ally && Math.hypot(ally.x - p.x, ally.y - p.y) < 34) { proj.splice(i, 1); stunAlly(); continue; }
+        if (p.x < -40 || p.x > W + 40 || p.y > H + 40 || p.y < -40) proj.splice(i, 1);
+        continue;
+      }
+      if (k === 'nest') {
+        p.spawnT -= dt;
+        if (p.spawnT <= 0 && p.owner && fighting(p.owner)) { spawnMini(p.owner, p.x, p.y + p.r); p.spawnT = 3.4; }
+        continue;
+      }
       if (k === 'knightBack') {
         let b = p.tgt;
         if (!b || !fighting(b)) b = p.tgt = nearestFighting(p.x);
@@ -1931,6 +2219,7 @@
         if (p.stepT <= 0) { p.ty += 38; p.stepT = 0.34; }
         p.y += (p.ty - p.y) * Math.min(1, pdt * 18);
       } else {
+        if (k === 'mini' && updateMini(p, dt, S)) continue;
         if (k === 'quarks' || k === 'call') {
           if (k === 'quarks') p.a += dt * 8;
           if (p.t < p.life) { // quarks and calls home in on you for their whole life
@@ -2000,10 +2289,21 @@
     }
   }
 
+  function nestDown(n) {
+    for (let i = 0; i < 6; i++) splat(n.x + rnd(-20, 20), n.y + rnd(-20, 20), '#cfc3a8', 8);
+    floatText(n.x, n.y + 30, 'Nest destroyed', '#ffd36b'); sfx.bossDown();
+  }
   function updateGlobs(dt) {
     const k = bossK();
     for (let i = globs.length - 1; i >= 0; i--) {
       const g = globs[i];
+      const nest = proj.find(n => n.k === 'nest' && !n.dead && Math.abs(n.x - g.x) < 90 * k && (!g.tgt || Math.abs(n.x - g.x) < Math.abs(g.tgt.x - g.x)));
+      if (nest) { // honey flicked under the paper nest goes into it instead
+        g.vx = clamp((nest.x - g.x) * 5, -700, 700); g.x += g.vx * dt; g.y += g.vy * dt;
+        if (Math.hypot(g.x - nest.x, g.y - nest.y) < nest.r + g.r + 6) { globs.splice(i, 1); splat(g.x, g.y, '#f2a516', 5); nest.hp -= g.dmg; if (nest.hp <= 0) { nest.dead = true; nestDown(nest); } }
+        else if (g.y < -30) globs.splice(i, 1);
+        continue;
+      }
       if (!g.tgt || !fighting(g.tgt)) g.tgt = nearestFighting(g.x);
       const b = g.tgt;
       if (b) g.vx = clamp((b.x - g.x) * 5, -700, 700); // strong aim assist, at whichever boss is nearest
@@ -2034,12 +2334,21 @@
     spoon.fill = Math.max(0, spoon.fill - dt * .35);
     spoon.frozen = Math.max(0, spoon.frozen - dt);
     spoon.slow = Math.max(0, spoon.slow - dt);
+    spoon.sting = Math.max(0, spoon.sting - dt);
+    if (spoon.venom > 0) {
+      spoon.venom -= dt;
+      if (!invincible) {
+        purity = Math.max(0, purity - spoon.venomDps * dt); tally.minPurity = Math.min(tally.minPurity, purity);
+        if (purity <= 0) { lastHit = { name: 'Venom', boss: hornetOf() || boss, toxin: false }; gameOver(); return; }
+      }
+    }
     updatePowers(dt);
 
     if (bot) { let tgt = null; for (const it of items) if (it.kind !== 'bad' && it.y < spoon.y && (!tgt || it.y > tgt.y)) tgt = it; if (ev && ev.k === 'flow' && ev.t > ev.tele) spoon.tx = ev.x; else if (tgt) spoon.tx = tgt.x; }
     spoon.sticky = sticky.some(s => Math.abs(s.x - spoon.x) < s.w / 2);
     let slow = spoon.sticky ? 1 - 0.9 * waxGrip() : 1;
     if (spoon.slow > 0) slow = Math.min(slow, 0.35);
+    if (spoon.sting > 0) slow = Math.min(slow, 1 - 0.5 * waxGrip()); // stung: slower, less so with Beeswax coating
     if (spoon.frozen > 0) slow = 0;
     let belt = null;
     for (const p of proj) if (p.k === 'belt' && !(p.delay > 0) && p.t < p.life && spoon.x > p.x0 && spoon.x < p.x1) belt = p;
@@ -2051,6 +2360,7 @@
     if (keys.ArrowLeft || keys.a || keys.A) spoon.tx = Math.max(20, spoon.tx - kSpeed * dt);
     if (keys.ArrowRight || keys.d || keys.D) spoon.tx = Math.min(W - 20, spoon.tx + kSpeed * dt);
     spoon.x += (spoon.tx - spoon.x) * Math.min(1, dt * 14 * slow);
+    spoon.vx = (spoon.x - spoon.px) / Math.max(dt, 1e-3); spoon.px = spoon.x; // how fast it's moving, for swatting
 
     if (phase === 'harvest') {
       spawnT -= dt;
@@ -2133,6 +2443,7 @@
     updateAlly(dt);
     updateProj(dt); if (state !== 'play') return;
     updateGlobs(dt); if (state !== 'play') return;
+    updateGore(dt);
     updateAmbient(dt);
 
     for (const c of comb) c.drip = Math.max(0, c.drip - dt * 2);
@@ -2265,12 +2576,15 @@
     else if (side === 'right') { bx = ax + 16; by = ay - bh / 2; }
     else { bx = ax - 16 - bw; by = ay - bh / 2; }
     bx = clamp(bx, o.lo ?? 8, (o.hi ?? W - 8) - bw); by = clamp(by, o.minY || 6, H - bh - 6);
+    const av = o.avoid;
+    if (av && bx < av.x + av.w && bx + bw > av.x && by < av.y + av.h && by + bh > av.y) by = av.y + av.h + 8 + bh < H - 6 ? av.y + av.h + 8 : Math.max(o.minY || 6, av.y - bh - 8);
     bubble(bx, by, bw, bh, ax, ay, discord ? '#313338' : '#fbf8f0', discord ? '#1e1f22' : '#2a1606');
     ctx.textAlign = 'left'; ctx.textBaseline = 'top';
     let y = by + 8;
     if (discord) { ctx.font = `700 ${fs}px "Instrument Sans", sans-serif`; ctx.fillStyle = '#b48cff'; ctx.fillText('Colonex', bx + 13, y); y += head; }
     ctx.font = `600 ${fs}px "Instrument Sans", sans-serif`; ctx.fillStyle = discord ? '#dbdee1' : '#2a1606';
     lines.forEach((l, i) => ctx.fillText(l, bx + 13, y + i * lh));
+    return { x: bx, y: by, w: bw, h: bh };
   }
 
   // ---------- background, seasons, comb ----------
@@ -3060,6 +3374,7 @@
       case 'belt': drawBelt(p, t); return;
       case 'hyper': drawHyper(p, t); return;
       case 'knight': drawKnight(p, t); return;
+      case 'nest': drawNest(p, t); return;
       case 'hammer': drawHammer(p, t); return;
       case 'chop': drawChop(p, t); return;
       case 'crowFly': ctx.save(); ctx.translate(p.x, p.y); ctx.scale(p.dir, 1); drawCrow(t, 1.3 * G, false); ctx.restore(); return;
@@ -3114,6 +3429,10 @@
             if (p.vat) { roundRect(-13, 8, 26, 9, 2); ctx.fillStyle = '#ffd36b'; ctx.fill(); txt('+VAT', 0, 12.5, 6.5, '#2a1606', 900); }
             break;
           case 'knightBack': ctx.scale(p.c / 34 * 0.8, p.c / 34 * 0.8); knightShape(); break;
+          case 'mini': ctx.scale((p.vx < 0 ? -1 : 1) * 0.24, 0.24); drawHornetBody(t, Math.sin(p.ph) * 0.4); break;
+          case 'stinger': case 'stingerAlly':
+            ctx.rotate(p.ang); ctx.fillStyle = '#2a1606'; ctx.beginPath(); ctx.moveTo(12, 0); ctx.lineTo(-8, -3.5); ctx.lineTo(-8, 3.5); ctx.closePath(); ctx.fill();
+            ctx.fillStyle = '#f2a516'; ctx.fillRect(-12, -3, 5, 6); break;
           case 'hexBig':
             hexPath(0, 0, p.r); ctx.fillStyle = 'rgba(242,165,22,.18)'; ctx.fill(); ctx.lineWidth = 4; ctx.strokeStyle = '#f2a516'; ctx.stroke();
             ctx.rotate(-p.rot); txt('cos(kπ/3)', 0, 0, 9, '#ffd36b', 700);
@@ -3494,7 +3813,74 @@
     ctx.fillStyle = '#24170e'; // slicked-back quiff
     ctx.beginPath(); ctx.moveTo(-15.5, -59); ctx.quadraticCurveTo(-17, -75, -6, -80); ctx.quadraticCurveTo(10, -85, 17, -73); ctx.quadraticCurveTo(17, -65, 15.5, -59); ctx.quadraticCurveTo(8, -67, 0, -66); ctx.quadraticCurveTo(-9, -66, -15.5, -59); ctx.closePath(); ctx.fill();
   }
-  const BOSS_DRAW = { keeper: drawKeeper, colonex: drawColonex, ceo: drawCEO, ironfit: drawIronfit, apologist: drawApologist, looks: drawLooks, disprover: drawDisprover };
+  // the giant hornet, side on, faceless: orange head, dark thorax, banded abdomen, a big stinger
+  function hornetWing(flap) {
+    ctx.fillStyle = 'rgba(235,225,200,.38)'; ctx.strokeStyle = 'rgba(255,240,210,.6)'; ctx.lineWidth = 1.2;
+    ctx.save(); ctx.rotate(-0.5 + flap); ctx.beginPath(); ctx.ellipse(-26, -6, 38, 12, 0, 0, TAU); ctx.fill(); ctx.stroke(); ctx.restore();
+  }
+  function hornetAbdomen() {
+    const ab = () => { ctx.beginPath(); ctx.moveTo(-6, -16); ctx.bezierCurveTo(-34, -26, -70, -20, -82, 2); ctx.bezierCurveTo(-70, 22, -34, 26, -6, 16); ctx.closePath(); };
+    ab(); ctx.fillStyle = '#f2a516'; ctx.fill();
+    ctx.save(); ab(); ctx.clip(); ctx.fillStyle = '#3a2410'; for (let i = 0; i < 4; i++) ctx.fillRect(-20 - i * 16, -30, 7, 60); ctx.restore();
+    ctx.fillStyle = '#2a1606'; ctx.beginPath(); ctx.moveTo(-80, -3); ctx.lineTo(-98, 1); ctx.lineTo(-80, 5); ctx.closePath(); ctx.fill(); // stinger
+  }
+  function hornetThorax() { ctx.fillStyle = '#3a2410'; ctx.beginPath(); ctx.ellipse(8, -2, 18, 15, 0, 0, TAU); ctx.fill(); ctx.fillStyle = 'rgba(255,190,120,.18)'; ctx.beginPath(); ctx.ellipse(5, -8, 9, 4, 0, 0, TAU); ctx.fill(); }
+  function hornetHead() { // plain, no face
+    ctx.fillStyle = '#f08a1c'; ctx.beginPath(); ctx.ellipse(36, -2, 15, 14, 0, 0, TAU); ctx.fill();
+    ctx.strokeStyle = '#3a2410'; ctx.lineWidth = 2; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(44, -12); ctx.quadraticCurveTo(52, -26, 62, -26); ctx.moveTo(40, -14); ctx.quadraticCurveTo(44, -30, 54, -34); ctx.stroke();
+  }
+  function hornetLegs(t) {
+    ctx.strokeStyle = '#3a2410'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+    for (let i = 0; i < 3; i++) { const sw = Math.sin(t * 6 + i) * 3; ctx.beginPath(); ctx.moveTo(i * 9, 10); ctx.lineTo(i * 9 - 8 + sw, 26); ctx.lineTo(i * 9 - 2 + sw, 36); ctx.stroke(); }
+    ctx.strokeStyle = '#e0913a'; ctx.lineWidth = 2.4;
+    for (let i = 0; i < 3; i++) { const sw = Math.sin(t * 6 + i) * 3; ctx.beginPath(); ctx.moveTo(i * 9 - 2 + sw, 36); ctx.lineTo(i * 9 + 2 + sw, 40); ctx.stroke(); }
+  }
+  function drawHornetBody(t, flap) {
+    ctx.save(); ctx.translate(6, -10); hornetWing(flap); ctx.restore();
+    hornetLegs(t); hornetAbdomen(); hornetThorax(); hornetHead();
+    ctx.save(); ctx.translate(12, -12); hornetWing(-flap * 0.8 - 0.2); ctx.restore();
+  }
+  function drawHornet(b, t) {
+    ctx.save(); if (spoon.x < b.x) ctx.scale(-1, 1); // faces your spoon
+    ctx.translate(0, Math.sin(t * 9) * 3);
+    drawHornetBody(t, Math.sin(t * 52) * 0.4);
+    if (b.stun > 0) { ctx.scale(spoon.x < b.x ? -1 : 1, 1); for (let i = 0; i < 3; i++) { const a = t * 4 + i * 2.1; txt('*', Math.cos(a) * 34, -52 + Math.sin(a) * 8, 26, '#ffd36b', 900); } }
+    ctx.restore();
+  }
+  function drawPart(part) { // one tumbling piece of a dead hornet or queen
+    if (part === 'hwing') hornetWing(0);
+    else if (part === 'habdomen') { ctx.translate(40, 0); hornetAbdomen(); }
+    else if (part === 'hthorax') { ctx.translate(-8, 0); hornetThorax(); }
+    else if (part === 'hhead') { ctx.translate(-36, 0); hornetHead(); }
+    else if (part === 'qwing') { ctx.fillStyle = 'rgba(235,245,255,.42)'; ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(0, 0, 24, 8.5, 0, 0, TAU); ctx.fill(); ctx.stroke(); }
+    else if (part === 'qabdomen') {
+      const abd = () => { ctx.beginPath(); ctx.moveTo(30, -8); ctx.bezierCurveTo(8, -10, -14, -6, -28, 0); ctx.bezierCurveTo(-14, 6, 8, 10, 30, 8); ctx.closePath(); };
+      abd(); ctx.fillStyle = '#e8b040'; ctx.fill(); ctx.save(); abd(); ctx.clip(); ctx.fillStyle = '#9a560e'; for (let i = 0; i < 5; i++) ctx.fillRect(20 - i * 10, -11, 4.5, 22); ctx.restore();
+    }
+    else if (part === 'qthorax') { ctx.fillStyle = '#b8761a'; ctx.beginPath(); ctx.ellipse(0, 0, 11, 9, 0, 0, TAU); ctx.fill(); }
+    else if (part === 'qhead') {
+      ctx.fillStyle = '#d99a22'; ctx.beginPath(); ctx.ellipse(0, 0, 7, 6.5, 0, 0, TAU); ctx.fill();
+      ctx.fillStyle = '#ffd700'; ctx.strokeStyle = '#a8700f'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(-6, -5); ctx.lineTo(-6, -14); ctx.lineTo(-3, -10); ctx.lineTo(0, -16); ctx.lineTo(3, -10); ctx.lineTo(6, -14); ctx.lineTo(6, -5); ctx.closePath(); ctx.fill(); ctx.stroke();
+    }
+  }
+  function drawGore() {
+    for (const g of gore) { ctx.save(); ctx.translate(g.x, g.y); ctx.rotate(g.rot); ctx.scale(g.flip ? -g.sc : g.sc, g.sc); ctx.globalAlpha = Math.min(1, g.life * 1.5); drawPart(g.part); ctx.restore(); }
+    ctx.globalAlpha = 1;
+  }
+  function drawNest(p, t) {
+    const k = p.r / 26;
+    ctx.save(); ctx.translate(p.x, p.y);
+    ctx.strokeStyle = '#8a7a5a'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(0, -p.r); ctx.lineTo(0, combBottom() - p.y); ctx.stroke(); // hanging from the comb
+    ctx.fillStyle = '#cfc3a8'; ctx.beginPath(); ctx.ellipse(0, 0, 24 * k, 30 * k, 0, 0, TAU); ctx.fill();
+    ctx.strokeStyle = '#a89878'; ctx.lineWidth = 2;
+    for (let i = -2; i <= 2; i++) { ctx.beginPath(); ctx.ellipse(0, i * 9 * k, 22 * k * Math.cos(i * 0.35), 4 * k, 0, 0, Math.PI); ctx.stroke(); }
+    ctx.fillStyle = '#2a1606'; ctx.beginPath(); ctx.ellipse(0, 24 * k, 6 * k, 4 * k, 0, 0, TAU); ctx.fill(); // the entrance
+    const w = 44 * k; ctx.fillStyle = 'rgba(0,0,0,.45)'; ctx.fillRect(-w / 2, -p.r - 12, w, 5); ctx.fillStyle = '#c8102e'; ctx.fillRect(-w / 2, -p.r - 12, w * Math.max(0, p.hp / p.max), 5);
+    ctx.restore();
+  }
+  const BOSS_DRAW = { keeper: drawKeeper, colonex: drawColonex, ceo: drawCEO, ironfit: drawIronfit, apologist: drawApologist, looks: drawLooks, disprover: drawDisprover, hornet: drawHornet };
 
   function drawBoss(b, t) {
     if (b.done) return;
@@ -3508,7 +3894,7 @@
     ctx.save();
     ctx.translate(b.x + (b.hurt > 0 ? rnd(-3, 3) : 0), b.y);
     ctx.rotate(b.rot);
-    ctx.globalAlpha = b.alpha;
+    ctx.globalAlpha = b.alpha * (brawlWaiting(b) ? 0.62 : 1); // the ones waiting their turn are faded
     ctx.scale(k * b.scale, k * b.scale);
     const glow = ctx.createRadialGradient(0, 0, 10, 0, 0, 95);
     glow.addColorStop(0, b.hurt > 0 ? 'rgba(255,120,90,.35)' : b.p2 ? 'rgba(255,90,60,.22)' : 'rgba(255,200,90,.16)'); glow.addColorStop(1, 'rgba(255,200,90,0)');
@@ -3520,10 +3906,10 @@
   function drawSpeech(b) {
     if (!b.say || b.done) return;
     const k = bossK() * b.scale;
-    ctx.globalAlpha = Math.min(1, b.say.t * 4) * Math.max(b.alpha, b.def.joins ? 1 : 0);
+    ctx.globalAlpha = Math.min(1, b.say.t * 4) * Math.max(b.alpha, b.def.joins || b.gone ? 1 : 0);
     const narrow = W < 560, two = b.n > 1;
-    const o = { maxW: two ? Math.min(300, W * 0.46) : narrow ? W * 0.82 : Math.min(360, W * 0.5), discord: b.def.key === 'colonex', minY: combBottom() + 34 };
-    if (two) { o.lo = b.slot ? W / 2 + 4 : 8; o.hi = b.slot ? W - 8 : W / 2 - 4; }
+    const o = { maxW: b.brawl ? Math.min(250, W * 0.44) : two ? Math.min(300, W * 0.46) : narrow ? W * 0.82 : Math.min(360, W * 0.5), discord: b.def.key === 'colonex', minY: combBottom() + 34, avoid: allyBox };
+    if (two && !b.brawl) { o.lo = b.slot ? W / 2 + 4 : 8; o.hi = b.slot ? W - 8 : W / 2 - 4; }
     if ((narrow || two) && b.mode !== 'down') speechBox(b.say.text, b.x, b.y + 74 * k, 'below', o);
     else if (b.x < W / 2) speechBox(b.say.text, b.x + 52 * k, b.y - 38 * k, 'right', o);
     else speechBox(b.say.text, b.x - 52 * k, b.y - 38 * k, 'left', o);
@@ -3534,21 +3920,24 @@
     const k = Math.max(0.42, bossK() * 0.55);
     ctx.save(); ctx.translate(ally.x, ally.y); ctx.scale(k, k);
     drawColonexFigure({ pose: ally.shootT > 2.4 ? 1 : 0 }, t, false);
+    if (ally.stun > 0) for (let i = 0; i < 3; i++) { const a = t * 4 + i * 2.1; txt('*', Math.cos(a) * 26, -96 + Math.sin(a) * 6, 22, '#ffd36b', 900); } // stung
     ctx.save(); ctx.translate(14, -84); drawCrow(t, 0.75, false); ctx.restore();
     ctx.restore();
   }
+  let allyBox = null;
   function drawAllySpeech() {
+    allyBox = null;
     if (!ally || !ally.say || !anyFighting()) return;
     const k = Math.max(0.42, bossK() * 0.55);
     ctx.globalAlpha = Math.min(1, ally.say.t * 4);
-    speechBox(ally.say.text, ally.x + 14 * k, ally.y - 34 * k, 'right', { small: true, maxW: Math.min(240, W * 0.6), discord: true });
+    allyBox = speechBox(ally.say.text, ally.x + 14 * k, ally.y - 34 * k, 'right', { small: true, maxW: Math.min(240, W * 0.6), discord: true });
     ctx.globalAlpha = 1;
   }
   function drawBossUI(b) {
     if (b.done) return;
     const two = b.n > 1;
     if (b.mode === 'intro') {
-      if (b.slot) return; // one banner for both
+      if (b.slot || b.quiet) return; // one banner for both (and none for the ones that join later)
       const t = b.t, a = Math.min(1, t / 0.3) * Math.min(1, Math.max(0, (2.9 - t) / 0.4));
       if (a <= 0) return;
       ctx.globalAlpha = a;
@@ -3557,13 +3946,14 @@
       ctx.fillStyle = '#c8102e'; ctx.fillRect(0, y, W, 3); ctx.fillRect(0, y + bh - 3, W, 3);
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillStyle = '#f2a516'; ctx.font = '700 12px "Instrument Sans", sans-serif';
-      const label = two ? 'CRAZY MODE  ·  ROUND ' + (endlessRound + 1)
+      const label = b.brawl ? 'EVERYONE AT ONCE  ·  JUST FOR FUN'
+        : two ? 'CRAZY MODE  ·  ROUND ' + (endlessRound + 1)
         : b.endless ? 'ENDLESS  ·  ROUND ' + (endlessRound + 1)
         : b.i === BOSS_COUNT - 1 ? 'FINAL BOSS  ·  ' + SEASONS[b.i].m.toUpperCase()
         : 'BOSS ' + (b.i + 1) + ' OF ' + BOSS_COUNT + '  ·  ' + SEASONS[b.i].m.toUpperCase();
       ctx.fillText(label, W / 2, y + 22);
-      const name = two ? bosses.map(x => x.def.tag).join(' & ') : b.def.name;
-      const sub = two ? (bosses.some(x => x.def.key === 'colonex') ? 'Two at once. Colonex has switched sides.' : 'Two at once. Colonex is still on your side.') : b.def.sub;
+      const name = b.brawl ? 'All ' + BOSS_COUNT + ' bosses' : two ? bosses.map(x => x.def.tag).join(' & ') : b.def.name;
+      const sub = b.brawl ? (brawl && brawl.queue.length ? 'The rest wait their turn. Nothing lost if you drop.' : 'Nothing is lost if you drop. Colonex is with them.') : two ? (bosses.some(x => x.def.key === 'colonex') ? 'Two at once. Colonex has switched sides.' : 'Two at once. Colonex is still on your side.') : b.def.sub;
       fitFont(name, 38, 900, 'Gluten, cursive', W - 32);
       ctx.lineWidth = 5; ctx.strokeStyle = 'rgba(0,0,0,.6)'; ctx.strokeText(name, W / 2, y + 55);
       ctx.fillStyle = '#f6e3b4'; ctx.fillText(name, W / 2, y + 55);
@@ -3573,24 +3963,27 @@
       return;
     }
     if (b.mode === 'down') return;
-    const w = two ? Math.min(220, W * 0.42) : Math.min(300, W * 0.64), cx = two ? (b.slot ? W * 0.74 : W * 0.26) : W / 2, x = cx - w / 2, y = combBottom() + 10;
+    const bw = b.brawl && brawl, w = bw ? laneW() * 0.88 : two ? Math.min(220, W * 0.42) : Math.min(300, W * 0.64), cx = bw ? laneX(b.slot, 0.5) : two ? (b.slot ? W * 0.74 : W * 0.26) : W / 2, x = cx - w / 2, y = combBottom() + 10;
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    const name = (two ? b.def.tag : b.def.name) + (b.p2 ? '  ·  PHASE 2' : '');
-    fitFont(name, two ? 13 : 15, 700, 'Gluten, cursive', w);
+    const name = (two ? b.def.tag : b.def.name) + (bw ? (b.p3 ? ' · P3' : b.p2 ? ' · P2' : '') : b.p3 ? '  ·  PHASE 3' : b.p2 ? '  ·  PHASE 2' : '');
+    if (brawlWaiting(b)) ctx.globalAlpha = 0.6;
+    fitFont(name, bw ? 12 : two ? 13 : 15, 700, 'Gluten, cursive', w);
     ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(29,17,8,.85)'; ctx.strokeText(name, cx, y + 6);
     ctx.fillStyle = '#f6e3b4'; ctx.fillText(name, cx, y + 6);
     ctx.fillStyle = 'rgba(0,0,0,.45)'; roundRect(x, y + 16, w, 10, 5); ctx.fill();
     ctx.fillStyle = b.p2 ? '#ff5a3c' : '#c8102e'; roundRect(x, y + 16, Math.max(6, w * b.hp / b.max), 10, 5); ctx.fill();
     ctx.lineWidth = 1.5; ctx.strokeStyle = 'rgba(246,227,180,.5)'; roundRect(x, y + 16, w, 10, 5); ctx.stroke();
     ctx.fillStyle = 'rgba(246,227,180,.4)'; ctx.fillRect(cx - 1, y + 14, 2, 14);
-    if (b.pushup > 0) outlined('DAY 1 OF 500 PUSHUPS  ' + b.reps + '/500', cx, y + 44, two ? 12 : 16, '#ffd36b');
+    if (bw && !brawlWaiting(b)) { ctx.lineWidth = 2; ctx.strokeStyle = '#ffd36b'; roundRect(x - 2, y + 14, w + 4, 14, 7); ctx.stroke(); } // his turn to attack
+    ctx.globalAlpha = 1;
+    if (b.pushup > 0) outlined((bw ? 'PUSHUPS  ' : 'DAY 1 OF 500 PUSHUPS  ') + b.reps + '/500', cx, y + 44, two ? 12 : 16, '#ffd36b');
   }
 
   const fmtViewers = v => (v / 1000).toFixed(1) + 'K';
   function drawChat() { // drawn under everything else, so it never hides an attack
     if (!chat) return;
-    const narrow = W < 640, fs = narrow ? 10.5 : 12, lh = Math.round(fs * 1.4), pad = 8, rows = narrow ? 4 : 8;
-    const w = narrow ? Math.min(W * 0.56, 240) : Math.min(290, W * 0.27), x = narrow ? 8 : 12, top = combBottom() + (narrow ? 40 : 46);
+    const narrow = W < 640, fs = narrow ? 10.5 : 12, lh = Math.round(fs * 1.4), pad = 8, rows = narrow || brawl ? 4 : 8;
+    const w = narrow ? Math.min(W * 0.56, 240) : Math.min(290, W * 0.27), x = narrow ? 8 : 12, top = brawl ? bossHome() + 84 * bossK() : combBottom() + (narrow ? 40 : 46); // below the row of bosses when everyone's here
     const lines = [];
     for (const m of chat.msgs) {
       ctx.font = `800 ${fs}px "Instrument Sans", sans-serif`; const hw = ctx.measureText(m.user + ': ').width;
@@ -3625,6 +4018,16 @@
   }
   function drawPowerFx(t) {
     if (!spoon) return;
+    if (shieldHits > 0) { // a wax hexagon over the spoon, cracking as it soaks up hits
+      const R = spoonSize() * 0.95, a = Math.min(1, shieldT * 2) * (0.75 + 0.25 * Math.sin(t * 5)), lost = shieldMax - shieldHits;
+      ctx.save(); ctx.translate(spoon.x, spoon.y - spoonSize() * 0.32); ctx.globalAlpha = a;
+      hexPath(0, 0, R); ctx.fillStyle = 'rgba(242,165,22,.16)'; ctx.fill(); ctx.lineWidth = 3.5; ctx.strokeStyle = '#ffd36b'; ctx.stroke();
+      ctx.lineWidth = 1.5; ctx.strokeStyle = 'rgba(255,211,107,.55)';
+      for (let i = 0; i < 6; i++) { const an = Math.PI / 6 + i * Math.PI / 3; hexPath(Math.cos(an) * R * 0.52, Math.sin(an) * R * 0.52, R * 0.26); ctx.stroke(); }
+      ctx.strokeStyle = '#7a4a0c'; ctx.lineWidth = 2;
+      for (let i = 0; i < lost; i++) { const an = i * 2.1 + 0.4; ctx.beginPath(); ctx.moveTo(Math.cos(an) * R * 0.2, Math.sin(an) * R * 0.2); ctx.lineTo(Math.cos(an + 0.3) * R * 0.6, Math.sin(an + 0.3) * R * 0.6); ctx.lineTo(Math.cos(an - 0.1) * R * 0.98, Math.sin(an - 0.1) * R * 0.98); ctx.stroke(); }
+      ctx.restore();
+    }
     if (magnetT > 0) {
       const R = magR(), a = Math.min(1, magnetT * 2);
       ctx.globalAlpha = a;
@@ -3739,6 +4142,7 @@
     ctx.restore();
     if (spoon.frozen > 0) txt('in vc...', x, y - S * .7, 11, '#9aa4ff', 700);
     else if (spoon.slow > 0) txt('working at loksd corp...', x, y - S * .7, 10, '#ffd36b', 700);
+    else if (spoon.venom > 0) txt('venom...', x, y - S * .7, 10, '#9be36b', 700);
   }
   function drawGlobs() {
     for (const g of globs) {
@@ -3780,6 +4184,7 @@
     }
     drawComb(t);
     drawFlow(t);
+    if (bosses.some(b => b.p3 && fighting(b))) { ctx.fillStyle = `rgba(200,16,46,${0.07 + 0.04 * Math.sin(t * 3)})`; ctx.fillRect(0, combBottom(), W, H - combBottom()); } // slaughter phase
     for (const b of bosses) drawBoss(b, t);
     drawAlly(t);
     drawGlobs();
@@ -3792,6 +4197,7 @@
     drawSmokeFx(t);
     drawSwarm(t);
     drawQueenFx(t);
+    drawGore();
     for (const p of particles) { ctx.globalAlpha = Math.max(0, p.life); ctx.fillStyle = p.color; circle(p.x, p.y, p.r); ctx.fill(); }
     ctx.globalAlpha = 1;
     for (const b of bosses) drawBossUI(b);
@@ -3840,7 +4246,7 @@
     hideOverlays();
     for (let i = 0; i < 5; i++) spawnDrop(1, combBottom() + rnd(0, H * 0.45));
     items.push({ kind: 'jar', x: W * rnd(0.3, 0.7), y: combBottom() + H * 0.2, vy: 140, r: 19, rot: 0, vr: 0.6 });
-    seasonBanner();
+    seasonBanner(); lbStartRun();
     last = performance.now(); lockMouse();
   }
   function startEndless() {
@@ -3857,7 +4263,7 @@
   function revive() {
     if (revivesLeft <= 0) return;
     revivesLeft--;
-    purity = 50; spoon.hurt = 2.2; spoon.frozen = 0; spoon.slow = 0;
+    purity = 50; spoon.hurt = 2.2; spoon.frozen = 0; spoon.slow = 0; spoon.venom = 0; spoon.sting = 0;
     items = items.filter(i => i.kind !== 'bad'); proj = []; sticky = []; globs = [];
     for (const b of bosses) {
       if (b.mode === 'dash') { b.mode = 'fight'; b.dash = null; b.y = bossHome(); }
@@ -3941,7 +4347,7 @@
       const s = SHOP.find(x => x.id === el.dataset.id), inf = itemInfo(s);
       el.hidden = inf.locked && s.id !== 'crazy'; // Pay Colonex appears once he has joined you; Crazy mode shows locked until earned
       el.querySelector('.pips').textContent = s.id === 'crazy' ? (inf.lv ? (crazyOn ? 'On' : 'Off') : inf.locked ? 'Two bosses at once' : 'Unlocked')
-        : 'Level ' + inf.lv + '/' + s.max + (s.key ? (touchUI ? ' · power' : ' · key ' + s.key) : '');
+        : 'Level ' + inf.lv + '/' + s.max + (s.key && !touchUI ? ' · key ' + s.key : '');
       el.querySelector('.pr').innerHTML = inf.locked ? LOCK_SVG + ' Locked' : inf.maxed ? (s.max === 1 ? 'Owned' : 'Max') : (inf.cost > inf.base ? '<s>' + inf.base + '</s> ' : '') + inf.cost + ' kg';
       el.className = 'tile' + (s.id === shedSel ? ' sel' : '') + (inf.locked ? ' locked' : '') + (inf.maxed ? ' done' : '') + (!inf.locked && !inf.maxed && wallet() < inf.cost ? ' cant' : '');
     }
@@ -3952,7 +4358,7 @@
     $('dName').textContent = s.name + (s.max > 1 ? '  ·  level ' + inf.lv + ' of ' + s.max : '');
     $('dDesc').textContent = s.desc + (s.key ? (touchUI ? ' Tap its button on the right to use it.' : ' Click anywhere or press ' + s.key + ' to use it.') : '');
     $('dNow').textContent = 'Now: ' + s.lvText(inf.lv);
-    $('dNext').textContent = s.max === 1 ? (inf.lv ? 'Switch it on or off here whenever you like.' : inf.locked ? 'Locked: beat all seven bosses first.' : 'Every endless boss fight becomes two bosses at once. Warning: it is hard.') : inf.maxed ? 'Fully upgraded.' : 'Next: ' + s.lvText(inf.lv + 1);
+    $('dNext').textContent = s.max === 1 ? (inf.lv ? 'Switch it on or off here whenever you like.' : inf.locked ? 'Locked: beat all eight bosses first.' : 'Every endless boss fight becomes two bosses at once. Warning: it is hard.') : inf.maxed ? 'Fully upgraded.' : 'Next: ' + s.lvText(inf.lv + 1);
     const btn = $('buyBtn');
     if (s.id === 'crazy' && inf.lv) { btn.textContent = crazyOn ? 'Turn crazy mode off' : 'Turn crazy mode on'; btn.disabled = false; }
     else if (inf.locked) { btn.textContent = 'Locked'; btn.disabled = true; }
@@ -3989,9 +4395,12 @@
     state = 'shed';
     if (!shedFromPause) { phase = 'harvest'; spawnT = 0.5; ev = null; evT = rnd(12, 16); qd = null; proj = []; globs = []; sticky = []; if (extractRun) endExtract(); }
     $('shedDone').textContent = shedFromPause ? 'Back' : 'Back to the hives';
+    $('brawlBtn').hidden = !(upg.crazy && endless && !shedFromPause);
+    $('brawlBtn').textContent = 'Fight every boss at once' + (best.brawl ? ' (best ' + fmtTime(best.brawl) + ')' : '');
     cancelBuy(); shedPinned = false; $('colonexMsg').hidden = true; $('toast').classList.add('low');
     setTimeout(prepBuzz, 200);
     if (!hikeSaid && priceMult() > 1 && anythingToBuy()) { hikeSaid = true; grandadSay(GRANDAD_HIKE); }
+    else if (!endless && bossIdx === BOSS_COUNT - 1 && !fromPause) grandadSay('Hornets. In my day we used a tennis racket.');
     else grandadSay(pick(GRANDAD_HI));
     selectItem(shedSel && itemInfo(SHOP.find(x => x.id === shedSel)).locked === false ? shedSel : SHOP[0].id);
     hideOverlays(); $('shedScreen').hidden = false;
@@ -4031,6 +4440,7 @@
     el.hidden = !n;
   }
   function gameOver() {
+    if (brawl) { brawlEnd(false); return; } // just for fun: nothing lost
     state = 'over'; $('toast').classList.add('low'); if (achDirty) achSave();
     const canRevive = revivesLeft > 0;
     if (endless) {
@@ -4060,11 +4470,13 @@
     $('bestLine').textContent = endless
       ? 'Best endless: ' + fmtKg(best.endless) + '  ·  ' + fmtTime(elapsed)
       : 'Best: ' + fmtKg(best.kg) + '  ·  lasted ' + fmtTime(elapsed);
+    $('lbOver').hidden = true; lbSubmit(lbEntry(), $('lbOver'));
     $('overScreen').hidden = false;
     (canRevive ? $('reviveBtn') : $('againBtn')).focus();
   }
   function win() {
     state = 'won'; score = GOAL; updateHud(); if (achDirty) achSave();
+    if (lbRun) lbRun.wonAt = elapsed;
     const isBest = !best.time || elapsed < best.time;
     if (isBest) best.time = elapsed;
     best.kg = Math.max(best.kg, GOAL); saveBest();
@@ -4075,8 +4487,9 @@
     if (tally.spent === 0) achUnlock('spoon');
     if (revivesLeft === REVIVES) achUnlock('nospare');
     if (tally.minPurity >= 50) achUnlock('raw');
-    if (elapsed < 12 * 60) achUnlock('fast');
+    if (elapsed < 14 * 60) achUnlock('fast');
     $('soldScreen').hidden = false; $('endlessBtn').focus();
+    $('lbSold').hidden = true; lbSubmit(lbEntry(), $('lbSold'));
   }
 
   $('startBtn').addEventListener('click', start);
@@ -4095,7 +4508,7 @@
     b.addEventListener('click', () => {
       shedPinned = true; cancelBuy(); selectItem(s.id);
       const inf = itemInfo(s);
-      if (inf.locked && s.id === 'crazy') grandadSay("Beat all seven first. Then we'll talk.");
+      if (inf.locked && s.id === 'crazy') grandadSay("Beat all eight first. Then we'll talk.");
       else if (s.id === 'crazy' && !inf.lv) grandadSay("Two at once is hard, boy. Properly hard. Don't say I didn't warn you.");
       else if (!inf.locked && !inf.maxed && wallet() < inf.cost) grandadSay(GRANDAD_BROKE);
     });
@@ -4114,6 +4527,7 @@
   $('confirmYes').addEventListener('click', () => { const id = shedPending; cancelBuy(); if (id) purchase(id); });
   $('confirmNo').addEventListener('click', cancelBuy);
   $('shedDone').addEventListener('click', closeShed);
+  $('brawlBtn').addEventListener('click', startBrawl);
   $('pauseShed').addEventListener('click', () => { if (state === 'pause') openShed(true); });
   document.querySelectorAll('[data-ach]').forEach(el => el.addEventListener('click', openAch));
   // The waitlist page (same site) sets this after a successful signup; works even with the game open in another tab
@@ -4123,6 +4537,162 @@
   addEventListener('focus', checkWaitlist);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) checkWaitlist(); });
   $('achClose').addEventListener('click', closeAch);
+
+  // ---------- leaderboard ----------
+  // Only on janhoney.com: the page says who's logged in (a token signed by Shopify) and where the leaderboard lives.
+  // Each run gets a ticket when it starts; scores are sent with it. Nothing here runs in the artifact.
+  const LB = window.HG_LB && window.HG_LB.api ? window.HG_LB : null;
+  const LB_PEND = 'honey-gobbler-lb-pending', LB_NAMES = { endless: 'Endless', speed: 'Speedrun', crazy: 'Crazy mode' };
+  const LB_DESC = { endless: 'Highest round in endless mode. Honey harvested breaks ties.', speed: 'Fastest win against all eight bosses, from the first drop.', crazy: 'Highest round in endless runs where more than half of the fights were crazy mode.' };
+  let lbRun = null, lbMe = null, lbBoard = 'endless', lbFrom = null, lbWaiting = null;
+  async function lbCall(path, body) {
+    let r;
+    try { r = await fetch(LB.api + path, body ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : {}); }
+    catch (e) { throw Object.assign(new Error("Can't reach the leaderboard. Check your connection."), { code: 'net' }); }
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw Object.assign(new Error(j.message || 'The leaderboard is having a moment. Try again in a minute.'), { code: j.error || 'server' });
+    return j;
+  }
+  function lbStartRun() {
+    if (!LB) return;
+    const run = lbRun = { ticket: null };
+    lbCall('/api/start', {}).then(j => { run.ticket = j.ticket; }).catch(() => {});
+  }
+  function lbEntry() { // what this run would put on a board right now
+    if (!LB || !lbRun || !lbRun.ticket) return null;
+    const stats = { played: Math.floor(elapsed), bosses: Math.min(bossIdx, BOSS_COUNT), endlessFights: runStats.endlessFights, crazyFights: runStats.crazyFights };
+    if (endless) return { board: runStats.crazyFights * 2 > runStats.endlessFights ? 'crazy' : 'endless', value: endlessRound + 1, tie: Math.floor(score * 10) / 10, stats, ticket: lbRun.ticket };
+    if (state === 'won' && lbRun.wonAt) return { board: 'speed', value: Math.round(lbRun.wonAt * 10) / 10, tie: 0, stats, ticket: lbRun.ticket };
+    return null;
+  }
+  const lbVal = (board, v, tie) => board === 'speed' ? fmtTime(v) : 'Round ' + v + (tie ? '<small>' + esc(fmtKg(tie)) + '</small>' : '');
+  const lbValText = (board, v) => board === 'speed' ? fmtTime(v) : 'round ' + v;
+  function lbLine(el, html) { if (!el) return; el.innerHTML = html; el.hidden = !html; }
+  function lbLoginUrl() { return LB.login || '/customer_authentication/login?return_to=' + encodeURIComponent(location.pathname); }
+  function lbGoLogin(entry) {
+    if (entry) try { localStorage.setItem(LB_PEND, JSON.stringify({ entry, at: Date.now() })); } catch (e) {}
+    location.href = lbLoginUrl();
+  }
+  async function lbEnsureMe() { if (!lbMe) lbMe = await lbCall('/api/me', { token: LB.token }); return lbMe; }
+  async function lbSubmit(entry, el) { // el: a line on the screen to report back on, or null to save quietly
+    if (!entry) return;
+    if (!LB.token) {
+      if (el) { lbLine(el, 'Log in to put your ' + lbValText(entry.board, entry.value) + ' on the leaderboard. <button type="button" data-lblogin>Log in</button>'); el.querySelector('[data-lblogin]').onclick = () => lbGoLogin(entry); }
+      return;
+    }
+    try {
+      await lbEnsureMe();
+      if (!lbMe.name) {
+        lbWaiting = { entry, el };
+        if (el) { lbLine(el, 'Pick a name to put your ' + lbValText(entry.board, entry.value) + ' on the leaderboard. <button type="button" data-lbname>Pick a name</button>'); el.querySelector('[data-lbname]').onclick = () => lbOpen(entry.board, true); }
+        return;
+      }
+      const j = await lbCall('/api/submit', { token: LB.token, ...entry });
+      lbMe.bests[j.board] = { value: j.best.value, tie: j.best.tie, rank: j.rank };
+      lbLine(el, j.improved ? LB_NAMES[j.board] + ': #' + j.rank + ' with ' + lbValText(j.board, j.best.value) + '. Your best yet.' : LB_NAMES[j.board] + ': your best is still ' + lbValText(j.board, j.best.value) + ', #' + j.rank + '.');
+      return j;
+    } catch (e) { lbLine(el, esc(e.message)); if (!el && e.code === 'login') LB.token = null; }
+  }
+  function lbOpen(board, naming) {
+    if (!LB) return;
+    lbFrom = ['startScreen', 'pauseScreen', 'overScreen', 'soldScreen', 'shedScreen'].find(id => !$(id).hidden) || null;
+    if (lbFrom) $(lbFrom).hidden = true;
+    $('lbScreen').hidden = false; $('lbScreen').querySelector('.card').scrollTop = 0;
+    lbTab(typeof board === 'string' ? board : lbBoard);
+    lbRenderMe(naming === true);
+    $('lbClose').focus({ preventScroll: true });
+  }
+  function lbClose() {
+    $('lbScreen').hidden = true;
+    if (lbFrom) { $(lbFrom).hidden = false; const f = $(lbFrom).querySelector('[data-lb]'); if (f) f.focus({ preventScroll: true }); }
+    lbFrom = null;
+  }
+  async function lbTab(board) {
+    lbBoard = board;
+    document.querySelectorAll('.lbtabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.board === board ? 'true' : 'false'));
+    $('lbDesc').textContent = LB_DESC[board];
+    $('lbList').innerHTML = '<li class="empty">Loading...</li>';
+    try {
+      const j = await lbCall('/api/top?board=' + board + '&limit=50');
+      if (lbBoard !== board) return;
+      const mine = lbMe && lbMe.name;
+      $('lbList').innerHTML = j.rows.length ? j.rows.map(r => `<li${r.name === mine ? ' class="me"' : ''}><span class="rk">#${r.rank}</span><span class="nm">${esc(r.name)}</span><span class="v">${lbVal(board, r.value, r.tie)}</span></li>`).join('')
+        : '<li class="empty">No one yet. Be the first.</li>';
+    } catch (e) { if (lbBoard === board) $('lbList').innerHTML = '<li class="empty">' + esc(e.message) + '</li>'; }
+    lbRenderMe();
+  }
+  function lbRenderMe(naming) {
+    const me = $('lbMe'), form = $('lbNameForm');
+    $('lbLogin').hidden = !!LB.token; $('lbRename').hidden = true;
+    if (!LB.token) { form.hidden = true; lbLine(me, 'Log in to your janhoney.com account to get on the leaderboard.'); return; }
+    if (!lbMe) { lbLine(me, ''); lbEnsureMe().then(() => lbRenderMe(naming)).catch(e => lbLine(me, esc(e.message))); return; }
+    if (!lbMe.name || naming === true) {
+      lbLine(me, ''); if (form.hidden) { form.hidden = false; $('lbName').value = lbMe.name || ''; $('lbErr').hidden = true; $('lbWait').checked = false; $('lbWait').parentNode.hidden = !LB.email; }
+      $('lbCancel').hidden = !lbMe.name; return;
+    }
+    form.hidden = true; $('lbRename').hidden = false;
+    const b = lbMe.bests[lbBoard];
+    lbLine(me, 'You are <b>' + esc(lbMe.name) + '</b>. ' + (b ? 'Your best here: ' + lbValText(lbBoard, b.value) + (b.rank ? ', #' + b.rank : '') + '.' : 'Nothing on this board yet.'));
+  }
+  async function lbSaveName() {
+    const name = $('lbName').value.trim(), err = $('lbErr'), btn = $('lbSave');
+    err.hidden = true; btn.disabled = true;
+    try {
+      const j = await lbCall('/api/name', { token: LB.token, name });
+      await lbEnsureMe(); lbMe.name = j.name;
+      if ($('lbWait').checked) lbJoinWaitlist(j.name);
+      $('lbNameForm').hidden = true;
+      const w = lbWaiting; lbWaiting = null;
+      if (w) await lbSubmit(w.entry, w.el);
+      await lbSendPending();
+      lbTab(lbBoard);
+      lbStartLine();
+    } catch (e) { err.textContent = e.message; err.hidden = false; }
+    btn.disabled = false;
+  }
+  function lbJoinWaitlist(name) { // the same signup as the waitlist page: an email subscriber tagged "waitlist"
+    const fd = new FormData();
+    fd.append('form_type', 'customer'); fd.append('utf8', '✓');
+    fd.append('contact[email]', LB.email); fd.append('contact[tags]', 'waitlist,leaderboard');
+    if (LB.first || name) fd.append('contact[first_name]', LB.first || name);
+    if (LB.last) fd.append('contact[last_name]', LB.last);
+    fetch('/contact', { method: 'POST', body: fd, credentials: 'same-origin' })
+      .then(r => { if (!r.ok || /challenge/.test(r.url)) throw 0; try { localStorage.setItem(WAIT_KEY, '1'); } catch (e) {} achUnlock('real'); toast("You're on the waitlist"); })
+      .catch(() => { window.open('/pages/contact', '_blank'); }); // if Shopify wants a captcha, the waitlist page handles it
+  }
+  async function lbSendPending() { // a score saved before going off to log in
+    let p = null;
+    try { p = JSON.parse(localStorage.getItem(LB_PEND) || 'null'); } catch (e) {}
+    if (!p || !p.entry) return;
+    if (Date.now() - p.at > 3.5 * 86400e3) { try { localStorage.removeItem(LB_PEND); } catch (e) {} return; }
+    if (!lbMe || !lbMe.name) return;
+    try {
+      const j = await lbCall('/api/submit', { token: LB.token, ...p.entry });
+      try { localStorage.removeItem(LB_PEND); } catch (e) {}
+      lbMe.bests[j.board] = { value: j.best.value, tie: j.best.tie, rank: j.rank };
+      toast('Your ' + lbValText(j.board, p.entry.value) + ' is on the ' + LB_NAMES[j.board] + ' board: <b>#' + j.rank + '</b>');
+    } catch (e) { if (e.code !== 'net' && e.code !== 'server') try { localStorage.removeItem(LB_PEND); } catch (e2) {} toast(esc(e.message)); }
+  }
+  function lbStartLine() {
+    const el = $('lbStartLine');
+    if (!LB.token) { lbLine(el, 'Log in to get on the leaderboard. Do it before you play: logging in reloads the page. <button type="button" data-lblogin>Log in</button>'); el.querySelector('[data-lblogin]').onclick = () => lbGoLogin(null); return; }
+    if (!lbMe) return;
+    let pend = null; try { pend = JSON.parse(localStorage.getItem(LB_PEND) || 'null'); } catch (e) {}
+    if (!lbMe.name) { lbLine(el, (pend ? 'Pick a name to put your ' + lbValText(pend.entry.board, pend.entry.value) + ' on the leaderboard.' : 'Pick a name for the leaderboard.') + ' <button type="button" data-lbname>Pick a name</button>'); el.querySelector('[data-lbname]').onclick = () => lbOpen(pend ? pend.entry.board : 'endless', true); return; }
+    lbLine(el, 'On the leaderboard as ' + esc(lbMe.name) + '.');
+  }
+  function lbBoot() {
+    if (!LB) return;
+    document.querySelectorAll('[data-lb]').forEach(el => { el.hidden = false; el.addEventListener('click', () => lbOpen()); });
+    document.querySelectorAll('.lbtabs button').forEach(b => b.addEventListener('click', () => lbTab(b.dataset.board)));
+    $('lbClose').addEventListener('click', lbClose);
+    $('lbSave').addEventListener('click', lbSaveName);
+    $('lbCancel').addEventListener('click', () => { $('lbNameForm').hidden = true; lbRenderMe(); });
+    $('lbRename').addEventListener('click', () => lbRenderMe(true));
+    $('lbLogin').addEventListener('click', () => lbGoLogin(null));
+    lbStartLine();
+    if (LB.token) lbEnsureMe().then(() => { lbStartLine(); return lbSendPending(); }).then(lbStartLine).catch(() => {});
+  }
   PKEYS.forEach(k => {
     const el = $('pw-' + k);
     el.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); firePower(k); });
@@ -4139,8 +4709,8 @@
       for (const [key, v] of Object.entries(data.ach.stats || {})) achData.stats[key] = Math.max(achData.stats[key] || 0, +v || 0);
     }
     achMigrate(); updateAchCount(); checkWaitlist();
-    resize(); reset(); requestAnimationFrame(frame);
+    resize(); reset(); requestAnimationFrame(frame); lbBoot();
   };
   window.claude?.hot?.ready ? window.claude.hot.ready(boot) : boot(window.claude?.hot?.data ?? {});
 })();
-window.HG_BUILD = 'Honey Gobbler VIII (7a7be6)';
+window.HG_BUILD = 'Honey Gobbler IX (ed1795)';

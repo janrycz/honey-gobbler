@@ -1,5 +1,5 @@
 {% layout none %}
-{% comment %} Honey Gobbler VIII (7a7be6): this template loads the asset honey-gobbler-viii.js {% endcomment %}
+{% comment %} Honey Gobbler IX (ed1795): this template loads the asset honey-gobbler-ix.js {% endcomment %}
 <!doctype html>
 <html lang="en">
 <head>
@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <style>html,body{margin:0}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);box-sizing:border-box}</style>
 {% raw %}
-<title>Honey Gobbler VIII</title>
+<title>Honey Gobbler IX</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gluten:wght@500;700;900&family=Instrument+Sans:wght@400;600;700&display=swap">
@@ -98,7 +98,7 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
 .legend em { font-style: normal; font-variant-numeric: tabular-nums; font-weight: 700; margin-left: auto; color: var(--honey-deep); white-space: nowrap; }
 .legend .bad em { color: var(--sus); }
 .swatch { width: 14px; height: 14px; border-radius: 4px; flex: none; }
-.roster { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.roster { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; }
 .roster span { background: var(--ink); color: var(--wax); border-radius: 10px; padding: 7px 2px 6px; font: 700 .66rem var(--body); line-height: 1.25; font-variant-numeric: tabular-nums; }
 .roster span b { display: block; font-family: var(--display); font-size: .98rem; color: var(--honey); }
 .btn {
@@ -219,6 +219,24 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
 .ach .prog i, .achtotal .prog i { display: block; height: 100%; background: linear-gradient(90deg, var(--honey-deep), var(--honey)); border-radius: inherit; }
 .ach .num { float: right; font: 700 .72rem var(--body); color: var(--honey-deep); margin-left: 8px; }
 .achtotal { text-align: left; font: 700 .86rem var(--body); }
+.lbtabs { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+.lbtabs button { font: 700 .86rem var(--body); padding: 7px 13px 6px; border-radius: 999px; border: 2px solid var(--honey-deep); background: transparent; color: var(--ink); cursor: pointer; }
+.lbtabs button[aria-selected="true"] { background: var(--honey); border-color: var(--honey); }
+.lblist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; text-align: left; font-variant-numeric: tabular-nums; min-height: 90px; }
+.lblist li { display: grid; grid-template-columns: 2.6em 1fr auto; gap: 8px; align-items: baseline; padding: 6px 10px; border-radius: 10px; background: color-mix(in srgb, var(--ink) 6%, transparent); font: 600 .9rem var(--body); }
+.lblist li.me { background: color-mix(in srgb, var(--honey) 40%, transparent); }
+.lblist li.empty { display: block; text-align: center; font-weight: 600; color: color-mix(in srgb, var(--ink) 65%, transparent); }
+.lblist .rk { font-weight: 800; color: var(--honey-deep); }
+.lblist .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lblist .v { font-weight: 800; text-align: right; }
+.lblist .v small { display: block; font-weight: 600; font-size: .72rem; opacity: .7; }
+.lbform { display: flex; flex-direction: column; gap: 8px; text-align: left; }
+.lbform input[type=text] { font: 600 1rem var(--body); padding: 9px 12px; border-radius: 10px; border: 2px solid var(--honey-deep); background: #fffaf0; color: var(--ink); }
+.lbform .chk { display: flex; gap: 8px; align-items: flex-start; font-size: .86rem; cursor: pointer; }
+.lbform .chk input { margin-top: 3px; accent-color: var(--honey-deep); }
+.lberr { color: #b0142c; font-weight: 700; font-size: .86rem !important; }
+.lbline { font-weight: 700; }
+.lbline button { font: 700 .8rem var(--body); margin-left: 6px; padding: 3px 10px; border-radius: 999px; border: 2px solid var(--honey-deep); background: var(--honey); color: var(--ink); cursor: pointer; }
 .achtotal .prog { height: 10px; }
 .toast { position: absolute; z-index: 6; left: 50%; top: 48px; transform: translateX(-50%); max-width: calc(100% - 32px); background: var(--ink); color: var(--wax); border: 2px solid var(--honey); border-radius: 999px; padding: 8px 16px 7px; font: 600 .85rem var(--body); pointer-events: none; transition: opacity .35s, transform .35s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .toast b { color: var(--honey); }
@@ -256,7 +274,7 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
 {% raw %}
 <div class="app">
   <header class="bar">
-    <div class="brand">Honey Gobbler VIII<small>Jan Ryczkowski Honey Corporation</small></div>
+    <div class="brand">Honey Gobbler IX<small>Jan Ryczkowski Honey Corporation</small></div>
     <nav class="nav" aria-label="Ryczkowski Honey"><a href="/">Home</a><a href="/pages/contact">Waitlist</a></nav>
     <div class="stats">
       <div class="stat"><b id="kg">0.0 kg</b><span id="next">March · boss at 150 kg</span></div>
@@ -274,13 +292,14 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
       <button class="pbtn" id="pw-magnet" type="button" hidden aria-label="Honey magnet"><i><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M7 5v11a9 9 0 0 0 18 0V5h-6v11a3 3 0 0 1-6 0V5z" fill="#e2492f"/><rect x="7" y="5" width="6" height="4" fill="#d9d9de"/><rect x="19" y="5" width="6" height="4" fill="#d9d9de"/><path d="M16 24c-2 3-2.4 5 0 5s2-2 0-5z" fill="#f2a516"/></svg></i><kbd>2</kbd></button>
       <button class="pbtn" id="pw-extractor" type="button" hidden aria-label="Extractor"><i><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="18" r="10" fill="#c9ced6" stroke="#6a6e76" stroke-width="2"/><path d="M16 11v14M9 18h14M11 13l10 10M21 13 11 23" stroke="#6a6e76" stroke-width="1.6"/><circle cx="16" cy="18" r="2.6" fill="#f2a516"/><path d="M16 8V4h8" stroke="#8a5a2b" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg></i><kbd>3</kbd></button>
       <button class="pbtn" id="pw-queen" type="button" hidden aria-label="Queen bee"><i><svg viewBox="0 0 32 32" aria-hidden="true"><ellipse cx="15" cy="11" rx="7" ry="3.2" fill="rgba(255,255,255,.75)" transform="rotate(-20 15 11)"/><ellipse cx="20" cy="11" rx="6" ry="2.8" fill="rgba(255,255,255,.6)" transform="rotate(15 20 11)"/><ellipse cx="11" cy="19" rx="9" ry="4.2" fill="#f2b81a"/><path d="M7 15.4v7.2M11 15v8M15 15.4v7.2" stroke="#7a4a0c" stroke-width="1.8"/><ellipse cx="22" cy="18" rx="4" ry="3.6" fill="#c8901a"/><circle cx="27" cy="17" r="2.6" fill="#a8700f"/><path d="M24.6 13.6 25.2 11l1.2 1.6.8-2 .8 2 1.2-1.6.4 2.6z" fill="#ffd36b"/></svg></i><svg class="lk" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="8" rx="1.5" fill="#f6e3b4"/><path d="M5 7V5a3 3 0 0 1 6 0v2" stroke="#f6e3b4" stroke-width="2" fill="none"/></svg><kbd>4</kbd></button>
+      <button class="pbtn" id="pw-shield" type="button" hidden aria-label="Honeycomb shield"><i><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3 27 9.5v13L16 29 5 22.5v-13z" fill="rgba(242,165,22,.25)" stroke="#ffd36b" stroke-width="2.2"/><path d="M16 10.5 21 13.4v5.2L16 21.5l-5-2.9v-5.2z" fill="none" stroke="#f2a516" stroke-width="1.6"/><path d="M16 3v7.5M27 9.5l-6 3.9M27 22.5l-6-3.9M16 29v-7.5M5 22.5l6-3.9M5 9.5l6 3.9" stroke="#f2a516" stroke-width="1.2"/></svg></i><kbd>5</kbd></button>
     </div>
 
     <div class="overlay" id="startScreen">
       <div class="card">
-        <h1>Honey Gobbler VIII</h1>
+        <h1>Honey Gobbler IX</h1>
         <p class="kicker">The best honey in the universe is under attack.</p>
-        <p>Grandad's hives are dripping with raw honeydew from the Subcarpathian hills. The season runs March to September. Every 150 kg you harvest, someone turns up to ruin it. Beat all seven and you sell out.</p>
+        <p>Grandad's hives are dripping with raw honeydew from the Subcarpathian hills. The season runs March to October. Every 150 kg you harvest, someone turns up to ruin it. Beat all eight and you sell out.</p>
         <div class="legend">
           <div><span class="swatch" style="background:#9a4a12;border-radius:50%;box-shadow:0 0 6px #ffd36b"></span>Honeydew drop<em>50–200 g</em></div>
           <div><span class="swatch" style="background:linear-gradient(#e2b23a 0 30%,#7a2f0c 30%);box-shadow:0 0 6px #ffd36b"></span>Ryczkowski jar<em>1.2 kg</em></div>
@@ -293,10 +312,11 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
         </div>
         <p><b>Purity</b> is your health. Hit 0% and your honey is officially sus. Anything with a red ring is fake. Real honey tops your purity up a little, Grandad's comb a lot. Fill the <b>Addictive</b> meter for a rush. In boss fights, every drop you catch gets flicked back at the boss and saved for <b>Grandad's Shed</b>, where you shop after each boss.</p>
         <div class="roster" aria-label="Boss checkpoints">
-          <span><b>150</b>Mar</span><span><b>300</b>Apr</span><span><b>450</b>May</span><span><b>600</b>Jun</span><span><b>750</b>Jul</span><span><b>900</b>Aug</span><span><b>1050</b>Sep</span>
+          <span><b>150</b>Mar</span><span><b>300</b>Apr</span><span><b>450</b>May</span><span><b>600</b>Jun</span><span><b>750</b>Jul</span><span><b>900</b>Aug</span><span><b>1050</b>Sep</span><span><b>1200</b>Oct</span>
         </div>
         <button class="btn" id="startBtn" type="button">Start the harvest</button>
-        <div class="actions"><button class="btn ghost small" data-ach type="button">Achievements <span class="achcount"></span></button></div>
+        <div class="actions"><button class="btn ghost small" data-ach type="button">Achievements <span class="achcount"></span></button><button class="btn ghost small" data-lb type="button" hidden>Leaderboard</button></div>
+        <p class="hint lbline" id="lbStartLine" hidden></p>
         <p class="hint">On a phone, drag your thumb anywhere on the screen, no need to touch the spoon. On a computer, use the mouse or arrow keys. The mouse stays locked to the game while you play: Esc frees it and pauses, and so does P.</p>
       </div>
     </div>
@@ -306,7 +326,7 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
         <h2>Paused</h2>
         <p>Grandad says the bees don't take breaks.</p>
         <button class="btn" id="resumeBtn" type="button">Back to the hives</button>
-        <div class="actions"><button class="btn ghost small" id="pauseShed" type="button">Grandad's Shed</button><button class="btn ghost small" data-ach type="button">Achievements <span class="achcount"></span></button></div>
+        <div class="actions"><button class="btn ghost small" id="pauseShed" type="button">Grandad's Shed</button><button class="btn ghost small" data-ach type="button">Achievements <span class="achcount"></span></button><button class="btn ghost small" data-lb type="button" hidden>Leaderboard</button></div>
         <div class="actions"><button class="btn ghost small" id="lockBtn" type="button" hidden>Mouse lock: on</button></div>
         <p class="hint" id="pauseRevive"></p>
       </div>
@@ -331,7 +351,7 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
           </div>
         </div>
         <div class="cmsg" id="colonexMsg" hidden><b>Colonex</b><span id="cmsgText"></span></div>
-        <div class="actions shedacts"><button class="btn" id="shedDone" type="button">Back to the hives</button><button class="btn ghost small" data-ach type="button">Achievements <span class="achcount"></span></button></div>
+        <div class="actions shedacts"><button class="btn" id="shedDone" type="button">Back to the hives</button><button class="btn ghost small" id="brawlBtn" type="button" hidden>Fight every boss at once</button><button class="btn ghost small" data-ach type="button">Achievements <span class="achcount"></span></button></div>
       </div>
     </div>
 
@@ -347,7 +367,8 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
         <div class="tally" id="tally"></div>
         <details class="heard" id="heardOver" hidden></details>
         <p id="bestLine" class="hint"></p>
-        <div class="actions"><button class="btn" id="againBtn" type="button">Try again</button><button class="btn ghost small" data-ach type="button">Achievements <span class="achcount"></span></button></div>
+        <p class="hint lbline" id="lbOver" hidden></p>
+        <div class="actions"><button class="btn" id="againBtn" type="button">Try again</button><button class="btn ghost small" data-ach type="button">Achievements <span class="achcount"></span></button><button class="btn ghost small" data-lb type="button" hidden>Leaderboard</button></div>
         <p class="credit">The real thing: raw, unfiltered honeydew honey from a family apiary in Podkarpacie, Poland. Currently sold out, so join the waitlist at <a href="/pages/contact">janhoney.com</a>.</p>
       </div>
     </div>
@@ -356,21 +377,22 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
       <div class="card">
         <div class="stamp">SOLD OUT</div>
         <h2>We sold out</h2>
-        <div class="big">1,050 kg</div>
-        <p>That's 875 of our 1.2 kg jars. In your tea, your coffee, your oats, your eggs. Every last one is gone.</p>
+        <div class="big">1,200 kg</div>
+        <p>That's 1,000 of our 1.2 kg jars. In your tea, your coffee, your oats, your eggs. Every last one is gone.</p>
         <div class="stock"><span><b>0</b>left in the EU</span><span><b>0</b>left in the UK</span></div>
         <p class="quote">Is it really the best honey in the universe?<span>Try it yourself and let me know.</span></p>
         <p>It's autumn. The bees don't make honey now. Join the waitlist and you'll hear first when the next harvest is in.</p>
         <div class="tally" id="soldTally"></div>
         <details class="heard" id="heardSold" hidden></details>
         <p id="soldBest" class="hint"></p>
+        <p class="hint lbline" id="lbSold" hidden></p>
         <div class="actions"><button class="btn cta" id="endlessBtn" type="button">Keep eating: endless mode</button></div>
         <p class="hint">The bosses keep coming back, stronger every round. Your upgrades and shed savings carry on.</p>
         <div class="actions">
           <a class="btn" id="waitBtn" href="/pages/contact">Join the waitlist</a>
           <button class="btn ghost" id="againBtn2" type="button">Harvest again</button>
         </div>
-        <div class="actions"><button class="btn ghost small" data-ach type="button">Achievements <span class="achcount"></span></button></div>
+        <div class="actions"><button class="btn ghost small" data-ach type="button">Achievements <span class="achcount"></span></button><button class="btn ghost small" data-lb type="button" hidden>Leaderboard</button></div>
         <p class="credit">A fan game for Ryczkowski Honey, the best honey in the universe. All bosses are parodies.</p>
       </div>
     </div>
@@ -383,17 +405,54 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
         <button class="btn" id="achClose" type="button">Close</button>
       </div>
     </div>
+    <div class="overlay" id="lbScreen" hidden>
+      <div class="card">
+        <h2>Leaderboard</h2>
+        <div class="lbtabs" role="tablist">
+          <button type="button" role="tab" data-board="endless" aria-selected="true">Endless</button>
+          <button type="button" role="tab" data-board="speed" aria-selected="false">Speedrun</button>
+          <button type="button" role="tab" data-board="crazy" aria-selected="false">Crazy mode</button>
+        </div>
+        <p class="hint" id="lbDesc"></p>
+        <ol class="lblist" id="lbList"></ol>
+        <p class="hint lbline" id="lbMe"></p>
+        <div class="lbform" id="lbNameForm" hidden>
+          <p><b>Pick a leaderboard name.</b> Everyone can see it, so keep it clean. 2 to 16 letters, numbers, spaces, dots, dashes or underscores.</p>
+          <input type="text" id="lbName" maxlength="16" autocomplete="nickname" spellcheck="false" placeholder="Your name" aria-label="Leaderboard name">
+          <label class="chk"><input type="checkbox" id="lbWait"> <span>Also put me on the waitlist, so I hear first when the honey is back.</span></label>
+          <p class="lberr" id="lbErr" hidden></p>
+          <div class="actions"><button class="btn small" id="lbSave" type="button">Save name</button><button class="btn small ghost" id="lbCancel" type="button" hidden>Cancel</button></div>
+        </div>
+        <div class="actions"><button class="btn small" id="lbLogin" type="button" hidden>Log in to join</button><button class="btn small ghost" id="lbRename" type="button" hidden>Change name</button></div>
+        <p class="hint">One entry per account on each board; only your best counts. Runs are checked, and anything that looks fake gets taken off.</p>
+        <button class="btn" id="lbClose" type="button">Back</button>
+      </div>
+    </div>
     <div class="toast hide" id="toast" aria-live="polite"></div>
   </main>
 </div>
 
 {% endraw %}
-<script src="{{ 'honey-gobbler-viii.js' | asset_url }}" defer></script>
+{%- liquid
+  assign hg_api = shop.metafields.gobbler.lb_api.value
+  assign hg_secret = shop.metafields.gobbler.lb_secret.value
+  assign hg_token = nil
+  if customer and hg_secret != blank
+    assign hg_ts = 'now' | date: '%s'
+    assign hg_msg = customer.id | append: '.' | append: hg_ts
+    assign hg_sig = hg_msg | hmac_sha256: hg_secret
+    assign hg_token = hg_msg | append: '.' | append: hg_sig
+  endif
+  assign hg_ret = request.path | url_encode
+  assign hg_login = '/customer_authentication/login?return_to=' | append: hg_ret
+-%}
+<script>window.HG_LB = {% if hg_api != blank %}{ api: {{ hg_api | json }}, token: {{ hg_token | json }}, email: {{ customer.email | json }}, first: {{ customer.first_name | json }}, last: {{ customer.last_name | json }}, login: {{ hg_login | json }} }{% else %}null{% endif %};</script>
+<script src="{{ 'honey-gobbler-ix.js' | asset_url }}" defer></script>
 <script>
 window.addEventListener('load', function () { // shows a red bar if this template and the game script come from different builds
-  if (window.HG_BUILD === 'Honey Gobbler VIII (7a7be6)') return;
+  if (window.HG_BUILD === 'Honey Gobbler IX (ed1795)') return;
   var d = document.createElement('div');
-  d.textContent = 'Wrong game script. This template is Honey Gobbler VIII (7a7be6) and needs the asset honey-gobbler-viii.js, but the page loaded ' + (window.HG_BUILD ? window.HG_BUILD : 'an older script or none') + '. Paste the new honey-gobbler-viii.js into Assets.';
+  d.textContent = 'Wrong game script. This template is Honey Gobbler IX (ed1795) and needs the asset honey-gobbler-ix.js, but the page loaded ' + (window.HG_BUILD ? window.HG_BUILD : 'an older script or none') + '. Paste the new honey-gobbler-ix.js into Assets.';
   d.style.cssText = 'position:fixed;left:0;right:0;top:0;z-index:99999;background:#c8102e;color:#fff;font:600 15px/1.4 system-ui,sans-serif;padding:10px 14px;text-align:center';
   document.body.appendChild(d);
 });
