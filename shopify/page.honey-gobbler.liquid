@@ -1,5 +1,5 @@
 {% layout none %}
-{% comment %} Honey Gobbler IX (8bf157): this template loads the asset honey-gobbler-ix.js {% endcomment %}
+{% comment %} Honey Gobbler IX (687570): this template loads the asset honey-gobbler-ix.js {% endcomment %}
 <!doctype html>
 <html lang="en">
 <head>
@@ -246,6 +246,7 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
   .shop { grid-template-columns: repeat(2, 1fr); }
   .gbubble { font-size: .9rem; }
   .pbtn { width: 46px; height: 46px; }
+  .powers { gap: 8px; }
   .pbtn svg { width: 26px; height: 26px; }
 }
 @media (max-width: 520px) {
@@ -293,6 +294,7 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
       <button class="pbtn" id="pw-extractor" type="button" hidden aria-label="Extractor"><i><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="18" r="10" fill="#c9ced6" stroke="#6a6e76" stroke-width="2"/><path d="M16 11v14M9 18h14M11 13l10 10M21 13 11 23" stroke="#6a6e76" stroke-width="1.6"/><circle cx="16" cy="18" r="2.6" fill="#f2a516"/><path d="M16 8V4h8" stroke="#8a5a2b" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg></i><kbd>3</kbd></button>
       <button class="pbtn" id="pw-queen" type="button" hidden aria-label="Queen bee"><i><svg viewBox="0 0 32 32" aria-hidden="true"><ellipse cx="15" cy="11" rx="7" ry="3.2" fill="rgba(255,255,255,.75)" transform="rotate(-20 15 11)"/><ellipse cx="20" cy="11" rx="6" ry="2.8" fill="rgba(255,255,255,.6)" transform="rotate(15 20 11)"/><ellipse cx="11" cy="19" rx="9" ry="4.2" fill="#f2b81a"/><path d="M7 15.4v7.2M11 15v8M15 15.4v7.2" stroke="#7a4a0c" stroke-width="1.8"/><ellipse cx="22" cy="18" rx="4" ry="3.6" fill="#c8901a"/><circle cx="27" cy="17" r="2.6" fill="#a8700f"/><path d="M24.6 13.6 25.2 11l1.2 1.6.8-2 .8 2 1.2-1.6.4 2.6z" fill="#ffd36b"/></svg></i><svg class="lk" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="8" rx="1.5" fill="#f6e3b4"/><path d="M5 7V5a3 3 0 0 1 6 0v2" stroke="#f6e3b4" stroke-width="2" fill="none"/></svg><kbd>4</kbd></button>
       <button class="pbtn" id="pw-shield" type="button" hidden aria-label="Honeycomb shield"><i><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3 27 9.5v13L16 29 5 22.5v-13z" fill="rgba(242,165,22,.25)" stroke="#ffd36b" stroke-width="2.2"/><path d="M16 10.5 21 13.4v5.2L16 21.5l-5-2.9v-5.2z" fill="none" stroke="#f2a516" stroke-width="1.6"/><path d="M16 3v7.5M27 9.5l-6 3.9M27 22.5l-6-3.9M16 29v-7.5M5 22.5l6-3.9M5 9.5l6 3.9" stroke="#f2a516" stroke-width="1.2"/></svg></i><kbd>5</kbd></button>
+      <button class="pbtn" id="pw-lab" type="button" hidden aria-label="Lab test"><i><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M12 4h8M13 4v9L6.5 25a3 3 0 0 0 2.6 4.5h13.8a3 3 0 0 0 2.6-4.5L19 13V4" fill="none" stroke="#e9f9ff" stroke-width="2" stroke-linejoin="round"/><path d="M9.2 21h13.6l2 3.8a1.7 1.7 0 0 1-1.5 2.5H8.7a1.7 1.7 0 0 1-1.5-2.5z" fill="#7cf3ff"/><rect x="11.5" y="2.5" width="9" height="3" rx="1" fill="#c8102e"/></svg></i><kbd>6</kbd></button>
     </div>
 
     <div class="overlay" id="startScreen">
@@ -336,8 +338,8 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
       <div class="gbubble" id="gBubble"><b>Grandad</b><span id="gLine"></span></div>
       <div class="card">
         <h2>Grandad's Shed</h2>
-        <div class="wallet"><span>Savings</span><b id="shedSav">0 kg</b><span id="shedKg"></span><span id="shedNext"></span></div>
-        <p class="hint">Honey from boss fights goes into your savings, plus 50 kg for every boss you beat. Savings get spent first, then the honey you've harvested. Spending never pushes the next boss back.</p>
+        <div class="wallet"><span>You can spend</span><b id="shedSav">0 kg</b><span id="shedKg"></span></div>
+        <p class="hint" id="shedNext"></p>
         <div class="shop" id="shop"></div>
         <div class="detail" id="detail">
           <h3 id="dName"></h3>
@@ -387,7 +389,7 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
         <p id="soldBest" class="hint"></p>
         <p class="hint lbline" id="lbSold" hidden></p>
         <div class="actions"><button class="btn cta" id="endlessBtn" type="button">Keep eating: endless mode</button></div>
-        <p class="hint">The bosses keep coming back, stronger every round. Your upgrades and shed savings carry on.</p>
+        <p class="hint">The bosses keep coming back, stronger every round. Your upgrades and all your honey carry on.</p>
         <div class="actions">
           <a class="btn" id="waitBtn" href="/pages/contact">Join the waitlist</a>
           <button class="btn ghost" id="againBtn2" type="button">Harvest again</button>
@@ -450,9 +452,9 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
 <script src="{{ 'honey-gobbler-ix.js' | asset_url }}" defer></script>
 <script>
 window.addEventListener('load', function () { // shows a red bar if this template and the game script come from different builds
-  if (window.HG_BUILD === 'Honey Gobbler IX (8bf157)') return;
+  if (window.HG_BUILD === 'Honey Gobbler IX (687570)') return;
   var d = document.createElement('div');
-  d.textContent = 'Wrong game script. This template is Honey Gobbler IX (8bf157) and needs the asset honey-gobbler-ix.js, but the page loaded ' + (window.HG_BUILD ? window.HG_BUILD : 'an older script or none') + '. Paste the new honey-gobbler-ix.js into Assets.';
+  d.textContent = 'Wrong game script. This template is Honey Gobbler IX (687570) and needs the asset honey-gobbler-ix.js, but the page loaded ' + (window.HG_BUILD ? window.HG_BUILD : 'an older script or none') + '. Paste the new honey-gobbler-ix.js into Assets.';
   d.style.cssText = 'position:fixed;left:0;right:0;top:0;z-index:99999;background:#c8102e;color:#fff;font:600 15px/1.4 system-ui,sans-serif;padding:10px 14px;text-align:center';
   document.body.appendChild(d);
 });

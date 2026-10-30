@@ -14,18 +14,19 @@
   // ---------- tuning ----------
   const STAGE_KG = 150, BOSS_COUNT = 8, GOAL = STAGE_KG * BOSS_COUNT;
   const thresholdFor = i => STAGE_KG * (i + 1); // 150 ... 1050
-  const KG = { jar: 1.2, box: 10, comb: 0.5, shilajit: 1.2, lab: 0 }; // drops carry their own 50-200 g
+  const KG = { jar: 1.2, box: 10, comb: 5, shilajit: 1.2, lab: 0 }; // drops carry their own 50-200 g
   const FILL = { drop: .035, jar: .07, box: .12, comb: .05, shilajit: 0, lab: 0 };
   const DMG = { drop: 1, jar: 2, box: 4, comb: 1, shilajit: 2, lab: 0 };
   const RUSH_TIME = 9, RUSH_MULT = 1.5;
   const COMBO_GRACE = 4, COMBO_STEP = 3; // catch nothing for 4 s and the combo drops a step, then another every 3 s
   const comboCap = () => 3 + 0.4 * (upg ? upg.sweet || 0 : 0), comboGrace = () => COMBO_GRACE + 0.6 * (upg ? upg.sweet || 0 : 0), comboStep = () => COMBO_STEP + 0.4 * (upg ? upg.sweet || 0 : 0);
   const HEAL = { drop: 0.5, jar: 1, box: 5, comb: 18, shilajit: 3, lab: 0 }; // purity restored by real honey
+  const COMB_FIGHT = () => (W < 560 ? 15 : !endless && bossIdx < 3 ? 12 : 8); // in a boss fight the comb heals less, so the bosses can wear you down (phones and the first bosses less so)
   const MAX_LV = 10;
   const thickMul = lv => 1 + 0.1 * lv;
   const GLOB_COL = ['#e08e0b', '#c9760a', '#a95c08', '#8a4406'];
   const FEE_MULT = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 10000];
-  const allyStats = lv => { const m = 1 - 0.035 * lv; return { dmg: 3 + 0.2 * lv, lo: 2.8 * m, hi: 3.8 * m, fee: FEE_MULT[lv] }; };
+  const allyStats = lv => { const m = 1 - 0.035 * lv; return { dmg: 3.6 + 0.25 * lv, lo: 2.8 * m, hi: 3.8 * m, fee: FEE_MULT[lv] }; };
   const BEE_COUNT = [0, 2, 2, 4, 4, 6, 6, 8, 8, 8, 10]; // twice as many as before, each doing half the work (BEE_WORK)
   const BEE_JAR = [0, 0, 0, 0.10, 0.15, 0.20, 0.25, 0.29, 0.32, 0.36, 0.40]; // chance a bee goes for a nearby jar
   const BEE_BIG = [0, 0, 0, 0, 0, 0, 0.05, 0.075, 0.10, 0.125, 0.15];      // ...or a box or Shilajit jar
@@ -38,10 +39,11 @@
     magnet: lv => ({ cd: 35 - (lv - 1) * 17 / 9, dur: 4.5 + (lv - 1) * 4 / 9, reach: 0.15 + (lv - 1) * 0.15 / 9 }),
     extractor: lv => ({ cd: 60 - (lv - 1) * 30 / 9, grab: EXTRACT_GRAB[lv] }),
     queen: lv => ({ cd: 35 - (lv - 1), charges: lv < 4 ? 2 : lv < 8 ? 3 : 4, dmg: 14 + (lv - 1) * 10 / 9 }),
+    lab: lv => ({ cd: 60 - (lv - 1) * 30 / 9, dmg: 5 + (lv - 1) * 15 / 9 }),
     shield: lv => ({ cd: 40 - (lv - 1) * 15 / 9, hits: [2, 2, 2, 3, 3, 3, 4, 4, 4, 5][lv - 1], dur: 6 + (lv - 1) * 0.5 }),
   };
-  const PKEY = { smoker: '1', magnet: '2', extractor: '3', queen: '4', shield: '5' };
-  const PKEYS = ['smoker', 'magnet', 'extractor', 'queen', 'shield'];
+  const PKEY = { smoker: '1', magnet: '2', extractor: '3', queen: '4', shield: '5', lab: '6' };
+  const PKEYS = ['smoker', 'magnet', 'extractor', 'queen', 'shield', 'lab'];
   const BEE_SPEED = 300, BELT_PUSH = 290;
   const BOSS_BONUS = 50; // kg into your savings for every boss you beat
   const ENDLESS_STEP = 4; // endless: levels a boss gains each time you meet him again
@@ -49,7 +51,7 @@
   const QUARK_TURN = 2.4; // how fast quarks can turn towards you, radians a second (the faster they fly, the wider they turn)
   const lvOf = b => (endless && b && b.endless ? b.alv ?? b.elv ?? 0 : 0);
   const magSize = () => 0.75 + 0.25 * clamp((1100 - W) / 725, 0, 1); // 75% on a computer screen, full size on a phone
-  const magR = () => W * magnetReach * magSize() * (endless ? 1 + Math.min(0.4, 0.08 * Math.max(0, fallMul() - 3)) : 1); // reaches further in endless as things fall faster
+  const magR = () => Math.max(W, 560) * magnetReach * magSize() * (endless ? 1 + Math.min(0.4, 0.08 * Math.max(0, fallMul() - 3)) : 1); // reaches further in endless as things fall faster
   const waxGrip = () => 1 / (1 + 0.1 * (upg.wax || 0)); // Beeswax coating: sticky stuff and belts grip half as hard when maxed
   const BEE_COMBO = 1 / 3, BEE_HOLD = 1; // a bee's catch counts a third towards your combo, and holds off its drop by a second
   const G_PER_BEE = 0.6; // a worker bee makes about 1/12 teaspoon of honey in her life
@@ -132,6 +134,8 @@
       lvText: lv => { if (!lv) return 'Not owned'; const q = PW.extractor(lv); return `${q.grab === Infinity ? 'Pulls in all the honey for ' + EXTRACT_ALL_TIME + ' s' : 'Pulls in ' + q.grab + ' pieces of honey'}. Recharges in ${Math.round(q.cd)} s once it's done.`; } },
     { id: 'queen', name: 'Queen bee', cost: costs(1.3), desc: 'A huge queen bee who buzzes in and charges at the boss, smashing any attacks in her way. Each hit knocks the boss off his next attack for a second. She only comes out in boss fights.',
       lvText: lv => { if (!lv) return 'Not owned'; const q = PW.queen(lv); return `${q.charges} charge${q.charges > 1 ? 's' : ''} of ${Math.round(q.dmg)} damage. Recharges in ${Math.round(q.cd)} s.`; } },
+    { id: 'lab', name: 'Lab test kit', cost: costs(1.2), desc: 'Run a lab test whenever you want: every fake and every boss attack on screen is gone, and the bosses take a hit for selling sus honey.',
+      lvText: lv => { if (!lv) return 'Not owned'; const q = PW.lab(lv); return `Clears the screen and hits bosses for ${Math.round(q.dmg)}. Recharges in ${Math.round(q.cd)} s.`; } },
     { id: 'shield', name: 'Honeycomb shield', cost: costs(1.2), desc: 'A wax hexagon over your spoon that soaks up the next few hits, then cracks. It wears off after a few seconds if nothing hits it.',
       lvText: lv => { if (!lv) return 'Not owned'; const q = PW.shield(lv); return `Soaks up ${q.hits} hits, lasts ${q.dur.toFixed(1)} s. Recharges in ${Math.round(q.cd)} s.`; } },
     { id: 'wax', name: 'Beeswax coating', cost: costs(1.2), desc: 'Coats your spoon in beeswax. Everything that hits you does less damage, and sticky syrup, resin and the factory belt get less grip on it.',
@@ -147,7 +151,7 @@
   SHOP.forEach(x => { x.max = x.max || MAX_LV; x.key = PKEY[x.id]; });
   const COLONEX_RAISE = ['loksd corporation has issued a fee increase fee', 'loksd corporation board of directors has approved this', 'loksd corporation can afford', 'premium fees for premium bosses'];
   const GRANDAD_HI = ["Honey doesn't grow on trees. Spend it wisely.", "The bees worked hard for that. Don't waste it.", 'Spend it how you like. The bosses come either way.', 'In my day we had a spoon and nothing else.'];
-  const GRANDAD_BUY = { shield: "Wax from the old frames. It'll hold. For a bit.", wax: 'Beeswax. Keeps the rain off the hives and the syrup off your spoon.', thick: 'Leave it in the frame longer. Thicker honey.', bee: "Take one of mine. She's a hard worker.", colonex: 'Who is this boy and why does he keep sending me invoices?', smoker: "Don't point it at your own face.", magnet: 'It pulls honey. And my spare keys.', extractor: 'Mind your fingers.', queen: 'Be gentle with her.', crazy: "Two at once? You're crazier than the bees.", sweet: 'Eat faster, boy.', hives: 'I moved the hives to the lime trees. Richer flow.' };
+  const GRANDAD_BUY = { lab: 'Send it to the lab. Trust, but test.', shield: "Wax from the old frames. It'll hold. For a bit.", wax: 'Beeswax. Keeps the rain off the hives and the syrup off your spoon.', thick: 'Leave it in the frame longer. Thicker honey.', bee: "Take one of mine. She's a hard worker.", colonex: 'Who is this boy and why does he keep sending me invoices?', smoker: "Don't point it at your own face.", magnet: 'It pulls honey. And my spare keys.', extractor: 'Mind your fingers.', queen: 'Be gentle with her.', crazy: "Two at once? You're crazier than the bees.", sweet: 'Eat faster, boy.', hives: 'I moved the hives to the lime trees. Richer flow.' };
   const PRICE_HIKE = 2; // after the Shilajit Coach: "If you really have a premium product, raise your prices."
   const GRANDAD_HIKE = 'The Shilajit Coach told me: if you really have a premium product, raise your prices. So I doubled them.';
   const GRANDAD_BROKE = "You can't afford that. Go catch more honey.";
@@ -233,7 +237,7 @@
       attacks: ['rope', 'prices', 'pushups', 'resin', 'drinks', 'rope'],
     },
     {
-      key: 'apologist', name: 'The Honey Apologist', tag: 'Honey Apologist', sub: 'Blends three countries in one jar and sticks a new flag on it.', hp: 370, pace: 0.8, dmgMul: 1.25,
+      key: 'apologist', name: 'The Honey Apologist', tag: 'Honey Apologist', sub: 'Blends three countries in one jar and sticks a new flag on it.', hp: 370, pace: 0.8, phonePace: 0.8, dmgMul: 1.25,
       intro: 'Let me just check my notes.',
       lines: ['Let me just check my notes.', 'Blended, imported, relabelled. Perfection.', 'Ackshually that jar is from Uzbekistan.', "I'm just asking questions.", 'Why most honey you buy is a lie? Mine is the lie.', 'Single origin? Pick an origin. Any origin.', 'Interesting. Very interesting.', 'Answer the question. Yes or no.', 'Cross-examination time.', 'So you admit the honey is raw?', "Let's go to the label.", "The honey dilemma: either it's raw, or I'm right."],
       p2line: 'You managed to flip my annoy me switch.', p2attacks: ['dilemma2', 'axes', 'axeChop'],
@@ -283,7 +287,7 @@
     WR = Math.min(1, W / 1100); G = 0.5 + 0.5 * WR; GT = 0.5 + 0.5 * G; WX = Math.max(1, W / 1100);
     // Phones: on a shorter screen things fall more slowly, so they take as long to reach you as on a laptop; hits are a
     // little more forgiving on narrow screens; and on touch screens the spoon sits higher so your thumb can rest under it.
-    HS = clamp(H / 640, 0.7, 1); NF = 0.85 + 0.15 * WR; THUMB = touchUI && H > 420 ? clamp(H * 0.1, 40, 70) : 0; // not on a phone held sideways
+    HS = clamp(H / 640, 0.7, 1); NF = 0.85 + 0.15 * WR; THUMB = touchUI && H > 420 ? clamp(H * 0.05, 20, 36) : 0; // not on a phone held sideways
     cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     buildComb();
@@ -368,7 +372,7 @@
     lastHit = null; bossIdx = 0; boss = null; bosses = []; phase = 'harvest'; ally = null;
     ev = null; evT = rnd(13, 17); lastEv = ''; heard = new Map(); seenFakes = new Set();
     endless = false; endlessNext = 0; endlessRound = 0; revivesLeft = REVIVES; endlessSeen = {};
-    upg = { thick: 0, bee: 0, colonex: 0, smoker: 0, magnet: 0, extractor: 0, queen: 0, shield: 0, wax: 0, sweet: 0, hives: 0, crazy: 0 }; pcd = { smoker: 0, magnet: 0, extractor: 0, queen: 0, shield: 0 }; readyAt = { smoker: 0, magnet: 0, extractor: 0, queen: 0, shield: 0 };
+    upg = { thick: 0, bee: 0, colonex: 0, smoker: 0, magnet: 0, extractor: 0, queen: 0, shield: 0, lab: 0, wax: 0, sweet: 0, hives: 0, crazy: 0 }; pcd = { smoker: 0, magnet: 0, extractor: 0, queen: 0, shield: 0, lab: 0 }; readyAt = { smoker: 0, magnet: 0, extractor: 0, queen: 0, shield: 0, lab: 0 };
     bees = []; smokeT = 0; magnetT = 0; extractT = 0; extractRun = null; shieldT = 0; shieldHits = 0; allyQueue = null; hikeSaid = false;
     qd = null; savings = 0; fightSaved = 0; crazyOn = false; chat = null; fightHits = 0; knightHint = false; brawl = null; runStats = { endlessFights: 0, crazyFights: 0 };
     updateHud();
@@ -393,9 +397,9 @@
     setText('kg', fmtKg(score));
     let next;
     if (phase === 'boss') next = brawl ? 'everyone at once · ' + fmtTime(brawl.t) + ' · ' + (BOSS_COUNT - brawl.beaten) + ' left' : 'boss fight · shed +' + fmtAdd(fightSaved);
-    else if (endless) next = (crazyOn ? 'Crazy' : 'Endless') + ' · boss at ' + endlessNext + ' kg';
+    else if (endless) next = (crazyOn ? 'Crazy' : 'Endless') + ' · next boss in ' + toNextBoss() + ' kg';
     else if (bossIdx >= BOSS_COUNT) next = 'sold out';
-    else next = SEASONS[seasonIdx()].m + ' · boss at ' + thresholdFor(bossIdx) + ' kg';
+    else next = SEASONS[seasonIdx()].m + ' · next boss in ' + toNextBoss() + ' kg';
     setText('next', next);
     setText('combo', '×' + fmtMult(combo * (rush > 0 ? RUSH_MULT : 1)));
     setStyle('combo', 'color', rush > 0 ? 'var(--honey)' : '');
@@ -481,9 +485,9 @@
     const sp = fallMul(), hv = upg.hives || 0;
     const c = 0.008 * hv; // Richer hives: more honeycombs as well
     const r = Math.random() * WX, x = 30 + Math.random() * (W - 60), y = combBottom(), dropKg = (0.63 - 0.048 * hv) / (WX - 0.37 - 0.048 * hv);
-    if (r < 0.06 + c) { if (purity < 100) items.push({ kind: 'comb', x, y, vy: 110 * sp, r: 16, rot: Math.random() * 6 }); else spawnDrop(sp, undefined, undefined, undefined, dropKg); }
-    else if (r < 0.09 + c) items.push({ kind: 'lab', x, y, vy: 120 * sp, r: 14, rot: 0 });
-    else if (r < 0.12 + c) items.push({ kind: 'shilajit', x, y, vy: 140 * sp, r: 19, rot: 0, vr: (Math.random() - .5) * 2 });
+    if (r < 0.045 + c) { if (purity < 100) items.push({ kind: 'comb', x, y, vy: 110 * sp, r: 16, rot: Math.random() * 6 }); else spawnDrop(sp, undefined, undefined, undefined, dropKg); }
+    else if (r < 0.075 + c) items.push({ kind: 'lab', x, y, vy: 120 * sp, r: 14, rot: 0 });
+    else if (r < 0.105 + c) items.push({ kind: 'shilajit', x, y, vy: 140 * sp, r: 19, rot: 0, vr: (Math.random() - .5) * 2 });
     else if (r < 0.135 + 0.01 * hv + c) spawnBox(sp, x);
     else if (r < 0.37 + 0.048 * hv) spawnJar(sp, x);
     else spawnDrop(sp, undefined, undefined, undefined, dropKg);
@@ -551,7 +555,7 @@
     }
     if (e.key.startsWith('Arrow')) e.preventDefault();
     if (state === 'play') {
-      const pk = { 1: 'smoker', 2: 'magnet', 3: 'extractor', 4: 'queen', 5: 'shield' }[e.key];
+      const pk = { 1: 'smoker', 2: 'magnet', 3: 'extractor', 4: 'queen', 5: 'shield', 6: 'lab' }[e.key];
       if (pk) firePower(pk);
       if (e.key === ' ' && !(e.target instanceof HTMLButtonElement)) { e.preventDefault(); fireReady(); }
     }
@@ -740,7 +744,7 @@
     else if (kind === 'comb') { tally.comb++; sfx.comb(); splat(it.x, it.y, '#f2a516', 16); }
     else if (kind === 'shilajit') { startRush(); floatText(it.x, it.y - 34, "Don't eat this if you're married", '#ffd36b'); splat(it.x, it.y, '#2b1406', 16); tally.shilajit++; achStat('shilajit', tally.shilajit); }
     else if (kind === 'lab') labTest();
-    const h = heal(HEAL[kind] || 0);
+    const h = heal(kind === 'comb' && phase === 'boss' ? COMB_FIGHT() : HEAL[kind] || 0);
     if (kind === 'comb') floatText(it.x, it.y - 34, "Grandad's comb +" + Math.round(h) + '%', '#ffe9a8');
     else if (kind === 'box' && h >= 1) floatText(it.x, it.y - 62, '+' + Math.round(h) + '% purity', '#ffe9a8');
     fillAddict(FILL[kind]);
@@ -781,17 +785,18 @@
       }
     } else if (bossIdx < BOSS_COUNT && score >= thresholdFor(bossIdx)) { score = thresholdFor(bossIdx); startBoss(bossIdx); }
   }
-  function labTest() {
+  function labTest(dmg = 5) {
     tally.labs++;
     items.forEach(i => { if (i.kind === 'bad') splat(i.x, i.y, i.f.color, 8); });
     items = items.filter(i => i.kind !== 'bad');
-    proj.forEach(p => { if (!(p.delay > 0)) splat(p.x || W / 2, p.y || H / 2, '#9be7ff', 5); });
-    proj = [];
+    const body = p => p.k === 'nest' || p.k === 'scout' || p.k === 'mini'; // hornets aren't fakes: they stay
+    proj.forEach(p => { if (!body(p) && !(p.delay > 0)) splat(p.x || W / 2, p.y || H / 2, '#9be7ff', 5); });
+    proj = proj.filter(body);
     sticky.forEach(s => splat(s.x, H - 10, '#9be7ff', 6));
     sticky = [];
     flash = 0.5; sfx.lab();
     floatText(W / 2, H * 0.42, 'LAB RESULTS: SUS', '#9be7ff', true);
-    bosses.filter(fighting).forEach(b => damageBoss(5, b));
+    bosses.filter(fighting).forEach(b => damageBoss(dmg, b));
     achAdd('labs', 1);
   }
   function hurtSpoon(dmg, color, name, opts = {}) {
@@ -837,6 +842,7 @@
     pcd[k] = st.cd;
     if (k === 'smoker') { smokeT = smokeDur = st.dur; smokeSlow = st.slow; floatText(W / 2, H * 0.42, 'SMOKER', '#e8e2d4', true); sfx.smoke(); }
     else if (k === 'magnet') { magnetT = st.dur; magnetReach = st.reach; floatText(W / 2, H * 0.42, 'HONEY MAGNET', '#ffd36b', true); sfx.comb(); }
+    else if (k === 'lab') labTest(Math.round(st.dmg));
     else if (k === 'shield') { shieldT = st.dur; shieldHits = shieldMax = st.hits; floatText(W / 2, H * 0.42, 'HONEYCOMB SHIELD', '#ffd36b', true); sfx.comb(); }
     else launchQueen(st);
     updatePowerUi();
@@ -1022,7 +1028,7 @@
     const kind = it.kind, kg = kind === 'drop' ? it.kg : KG[kind] || 0;
     b.tgt = null; b.rest = beeStats(upg.bee).rest * (kind === 'drop' ? 1 : 1.6);
     tally.beeDrops++;
-    heal(HEAL[kind] || 0);
+    if (phase !== 'boss' || W < 560) heal(HEAL[kind] || 0); // on a computer they don't heal you in boss fights: they flick it at the boss instead
     splat(it.x, it.y, kind === 'drop' ? '#b05a14' : '#c89a5b', kind === 'drop' ? 4 : 10);
     if (kind === 'shilajit') { startRush(); tally.shilajit++; achStat('shilajit', tally.shilajit); }
     else fillAddict(FILL[kind] || 0);
@@ -1141,7 +1147,7 @@
       atkT: 1.2 + slot * 1.5, atkI: 0, sayT: 4.5 + slot * 3, say: null, recent: [], hurt: 0, pose: 0, wanderT: 1, rot: 0, vy: 0, alpha: 1, scale: 1,
       forceNext: null, p2: false, pushup: 0, repT: 0, reps: 0,
       // two at once each attack a little less often
-      speed: (isEndless ? Math.max(0.45, 0.9 - 0.06 * alv) : 1) * (inBrawl ? BRAWL_PACE : n > 1 ? 1.25 : 1) * (def.pace || 1), elv, alv, brawl: inBrawl,
+      speed: (isEndless ? Math.max(0.45, 0.9 - 0.06 * alv) : 1) * (inBrawl ? BRAWL_PACE : n > 1 ? 1.25 : 1) * (def.pace || 1) * (W < 560 && def.phonePace ? def.phonePace : 1), elv, alv, brawl: inBrawl,
     };
   }
   function startFight(ids, isEndless = false) {
@@ -1478,8 +1484,9 @@
   const endlessMore = (b = boss) => endless ? Math.min(2, 1 + 0.1 * lvOf(b)) : 1;
   const teleMul = (b = boss) => endless ? Math.max(0.7, 1 - 0.0375 * lvOf(b)) : 1;
   const cntW = n => Math.max(1, Math.round(n * G * WX * endlessMore())); // spread across the screen
-  const cntA = n => Math.max(1, Math.round(n * G * endlessMore())); // aimed at you
-  const moreE = n => Math.max(1, Math.round(n * endlessMore())); // fixed patterns that just get bigger in endless
+  const wideMore = () => 1 + 0.25 * clamp((W - 760) / 340, 0, 1); // up to a quarter more on a computer screen, where there's more room to dodge
+  const cntA = n => Math.max(1, Math.round(n * G * endlessMore() * wideMore())); // aimed at you
+  const moreE = n => Math.max(1, Math.round(n * endlessMore() * wideMore())); // fixed patterns that just get bigger in endless
   const fan = (n, step) => Array.from({ length: n }, (_, i) => (i - (n - 1) / 2) * step);
   const fanN = (n, step) => Math.max(1, Math.min(n, 1 + Math.floor(W * 0.55 / step))); // a spread aimed at you never covers more than about half the screen, so there's always a way round
   // chess notation for the chess attacks: files a-h run across the screen and rank 1 is your spoon's row
@@ -1526,11 +1533,12 @@
       chatPush(user, col, text);
     }
   }
+  const hyperY = () => Math.min(H - 26, spoon.y + 6); // the blue men stand on your spoon's line
   function fireHyper(p) {
-    const by = H - 26, m = p.targets.length;
+    const by = hyperY(), m = p.targets.length;
     p.tops.forEach((x, j) => {
       const tg = p.targets[j % m], y0 = p.top + 6, T = 0.85, dx = tg.x - x, dy = by - y0;
-      proj.push(P({ k: 'hyperArrow', name: 'Hypergamy chart', color: '#ff6fae', x, y: y0, vx: dx / T, vy: dy / T, rot: Math.atan2(dy, dx), r: 9, dmg: 10, ty: by, owner: p.owner }));
+      proj.push(P({ k: 'hyperArrow', name: 'Hypergamy chart', color: '#ff6fae', x, y: y0, vx: dx / T, vy: dy / T, rot: Math.atan2(dy, dx), r: 9, dmg: 12, ty: by, owner: p.owner }));
     });
     sfx.whoosh();
   }
@@ -1663,12 +1671,12 @@
       say("Calm down. It's just smoke.");
       const k = bossK(), x0 = b.x + 50 * k, y0 = b.y - 10 * k, er = lvOf(b);
       const light = !b.endless; // a lighter puff in the story
-      const n = Math.min(9, Math.round(((light ? 2 : 3) + Math.min(3, Math.floor(er / 2))) * WX));
+      const n = Math.min(W < 560 ? 3 : 9, Math.round(((light ? 2 : 3) + Math.min(3, Math.floor(er / 2))) * WX));
       for (let i = 0; i < n; i++) {
-        const max = 91 * k * (light ? 0.85 : 1) * (1 + Math.min(0.3, 0.03 * er)), lo = Math.max(H * 0.4, bossHome() + 80 * k + max * 0.4); // under the boss, so he stays visible
+        const max = 91 * k * (light ? 0.85 : 1) * (1 + Math.min(0.3, 0.03 * er)) * (W < 560 ? 0.8 : 1), lo = Math.max(H * 0.4, bossHome() + 80 * k + max * 0.4); // under the boss, so he stays visible
         const tx = W * rnd(0.12, 0.88), ty = rnd(lo, Math.max(lo, spoon.y - max * 0.6 - 40));
         proj.push(P({ k: 'smoke', harmless: true, dmg: 0, x: x0, y: y0, vx: (tx - x0) / 1.6, vy: (ty - y0) / 1.6, r: 20 * k, seed: Math.random() * 10,
-          life: 7 + Math.min(3, 0.3 * er), max, drift: 40 + Math.min(60, 6 * er), off: (i - (n - 1) / 2) * W * 0.36 / n }));
+          life: (7 + Math.min(3, 0.3 * er)) * (W < 560 ? 0.75 : 1), max, drift: 40 + Math.min(60, 6 * er), off: (i - (n - 1) / 2) * W * 0.36 / n }));
       }
       return 2.2;
     },
@@ -1708,7 +1716,7 @@
     factorio(b) {
       say('the factory must grow');
       // a long belt right under you that drags you into an assembling machine at its far end
-      const len = W * rnd(0.45, 0.55), dir = Math.random() < .5 ? 1 : -1, f = rnd(0.25, 0.5);
+      const len = W * (W < 560 ? rnd(0.34, 0.42) : rnd(0.45, 0.55)), dir = Math.random() < .5 ? 1 : -1, f = rnd(0.25, 0.5); // shorter on a phone
       const x0 = clamp(dir > 0 ? spoon.x - len * f : spoon.x + len * f - len, 0, W - len), x1 = x0 + len;
       const mx = dir > 0 ? Math.min(x1, W - 34 * G) : Math.max(x0, 34 * G);
       proj.push(P({ k: 'belt', harmless: true, dmg: 12, name: 'Assembling machine', color: '#9aa0a8', x0, x1, x: (x0 + x1) / 2, y: H - 16, dir, mx, life: 6.5 }));
@@ -1900,13 +1908,13 @@
     axes(b) {
       say(pick(['Answer the question. Yes or no.', 'Interesting. Very interesting.']));
       const k = bossK(), x0 = b.x + 30 * k, y0 = b.y - 10 * k;
-      fan(fanN(moreE(3), 90 * G), 1).forEach((sd, i) => proj.push(P(Object.assign({ k: 'axe', name: 'Spinning axe', color: '#c9ced6', x: x0, y: y0, r: 15, dmg: 12, vr: (sd < 0 ? -1 : 1) * 11, delay: i * 0.22 }, lob(x0, y0, clamp(spoon.x + sd * 90 * G, 20, W - 20), 1.15, 520)))));
+      fan(fanN(moreE(3), 90 * G), 1).forEach((sd, i) => proj.push(P(Object.assign({ k: 'axe', name: 'Ball-peen hammer', color: '#c9ced6', x: x0, y: y0, r: 15, dmg: 12, vr: (sd < 0 ? -1 : 1) * 11, delay: i * 0.22 }, lob(x0, y0, clamp(spoon.x + sd * 90 * G, 20, W - 20), 1.15, 520)))));
       return 2.6;
     },
     axeChop(b) {
       say('Cross-examination time.');
       sfx.warn();
-      proj.push(P({ k: 'chop', harmless: true, dmg: 18, name: 'Axe chop', color: '#c9ced6', x: clamp(spoon.x, 30, W - 30), y: H / 2, tele: 1.05 }));
+      proj.push(P({ k: 'chop', harmless: true, dmg: 18, name: 'Hammer blow', color: '#c9ced6', x: clamp(spoon.x, 30, W - 30), y: H / 2, tele: 1.05 }));
       return 3.0;
     },
     // 6. The Looksmaxxer
@@ -1918,7 +1926,7 @@
       const m = Math.min(8, Math.round((Math.random() < 0.5 ? 2 : 3) * WX) + Math.min(3, Math.floor(lvOf(b) / 2))), xs = [clamp(spoon.x, 30, W - 30)];
       const gap = Math.min(W * 0.22, W * 0.62 / m);
       for (let tries = 0; xs.length < m && tries < 80; tries++) { const x = rnd(40, W - 40); if (xs.every(o => Math.abs(o - x) > gap)) xs.push(x); }
-      proj.push(P({ k: 'hyper', harmless: true, dmg: 0, x: W / 2, y: H / 2, tops, top, targets: xs.map((x, j) => ({ x, x0: x, ph: rnd(0, 6), track: j === 0 })), tele: 1.3, waves: b.p2 ? 2 : 1, moving: b.p2, fired: 0 }));
+      proj.push(P({ k: 'hyper', harmless: true, dmg: 0, x: W / 2, y: H / 2, tops, top, targets: xs.map((x, j) => ({ x, x0: x, ph: rnd(0, 6), track: j === 0 })), tele: 1.2, waves: b.p2 ? 2 : 1, moving: b.p2, fired: 0 }));
       return b.p2 ? 3.9 : 3.4;
     },
     needles(b) {
@@ -2413,7 +2421,7 @@
       if (magnetT > 0 && !p.harmless && p.dmg > 0) { // the honey magnet pushes boss attacks sideways, away from the spoon, and holds them up
         const R = magR() * 1.15, ddx = p.x - spoon.x, dd = Math.hypot(ddx, p.y - (spoon.y - 10));
         if (dd < R) {
-          const f = 1 - dd / R, push = (ddx >= 0 ? 1 : -1) * 1000 * G * (0.35 + f) * dt;
+          const f = 1 - dd / R, push = (ddx >= 0 ? 1 : -1) * 1000 * Math.max(G, 0.95) * (0.35 + f) * dt;
           if (SWAY[k]) p.bx += push; else p.x += push;
           if (p.vy > 0) p.y -= p.vy * pdt * Math.min(1, 2 * f);
           if (!p.deflected) { p.deflected = true; splat(p.x, p.y, '#ffd36b', 4); }
@@ -2529,7 +2537,7 @@
     let belt = null;
     for (const p of proj) if (p.k === 'belt' && !(p.delay > 0) && p.t < p.life && spoon.x > p.x0 && spoon.x < p.x1) belt = p;
     if (belt) { // works against the mouse and touch too: the belt shifts where your pointer puts the spoon
-      const push = belt.dir * BELT_PUSH * G * G * (smokeT > 0 ? smokeSlow : 1) * waxGrip() * dt;
+      const push = belt.dir * BELT_PUSH * G * G * (W < 560 ? 0.7 : 1) * (smokeT > 0 ? smokeSlow : 1) * waxGrip() * dt;
       spoon.tx = clamp(spoon.tx + push, 20, W - 20); spoon.drift += push; if (drag) drag.s0 += push;
     } else spoon.drift *= Math.max(0, 1 - dt * 3);
     const kSpeed = W * 1.4 * slow;
@@ -2568,11 +2576,11 @@
         const mx2 = spoon.x - it.x, my2 = spoon.y - 10 - it.y, md = Math.hypot(mx2, my2);
         if (!bad) { if (md < qR && md > 1) { // inside the magnet's reach honey stops falling and gets reeled in, faster when things fall faster (endless)
           it.y -= it.vy * dt * HS;
-          const st = Math.min(md, (1500 * G + 2.5 * it.vy * HS) * dt); it.x += mx2 / md * st; it.y += my2 / md * st;
+          const st = Math.min(md, (1500 * Math.max(G, 0.95) + 2.5 * it.vy * HS) * dt); it.x += mx2 / md * st; it.y += my2 / md * st;
         } }
         else if (md < qR * 1.15 && !it.carried) { // fakes get pushed sideways, away from the spoon, and held up
           const f = 1 - md / (qR * 1.15);
-          it.base = clamp(it.base + (it.x >= spoon.x ? 1 : -1) * 1000 * G * (0.35 + f) * dt, 14, W - 14);
+          it.base = clamp(it.base + (it.x >= spoon.x ? 1 : -1) * 1000 * Math.max(G, 0.95) * (0.35 + f) * dt, 14, W - 14);
           it.y -= it.vy * dt * sm * Math.min(1, 2 * f);
         }
       }
@@ -3408,9 +3416,23 @@
     ctx.fillStyle = '#5a3a1a'; ctx.fillRect(-4.5, -50, 9, 4);
     ctx.fillStyle = '#c9ced6'; circle(0, -40, 2); ctx.fill();
   }
-  function drawAxe(r) { // a thrown hatchet, spinning around its middle
+  // A ball-peen hammer in the same frame as the axe: wooden handle down from the head, the flat striking face on the
+  // right with its middle at (50, -40), the round peen on the left.
+  function hammerShape(haft) {
+    ctx.beginPath(); ctx.moveTo(-4.5, -44); ctx.lineTo(-4, haft - 10); ctx.quadraticCurveTo(-6.5, haft - 4, -6.5, haft); ctx.lineTo(6.5, haft); ctx.quadraticCurveTo(6.5, haft - 4, 4, haft - 10); ctx.lineTo(4.5, -44); ctx.closePath();
+    const wg = ctx.createLinearGradient(-5, 0, 5, 0); wg.addColorStop(0, '#6e4320'); wg.addColorStop(.5, '#b07a42'); wg.addColorStop(1, '#6e4320');
+    ctx.fillStyle = wg; ctx.fill(); ctx.lineWidth = 1.2; ctx.strokeStyle = '#3e250f'; ctx.stroke();
+    const sg = ctx.createLinearGradient(0, -54, 0, -26); sg.addColorStop(0, '#eef1f4'); sg.addColorStop(.5, '#9aa1aa'); sg.addColorStop(1, '#4f555d');
+    ctx.beginPath(); // the head: the peen's ball, a narrow neck, the body, and a slightly wider flat face
+    ctx.arc(-24, -40, 11, Math.PI * 0.32, Math.PI * 1.68);
+    ctx.lineTo(-12, -45); ctx.lineTo(-6, -50); ctx.lineTo(40, -50); ctx.lineTo(42, -53); ctx.lineTo(50, -53); ctx.lineTo(50, -27); ctx.lineTo(42, -27); ctx.lineTo(40, -30); ctx.lineTo(-6, -30); ctx.lineTo(-12, -35); ctx.closePath();
+    ctx.fillStyle = sg; ctx.fill(); ctx.lineWidth = 1.6; ctx.strokeStyle = '#2f343a'; ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(49, -51); ctx.lineTo(49, -29); ctx.stroke(); // the face catches the light
+    ctx.fillStyle = 'rgba(255,255,255,.5)'; circle(-27, -44, 3.2); ctx.fill();
+  }
+  function drawAxe(r) { // a thrown ball-peen hammer, spinning around its middle (the attack kept its old name)
     const sc = r / 42;
-    ctx.save(); ctx.scale(sc, sc); ctx.translate(-19, -2); axeShape(70); ctx.restore();
+    ctx.save(); ctx.scale(sc, sc); ctx.translate(-13, -2); hammerShape(70); ctx.restore();
   }
   function drawLink(p) { // one link of the chain: lying flat (an oval) or standing on its edge (a bar through its neighbours)
     const L = 25, R = 9;
@@ -3456,7 +3478,7 @@
     const end = p.tele + (p.waves - 1) * 0.5;
     const a = p.t < end + 0.25 ? Math.min(1, p.t * 5) : Math.max(0, 1 - (p.t - end - 0.25) / 0.7);
     if (a <= 0) return;
-    const pulse = .5 + .5 * Math.sin(t * 14), by = H - 26, sc = Math.max(0.75, G), m = p.targets.length;
+    const pulse = .5 + .5 * Math.sin(t * 14), by = hyperY(), sc = Math.max(0.75, G), m = p.targets.length;
     ctx.globalAlpha = a;
     const cap = 'HYPERGAMY CHART · SOURCE: TRUST ME BRO';
     fitFont(cap, 15, 900, 'Gluten, cursive', W - 24);
@@ -3499,7 +3521,7 @@
     ctx.globalAlpha = 1;
   }
   function drawBigAxe(x, y, sc, side, ang) { // blade down, haft rising off to one side, the edge's middle at (x, y)
-    ctx.save(); ctx.translate(x, y); ctx.scale(side * sc, sc); ctx.rotate(ang); ctx.translate(-50, 40); axeShape(165); ctx.restore();
+    ctx.save(); ctx.translate(x, y); ctx.scale(side * sc, sc); ctx.rotate(ang); ctx.translate(-50, 40); hammerShape(165); ctx.restore();
   }
   function drawChop(p, t) {
     const sc = 1.15 * G, yUp = H * 0.42, yDown = H - 6, lift = 30 * G, side = p.x < W / 2 ? -1 : 1, A = 1.92; // 110 degrees: the bit points down
@@ -3507,7 +3529,7 @@
       const k = p.t / p.tele;
       warnStrip(p, t, 24 * G);
       drawBigAxe(p.x + Math.sin(t * 40) * 2.5 * k, yUp - k * lift, sc, side, A - 0.35 * k + Math.sin(t * 9) * 0.04);
-      outlined('AXE', p.x, combBottom() + 52, 14, '#ff9a8a');
+      outlined('HAMMER', p.x, combBottom() + 52, 14, '#ff9a8a');
       return;
     }
     const t0 = p.t - p.tele, u = ease(Math.min(1, t0 / 0.08));
@@ -4475,8 +4497,8 @@
     items = []; proj = []; sticky = []; ambient = [];
     purity = Math.max(purity, 60);
     achStat('round', 1);
-    seasonBanner();
-    last = performance.now(); lockMouse();
+    openShed(); // shop first, then the harvest
+    grandadSay("They'll keep coming now. Spend it while you can.");
   }
   function revive() {
     if (revivesLeft <= 0) return;
@@ -4545,6 +4567,7 @@
   // Purchases come out of your shed savings first, then out of the honey you've harvested. Bosses still come every 150 kg harvested.
   const honeyLeft = () => Math.max(0, score - kgSpent);
   const wallet = () => savings + honeyLeft();
+  const toNextBoss = () => Math.max(0, Math.ceil((endless ? endlessNext : thresholdFor(Math.min(bossIdx, BOSS_COUNT - 1))) - score)); // kg still to harvest
   function itemInfo(s) {
     const lv = upg[s.id], maxed = lv >= s.max, locked = !!(s.unlock && !s.unlock());
     const raw = maxed ? 0 : s.cost[lv];
@@ -4558,9 +4581,9 @@
     const g = $('gBubble'); g.classList.remove('pop'); void g.offsetWidth; g.classList.add('pop');
   }
   function renderShed() {
-    $('shedSav').textContent = fmtKg(savings);
-    $('shedKg').textContent = '+ ' + fmtKg(honeyLeft()) + ' of honey';
-    $('shedNext').textContent = '· next boss at ' + (endless ? endlessNext : thresholdFor(bossIdx)) + ' kg';
+    $('shedSav').textContent = fmtKg(wallet());
+    $('shedKg').textContent = savings >= 0.1 ? '(' + fmtKg(honeyLeft()) + ' harvested + ' + fmtKg(savings) + ' from boss fights)' : '';
+    $('shedNext').textContent = 'All of it is yours to spend: every kg you harvest, honey caught in boss fights and ' + BOSS_BONUS + ' kg for every boss you beat. Spending never brings the next boss closer or pushes it back: he turns up after ' + toNextBoss() + ' kg more harvesting either way.';
     for (const el of $('shop').children) {
       const s = SHOP.find(x => x.id === el.dataset.id), inf = itemInfo(s);
       el.hidden = inf.locked && s.id !== 'crazy'; // Pay Colonex appears once he has joined you; Crazy mode shows locked until earned
@@ -4738,7 +4761,7 @@
     if (!canBuy(inf)) return;
     shedPending = s.id;
     const fromSav = Math.min(savings, inf.cost), fromKg = inf.cost - fromSav;
-    const src = fromKg <= 0 ? 'It all comes out of your savings.' : fromSav >= 0.1 ? fmtKg(fromSav) + ' from savings, ' + fmtKg(fromKg) + ' from your honey.' : 'It comes out of your honey.';
+    const src = 'You\'ll have ' + fmtKg(wallet() - inf.cost) + ' left to spend.';
     $('confirmText').textContent = 'Buy ' + s.name + (s.max > 1 ? ' (level ' + (inf.lv + 1) + ')' : '') + ' for ' + inf.cost + ' kg? ' + src;
     $('buyBtn').hidden = true; $('confirm').hidden = false; $('confirmYes').focus({ preventScroll: true });
   });
@@ -4762,7 +4785,7 @@
   const LB = window.HG_LB && window.HG_LB.api ? window.HG_LB : null;
   const LB_PEND = 'honey-gobbler-lb-pending', LB_NAMES = { endless: 'Endless', speed: 'Speedrun', crazy: 'Crazy mode' };
   const LB_DESC = { endless: 'Highest round in endless mode. Honey harvested breaks ties.', speed: 'Fastest win against all eight bosses, from the first drop.', crazy: 'Highest round in endless runs where more than half of the fights were crazy mode.' };
-  let lbRun = null, lbMe = null, lbBoard = 'endless', lbFrom = null, lbWaiting = null;
+  let lbRun = null, lbMe = null, lbBoard = 'endless', lbFrom = null;
   async function lbCall(path, body) {
     let r;
     try { r = await fetch(LB.api + path, body ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : {}); }
@@ -4787,21 +4810,28 @@
   const lbValText = (board, v) => board === 'speed' ? fmtTime(v) : 'round ' + v;
   function lbLine(el, html) { if (!el) return; el.innerHTML = html; el.hidden = !html; }
   function lbLoginUrl() { return LB.login || '/customer_authentication/login?return_to=' + encodeURIComponent(location.pathname); }
-  function lbGoLogin(entry) {
-    if (entry) try { localStorage.setItem(LB_PEND, JSON.stringify({ entry, at: Date.now() })); } catch (e) {}
-    location.href = lbLoginUrl();
+  function lbGoLogin(entry) { lbHold(entry); location.href = lbLoginUrl(); }
+  const lbBetter = (a, b) => (a.board === 'speed' ? a.value < b.value : a.value > b.value || (a.value === b.value && a.tie > b.tie));
+  function lbHeld() { // scores waiting for a login or a name: the best one per board, kept for a few days
+    let p = null; try { p = JSON.parse(localStorage.getItem(LB_PEND) || 'null'); } catch (e) {}
+    if (p && p.entry) p = { entries: { [p.entry.board]: p.entry }, at: p.at }; // the older single-score format
+    if (!p || !p.entries || Date.now() - p.at > 3.5 * 86400e3) return {};
+    return p.entries;
   }
+  function lbSetHeld(entries) { try { if (Object.keys(entries).length) localStorage.setItem(LB_PEND, JSON.stringify({ entries, at: Date.now() })); else localStorage.removeItem(LB_PEND); } catch (e) {} }
+  function lbHold(entry) { if (!entry) return; const h = lbHeld(), cur = h[entry.board]; if (!cur || cur.ticket === entry.ticket || lbBetter(entry, cur)) { h[entry.board] = entry; lbSetHeld(h); } }
   async function lbEnsureMe() { if (!lbMe) lbMe = await lbCall('/api/me', { token: LB.token }); return lbMe; }
   async function lbSubmit(entry, el) { // el: a line on the screen to report back on, or null to save quietly
     if (!entry) return;
     if (!LB.token) {
+      lbHold(entry); // kept for when you log in
       if (el) { lbLine(el, 'Log in to put your ' + lbValText(entry.board, entry.value) + ' on the leaderboard. <button type="button" data-lblogin>Log in</button>'); el.querySelector('[data-lblogin]').onclick = () => lbGoLogin(entry); }
       return;
     }
     try {
       await lbEnsureMe();
       if (!lbMe.name) {
-        lbWaiting = { entry, el };
+        lbHold(entry);
         if (el) { lbLine(el, 'Pick a name to put your ' + lbValText(entry.board, entry.value) + ' on the leaderboard. <button type="button" data-lbname>Pick a name</button>'); el.querySelector('[data-lbname]').onclick = () => lbOpen(entry.board, true); }
         return;
       }
@@ -4860,8 +4890,6 @@
       await lbEnsureMe(); lbMe.name = j.name;
       if ($('lbWait').checked) lbJoinWaitlist(j.name);
       $('lbNameForm').hidden = true;
-      const w = lbWaiting; lbWaiting = null;
-      if (w) await lbSubmit(w.entry, w.el);
       await lbSendPending();
       lbTab(lbBoard);
       lbStartLine();
@@ -4878,18 +4906,18 @@
       .then(r => { if (!r.ok || /challenge/.test(r.url)) throw 0; try { localStorage.setItem(WAIT_KEY, '1'); } catch (e) {} achUnlock('real'); toast("You're on the waitlist"); })
       .catch(() => { window.open('/pages/contact', '_blank'); }); // if Shopify wants a captcha, the waitlist page handles it
   }
-  async function lbSendPending() { // a score saved before going off to log in
-    let p = null;
-    try { p = JSON.parse(localStorage.getItem(LB_PEND) || 'null'); } catch (e) {}
-    if (!p || !p.entry) return;
-    if (Date.now() - p.at > 3.5 * 86400e3) { try { localStorage.removeItem(LB_PEND); } catch (e) {} return; }
-    if (!lbMe || !lbMe.name) return;
-    try {
-      const j = await lbCall('/api/submit', { token: LB.token, ...p.entry });
-      try { localStorage.removeItem(LB_PEND); } catch (e) {}
-      lbMe.bests[j.board] = { value: j.best.value, tie: j.best.tie, rank: j.rank };
-      toast('Your ' + lbValText(j.board, p.entry.value) + ' is on the ' + LB_NAMES[j.board] + ' board: <b>#' + j.rank + '</b>');
-    } catch (e) { if (e.code !== 'net' && e.code !== 'server') try { localStorage.removeItem(LB_PEND); } catch (e2) {} toast(esc(e.message)); }
+  async function lbSendPending() { // scores held while you logged in or picked a name, one per board
+    const held = lbHeld();
+    if (!Object.keys(held).length || !lbMe || !lbMe.name) { lbSetHeld(held); return; }
+    for (const [board, entry] of Object.entries(held)) {
+      try {
+        const j = await lbCall('/api/submit', { token: LB.token, ...entry });
+        delete held[board];
+        lbMe.bests[j.board] = { value: j.best.value, tie: j.best.tie, rank: j.rank };
+        toast('Your ' + lbValText(j.board, entry.value) + ' is on the ' + LB_NAMES[j.board] + ' board: <b>#' + j.rank + '</b>');
+      } catch (e) { if (e.code !== 'net' && e.code !== 'server') delete held[board]; toast(esc(e.message)); }
+    }
+    lbSetHeld(held);
   }
   // achievements, counters and records follow the account
   let lbSyncT = 0, lbSyncing = false;
@@ -4918,8 +4946,8 @@
     const el = $('lbStartLine');
     if (!LB.token) { lbLine(el, 'Log in to get on the leaderboard. Do it before you play: logging in reloads the page. <button type="button" data-lblogin>Log in</button>'); el.querySelector('[data-lblogin]').onclick = () => lbGoLogin(null); return; }
     if (!lbMe) return;
-    let pend = null; try { pend = JSON.parse(localStorage.getItem(LB_PEND) || 'null'); } catch (e) {}
-    if (!lbMe.name) { lbLine(el, (pend ? 'Pick a name to put your ' + lbValText(pend.entry.board, pend.entry.value) + ' on the leaderboard.' : 'Pick a name for the leaderboard.') + ' <button type="button" data-lbname>Pick a name</button>'); el.querySelector('[data-lbname]').onclick = () => lbOpen(pend ? pend.entry.board : 'endless', true); return; }
+    const held = Object.values(lbHeld()), pend = held[0];
+    if (!lbMe.name) { lbLine(el, (pend ? 'Pick a name to put your ' + held.map(e => lbValText(e.board, e.value)).join(' and ') + ' on the leaderboard.' : 'Pick a name for the leaderboard.') + ' <button type="button" data-lbname>Pick a name</button>'); el.querySelector('[data-lbname]').onclick = () => lbOpen(pend ? pend.board : 'endless', true); return; }
     lbLine(el, 'On the leaderboard as ' + esc(lbMe.name) + '. Your achievements save to your account.');
   }
   function lbBoot() {
@@ -4962,4 +4990,4 @@
   };
   window.claude?.hot?.ready ? window.claude.hot.ready(boot) : boot(window.claude?.hot?.data ?? {});
 })();
-window.HG_BUILD = 'Honey Gobbler IX (8bf157)';
+window.HG_BUILD = 'Honey Gobbler IX (687570)';
