@@ -1,0 +1,12 @@
+name = "honey-gobbler-leaderboard"
+main = "src/index.js"
+compatibility_date = "2025-06-01"
+workers_dev = true
+
+[[d1_databases]]
+binding = "DB"
+database_name = "honey-gobbler-leaderboard"
+database_id = "2286a366-9516-4c22-8cdf-01a210f73406"
+
+[observability]
+enabled = true
