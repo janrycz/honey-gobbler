@@ -1,0 +1,20 @@
+const { chromium } = require('playwright');
+(async () => {
+  const mob = process.env.MOB === '1';
+  const b = await chromium.launch({ args: ['--disable-dev-shm-usage'] });
+  const ctx = await b.newContext(mob ? { viewport: { width: 390, height: 760 }, isMobile: true, hasTouch: true } : { viewport: { width: 1100, height: 760 } });
+  const p = await ctx.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message));
+  await p.goto('file://' + __dirname + '/' + (mob ? 'page-m.html' : 'page.html') + '#debug'); await p.waitForTimeout(300);
+  await p.evaluate(() => document.getElementById('startBtn').click());
+  const r = {};
+  r.lab = await p.evaluate(() => { __hg.freeze(true); __hg.inv(true); __hg.setUpg('lab', 10); __hg.jump(6); __hg.step(200); __hg.attack('hexagons'); __hg.step(30);
+    const before = { proj: __hg.get().proj, hp: __hg.get().bosses[0].hp }; __hg.ready(); const ok = __hg.power('lab'); __hg.step(2);
+    return { ok, before, after: { proj: __hg.get().proj, hp: __hg.get().bosses[0].hp }, btn: !document.getElementById('pw-lab').hidden }; });
+  r.comb = await p.evaluate(() => { __hg.setPurity(50); const h = []; return 'see below'; });
+  r.endlessShed = await p.evaluate(() => { __hg.jump(7); __hg.step(200); __hg.hurtBoss(99999); for (let i = 0; i < 400; i++) __hg.step(1); const s1 = __hg.get().state; document.getElementById('endlessBtn').click(); return { afterWin: s1, afterEndless: __hg.get().state, shedShown: !document.getElementById('shedScreen').hidden, grandad: document.getElementById('gLine').textContent, hud: document.getElementById('next').textContent }; });
+  r.hyper = await p.evaluate(() => { document.getElementById('shedDone').click(); __hg.endlessBoss(5); __hg.step(200); __hg.attack('hypergamy'); __hg.step(80); const t = __hg.threats(); return { spoonY: Math.round(t.sy), H: t.H, arrowsTy: [...new Set(t.proj.filter(q => q.k === 'hyperArrow').map(q => Math.round(q.ty)))] }; });
+  await p.screenshot({ path: __dirname + '/x25-' + (mob ? 'm' : 'd') + '-hyper.png' });
+  r.hammer = await p.evaluate(() => { __hg.clearProj(); __hg.endlessBoss(4); __hg.step(200); __hg.attack('axes'); __hg.step(20); __hg.attack('axeChop'); __hg.step(40); return __hg.projKinds(); });
+  await p.screenshot({ path: __dirname + '/x25-' + (mob ? 'm' : 'd') + '-hammer.png' });
+  console.log(JSON.stringify(r, null, 1)); console.log('errors', errs); await b.close();
+})();

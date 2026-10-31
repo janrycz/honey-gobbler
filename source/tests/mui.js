@@ -1,0 +1,25 @@
+const { chromium } = require('playwright');
+const out = process.argv[2];
+(async () => {
+  const b = await chromium.launch();
+  const p = await (await b.newContext({ viewport: { width: 375, height: 635 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true })).newPage();
+  const errs = []; p.on('pageerror', e => errs.push(e.message));
+  await p.goto('file://' + out + '/page-m.html#debug'); await p.waitForTimeout(400);
+  await p.screenshot({ path: out + '/mu-start.png' });
+  await p.tap('#startBtn'); await p.waitForTimeout(200);
+  await p.evaluate(() => { __hg.inv(true); __hg.freeze(true); __hg.harvest(3); __hg.step(200); __hg.pause(); });
+  await p.screenshot({ path: out + '/mu-pause.png' });
+  await p.tap('#pauseShed'); await p.waitForTimeout(200);
+  await p.screenshot({ path: out + '/mu-shed.png' });
+  await p.tap('#shedDone'); await p.waitForTimeout(100);
+  await p.tap('#resumeBtn'); await p.waitForTimeout(100);
+  await p.evaluate(() => { __hg.step(30); __hg.setRevives(0); __hg.kill(); });
+  await p.waitForTimeout(200);
+  await p.screenshot({ path: out + '/mu-over.png' });
+  await p.tap('#againBtn'); await p.waitForTimeout(100);
+  await p.evaluate(() => { __hg.inv(true); __hg.freeze(true); __hg.jump(6); __hg.step(200); __hg.hurtBoss(1e6); __hg.step(300); });
+  await p.waitForTimeout(300);
+  await p.screenshot({ path: out + '/mu-sold.png' });
+  console.log('ERRORS', JSON.stringify(errs));
+  await b.close();
+})();

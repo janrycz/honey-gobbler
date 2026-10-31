@@ -1,0 +1,32 @@
+const { chromium } = require('playwright');
+(async () => {
+  const out = process.argv[2];
+  const b = await chromium.launch();
+  const errs = [];
+  const p = await (await b.newContext({ viewport: { width: 1340, height: 815 } })).newPage();
+  p.on('pageerror', e => errs.push(e.message));
+  await p.goto('file://' + out + '/shop/index.html'); await p.waitForTimeout(500);
+  const bar = await p.evaluate(() => [window.HG_BUILD, [...document.body.children].some(d => d.textContent.startsWith('Wrong game script'))]);
+  await p.click('#startBtn'); await p.waitForTimeout(1500);
+  await p.keyboard.press('p'); await p.waitForTimeout(200);
+  const paused = await p.evaluate(() => [!document.getElementById('pauseScreen').hidden, document.getElementById('pauseRevive').textContent]);
+  await p.click('#pauseShed'); await p.waitForTimeout(300);
+  const shed = await p.evaluate(() => ({ open: !document.getElementById('shedScreen').hidden, back: document.getElementById('shedDone').textContent, prices: [...document.querySelectorAll('.tile')].filter(t => !t.hidden).map(t => t.querySelector('.nm').textContent + ' ' + t.querySelector('.pr').textContent).join(' | ') }));
+  await p.click('.tile[data-id="crazy"]'); await p.waitForTimeout(150);
+  const crazy = await p.evaluate(() => [document.getElementById('dNext').textContent, document.getElementById('gLine').textContent]);
+  await p.screenshot({ path: out + '/s8-shop-pause-shed.png' });
+  await p.click('#shedDone'); await p.waitForTimeout(200);
+  const back = await p.evaluate(() => [!document.getElementById('pauseScreen').hidden, document.getElementById('shedScreen').hidden]);
+  console.log(JSON.stringify({ bar, paused, shed, crazy, back }, null, 1));
+  // mismatch: an older script without the build line
+  const fs = require('fs');
+  const js = fs.readFileSync(out + '/shop/honey-gobbler-vi.js', 'utf8');
+  fs.writeFileSync(out + '/shop/old-test.js', js.replace(/window\.HG_BUILD.*\n$/, ''));
+  fs.writeFileSync(out + '/shop/mismatch.html', fs.readFileSync(out + '/shop/index.html', 'utf8').replace('honey-gobbler-vi.js', 'old-test.js'));
+  await p.goto('file://' + out + '/shop/mismatch.html'); await p.waitForTimeout(500);
+  const mbar = await p.evaluate(() => [...document.body.children].map(d => d.textContent).find(t => t.startsWith('Wrong game script')));
+  await p.screenshot({ path: out + '/s8-mismatch.png' });
+  console.log('mismatch bar:', mbar);
+  console.log('ERRORS', JSON.stringify(errs));
+  await b.close();
+})();

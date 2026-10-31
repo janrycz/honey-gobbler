@@ -1,0 +1,24 @@
+const { chromium } = require('playwright');
+(async () => {
+  const out = process.argv[2];
+  const b = await chromium.launch();
+  const errs = [];
+  const p = await (await b.newContext({ viewport: { width: 1100, height: 760 } })).newPage();
+  p.on('pageerror', e => errs.push(e.message));
+  await p.goto('file://' + out + '/page.html#debug'); await p.waitForTimeout(300);
+  await p.click('#startBtn');
+  const log = [];
+  const die = async () => { await p.evaluate(() => { __hg.freeze(true); __hg.kill(); }); await p.waitForTimeout(60); return p.evaluate(() => [__hg.revives(), !document.getElementById('reviveRow').hidden]); };
+  log.push(['start', await p.evaluate(() => __hg.revives())]);
+  log.push(['die 1 (left, button shown)', await die()]); await p.click('#reviveBtn');
+  log.push(['die 2', await die()]); await p.click('#reviveBtn');
+  log.push(['die 3', await die()]);
+  await p.click('#againBtn'); await p.waitForTimeout(60);
+  log.push(['after Try again', await p.evaluate(() => __hg.revives())]);
+  log.push(['die in new game', await die()]);
+  await p.reload(); await p.waitForTimeout(300); await p.click('#startBtn');
+  log.push(['after reloading the page', await p.evaluate(() => __hg.revives())]);
+  log.forEach(l => console.log(JSON.stringify(l)));
+  console.log('ERRORS', JSON.stringify(errs));
+  await b.close();
+})();
