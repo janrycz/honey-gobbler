@@ -27,7 +27,8 @@ ok('name B ok', (await call('/api/name', { token: B, name: 'Bilal' })).j.name ==
 const sp = await call('/api/submit', { token: A, ticket: st.j.ticket, board: 'speed', value: 812.4, stats: { played: 900, bosses: 8 } });
 ok('speed submit', sp.s === 200 && sp.j.improved && sp.j.rank === 1, sp.j);
 ok('speed too fast', (await call('/api/submit', { token: A, ticket: st.j.ticket, board: 'speed', value: 200, stats: { played: 900, bosses: 8 } })).j.error === 'check');
-ok('played > real time refused', (await call('/api/submit', { token: A, ticket: st.j.ticket, board: 'speed', value: 812, stats: { played: 9000, bosses: 8 } })).j.error === 'check');
+ok('played > 2.5x real time refused', (await call('/api/submit', { token: A, ticket: st.j.ticket, board: 'speed', value: 812, stats: { played: 11000, bosses: 8 } })).j.error === 'check');
+ok('played at 2.25x real time accepted (game speed)', (await call('/api/submit', { token: A, ticket: st.j.ticket, board: 'speed', value: 850, stats: { played: 9000, bosses: 9 } })).j.error === undefined);
 ok('speed worse not improved', (await call('/api/submit', { token: A, ticket: st.j.ticket, board: 'speed', value: 900, stats: { played: 950, bosses: 8 } })).j.improved === false);
 const en = await call('/api/submit', { token: A, ticket: st.j.ticket, board: 'endless', value: 7, tie: 2300, stats: { played: 1500, bosses: 8, endlessFights: 7, crazyFights: 1 } });
 ok('endless submit', en.j.improved && en.j.rank === 1, en.j);

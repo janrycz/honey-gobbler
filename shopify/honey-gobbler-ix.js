@@ -405,6 +405,21 @@
     m.className = 'mk'; m.style.left = (thresholdFor(i) / GOAL * 100) + '%'; m.textContent = i + 1;
     $('track').appendChild(m); markers.push(m);
   }
+  const SPEEDS = [1, 1.25, 1.5, 2, 2.5];
+  let gameSpeed = 1;
+  try { const v = +localStorage.getItem('honey-gobbler-speed'); if (SPEEDS.includes(v)) gameSpeed = v; } catch (e) {}
+  const fmtSpeed = v => v + '×';
+  function speedUi() {
+    document.querySelectorAll('.speedIn').forEach(el => { el.value = SPEEDS.indexOf(gameSpeed); });
+    document.querySelectorAll('.speedVal').forEach(el => { el.textContent = fmtSpeed(gameSpeed); });
+  }
+  document.querySelectorAll('.speedIn').forEach(el => el.addEventListener('input', () => {
+    if (state === 'play') { speedUi(); return; } // only from the start and pause screens
+    gameSpeed = SPEEDS[+el.value] || 1;
+    try { localStorage.setItem('honey-gobbler-speed', String(gameSpeed)); } catch (e) {}
+    speedUi(); if (spoon) updateHud();
+  }));
+  speedUi();
   const hudCache = {};
   function setText(id, v) { if (hudCache[id] !== v) { hudCache[id] = v; $(id).textContent = v; } }
   function setStyle(id, prop, v) { const key = id + prop; if (hudCache[key] !== v) { hudCache[key] = v; $(id).style[prop] = v; } }
@@ -415,6 +430,7 @@
     else if (endless) next = (crazyOn ? 'Crazy' : 'Endless') + ' · next boss in ' + toNextBoss() + ' kg';
     else if (bossIdx >= BOSS_COUNT) next = 'sold out';
     else next = SEASONS[seasonIdx()].m + ' · next boss in ' + toNextBoss() + ' kg';
+    if (gameSpeed !== 1 && W >= 560) next += ' · ' + fmtSpeed(gameSpeed); // no room for it on a phone
     setText('next', next);
     setText('combo', '×' + fmtMult(combo * (rush > 0 ? RUSH_MULT : 1)));
     setStyle('combo', 'color', rush > 0 ? 'var(--honey)' : '');
@@ -568,7 +584,7 @@
       if (e.key === 'Escape' && state === 'pause' && performance.now() - lockLostAt < 500) return; // that Escape just freed the mouse and paused
       togglePause();
     }
-    if (e.key.startsWith('Arrow')) e.preventDefault();
+    if (e.key.startsWith('Arrow') && !(state !== 'play' && e.target && e.target.classList && e.target.classList.contains('speedIn'))) e.preventDefault();
     if (state === 'play') {
       const pk = { 1: 'smoker', 2: 'magnet', 3: 'extractor', 4: 'queen', 5: 'shield', 6: 'lab' }[e.key];
       if (pk) firePower(pk);
@@ -4581,7 +4597,13 @@
     const t = now / 1000;
     if (locked && state !== 'play') unlockMouse(); // every menu frees the mouse
     if ($('pauseBtn').hidden === (state === 'play')) $('pauseBtn').hidden = state !== 'play';
-    if (state === 'play' && !frozen) update(dt);
+    if (state === 'play' && !frozen) {
+      if (gameSpeed === 1) update(dt);
+      else {
+        const g = dt * gameSpeed, n = Math.max(1, Math.ceil(g / Math.max(dt, 1 / 60) - 1e-6));
+        for (let i = 0; i < n && state === 'play' && !frozen; i++) update(g / n);
+      }
+    }
     else if (state === 'start' && spoon) { spoon.x = W / 2 + Math.sin(t) * W * .2; spoon.fill = .5 + Math.sin(t * 1.3) * .3; }
     draw(t);
     requestAnimationFrame(frame);
@@ -5100,4 +5122,4 @@
   };
   window.claude?.hot?.ready ? window.claude.hot.ready(boot) : boot(window.claude?.hot?.data ?? {});
 })();
-window.HG_BUILD = 'Honey Gobbler IX (4766ce)';
+window.HG_BUILD = 'Honey Gobbler IX (994d1d)';

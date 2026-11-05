@@ -1,5 +1,5 @@
 {% layout none %}
-{% comment %} Honey Gobbler IX (4766ce): this template loads the asset honey-gobbler-ix.js {% endcomment %}
+{% comment %} Honey Gobbler IX (994d1d): this template loads the asset honey-gobbler-ix.js {% endcomment %}
 <!doctype html>
 <html lang="en">
 <head>
@@ -202,6 +202,9 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
 .detail .nxt { color: var(--honey-deep); font-weight: 700; }
 .detail .actions { justify-content: flex-start; margin-top: 4px; }
 .btn.small { font-size: 1.05rem; padding: 9px 16px 7px; }
+.speedrow { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 12px 0 0; font-size: .92rem; font-weight: 700; color: var(--honey-deep); }
+.speedrow input { accent-color: var(--honey-deep); width: 150px; margin: 0; cursor: pointer; }
+.speedrow b { min-width: 3.2em; text-align: left; font-variant-numeric: tabular-nums; }
 .btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
 .confirm { display: flex; flex-direction: column; gap: 6px; }
 .confirm p { font-weight: 700; }
@@ -318,6 +321,7 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
         </div>
         <button class="btn" id="startBtn" type="button">Start the harvest</button>
         <div class="actions"><button class="btn ghost small" data-ach type="button">Achievements <span class="achcount"></span></button><button class="btn ghost small" data-lb type="button" hidden>Leaderboard</button></div>
+        <label class="speedrow" title="Everything runs faster. The run clock counts game time, so speedrun times stay fair.">Game speed <input class="speedIn" type="range" min="0" max="4" step="1" value="0" aria-label="Game speed"><b class="speedVal">1×</b></label>
         <p class="hint lbline" id="lbStartLine" hidden></p>
         <p class="hint">On a phone, drag your thumb anywhere on the screen, no need to touch the spoon. On a computer, use the mouse or arrow keys. The mouse stays locked to the game while you play: Esc frees it and pauses, and so does P.</p>
       </div>
@@ -329,6 +333,7 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
         <p>Grandad says the bees don't take breaks.</p>
         <button class="btn" id="resumeBtn" type="button">Back to the hives</button>
         <div class="actions"><button class="btn ghost small" id="pauseShed" type="button">Grandad's Shed</button><button class="btn ghost small" data-ach type="button">Achievements <span class="achcount"></span></button><button class="btn ghost small" data-lb type="button" hidden>Leaderboard</button></div>
+        <label class="speedrow" title="Everything runs faster. The run clock counts game time, so speedrun times stay fair.">Game speed <input class="speedIn" type="range" min="0" max="4" step="1" value="0" aria-label="Game speed"><b class="speedVal">1×</b></label>
         <div class="actions"><button class="btn ghost small" id="lockBtn" type="button" hidden>Mouse lock: on</button></div>
         <p class="hint" id="pauseRevive"></p>
       </div>
@@ -452,9 +457,9 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
 <script src="{{ 'honey-gobbler-ix.js' | asset_url }}" defer></script>
 <script>
 window.addEventListener('load', function () { // shows a red bar if this template and the game script come from different builds
-  if (window.HG_BUILD === 'Honey Gobbler IX (4766ce)') return;
+  if (window.HG_BUILD === 'Honey Gobbler IX (994d1d)') return;
   var d = document.createElement('div');
-  d.textContent = 'Wrong game script. This template is Honey Gobbler IX (4766ce) and needs the asset honey-gobbler-ix.js, but the page loaded ' + (window.HG_BUILD ? window.HG_BUILD : 'an older script or none') + '. Paste the new honey-gobbler-ix.js into Assets.';
+  d.textContent = 'Wrong game script. This template is Honey Gobbler IX (994d1d) and needs the asset honey-gobbler-ix.js, but the page loaded ' + (window.HG_BUILD ? window.HG_BUILD : 'an older script or none') + '. Paste the new honey-gobbler-ix.js into Assets.';
   d.style.cssText = 'position:fixed;left:0;right:0;top:0;z-index:99999;background:#c8102e;color:#fff;font:600 15px/1.4 system-ui,sans-serif;padding:10px 14px;text-align:center';
   document.body.appendChild(d);
 });

@@ -194,6 +194,9 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
 .detail .nxt { color: var(--honey-deep); font-weight: 700; }
 .detail .actions { justify-content: flex-start; margin-top: 4px; }
 .btn.small { font-size: 1.05rem; padding: 9px 16px 7px; }
+.speedrow { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 12px 0 0; font-size: .92rem; font-weight: 700; color: var(--honey-deep); }
+.speedrow input { accent-color: var(--honey-deep); width: 150px; margin: 0; cursor: pointer; }
+.speedrow b { min-width: 3.2em; text-align: left; font-variant-numeric: tabular-nums; }
 .btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
 .confirm { display: flex; flex-direction: column; gap: 6px; }
 .confirm p { font-weight: 700; }
@@ -307,6 +310,7 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
         </div>
         <button class="btn" id="startBtn" type="button">Start the harvest</button>
         <div class="actions"><button class="btn ghost small" data-ach type="button">Achievements <span class="achcount"></span></button><button class="btn ghost small" data-lb type="button" hidden>Leaderboard</button></div>
+        <label class="speedrow" title="Everything runs faster. The run clock counts game time, so speedrun times stay fair.">Game speed <input class="speedIn" type="range" min="0" max="4" step="1" value="0" aria-label="Game speed"><b class="speedVal">1×</b></label>
         <p class="hint lbline" id="lbStartLine" hidden></p>
         <p class="hint">On a phone, drag your thumb anywhere on the screen, no need to touch the spoon. On a computer, use the mouse or arrow keys. The mouse stays locked to the game while you play: Esc frees it and pauses, and so does P.</p>
       </div>
@@ -318,6 +322,7 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
         <p>Grandad says the bees don't take breaks.</p>
         <button class="btn" id="resumeBtn" type="button">Back to the hives</button>
         <div class="actions"><button class="btn ghost small" id="pauseShed" type="button">Grandad's Shed</button><button class="btn ghost small" data-ach type="button">Achievements <span class="achcount"></span></button><button class="btn ghost small" data-lb type="button" hidden>Leaderboard</button></div>
+        <label class="speedrow" title="Everything runs faster. The run clock counts game time, so speedrun times stay fair.">Game speed <input class="speedIn" type="range" min="0" max="4" step="1" value="0" aria-label="Game speed"><b class="speedVal">1×</b></label>
         <div class="actions"><button class="btn ghost small" id="lockBtn" type="button" hidden>Mouse lock: on</button></div>
         <p class="hint" id="pauseRevive"></p>
       </div>
@@ -831,6 +836,21 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
     m.className = 'mk'; m.style.left = (thresholdFor(i) / GOAL * 100) + '%'; m.textContent = i + 1;
     $('track').appendChild(m); markers.push(m);
   }
+  const SPEEDS = [1, 1.25, 1.5, 2, 2.5];
+  let gameSpeed = 1;
+  try { const v = +localStorage.getItem('honey-gobbler-speed'); if (SPEEDS.includes(v)) gameSpeed = v; } catch (e) {}
+  const fmtSpeed = v => v + '×';
+  function speedUi() {
+    document.querySelectorAll('.speedIn').forEach(el => { el.value = SPEEDS.indexOf(gameSpeed); });
+    document.querySelectorAll('.speedVal').forEach(el => { el.textContent = fmtSpeed(gameSpeed); });
+  }
+  document.querySelectorAll('.speedIn').forEach(el => el.addEventListener('input', () => {
+    if (state === 'play') { speedUi(); return; } // only from the start and pause screens
+    gameSpeed = SPEEDS[+el.value] || 1;
+    try { localStorage.setItem('honey-gobbler-speed', String(gameSpeed)); } catch (e) {}
+    speedUi(); if (spoon) updateHud();
+  }));
+  speedUi();
   const hudCache = {};
   function setText(id, v) { if (hudCache[id] !== v) { hudCache[id] = v; $(id).textContent = v; } }
   function setStyle(id, prop, v) { const key = id + prop; if (hudCache[key] !== v) { hudCache[key] = v; $(id).style[prop] = v; } }
@@ -841,6 +861,7 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
     else if (endless) next = (crazyOn ? 'Crazy' : 'Endless') + ' · next boss in ' + toNextBoss() + ' kg';
     else if (bossIdx >= BOSS_COUNT) next = 'sold out';
     else next = SEASONS[seasonIdx()].m + ' · next boss in ' + toNextBoss() + ' kg';
+    if (gameSpeed !== 1 && W >= 560) next += ' · ' + fmtSpeed(gameSpeed); // no room for it on a phone
     setText('next', next);
     setText('combo', '×' + fmtMult(combo * (rush > 0 ? RUSH_MULT : 1)));
     setStyle('combo', 'color', rush > 0 ? 'var(--honey)' : '');
@@ -994,7 +1015,7 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
       if (e.key === 'Escape' && state === 'pause' && performance.now() - lockLostAt < 500) return; // that Escape just freed the mouse and paused
       togglePause();
     }
-    if (e.key.startsWith('Arrow')) e.preventDefault();
+    if (e.key.startsWith('Arrow') && !(state !== 'play' && e.target && e.target.classList && e.target.classList.contains('speedIn'))) e.preventDefault();
     if (state === 'play') {
       const pk = { 1: 'smoker', 2: 'magnet', 3: 'extractor', 4: 'queen', 5: 'shield', 6: 'lab' }[e.key];
       if (pk) firePower(pk);
@@ -5007,7 +5028,13 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
     const t = now / 1000;
     if (locked && state !== 'play') unlockMouse(); // every menu frees the mouse
     if ($('pauseBtn').hidden === (state === 'play')) $('pauseBtn').hidden = state !== 'play';
-    if (state === 'play' && !frozen) update(dt);
+    if (state === 'play' && !frozen) {
+      if (gameSpeed === 1) update(dt);
+      else {
+        const g = dt * gameSpeed, n = Math.max(1, Math.ceil(g / Math.max(dt, 1 / 60) - 1e-6));
+        for (let i = 0; i < n && state === 'play' && !frozen; i++) update(g / n);
+      }
+    }
     else if (state === 'start' && spoon) { spoon.x = W / 2 + Math.sin(t) * W * .2; spoon.fill = .5 + Math.sin(t * 1.3) * .3; }
     draw(t);
     requestAnimationFrame(frame);
@@ -5593,6 +5620,7 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
       brawl() { if (state !== 'play') start(); endless = true; bossIdx = BOSS_COUNT; score = endlessNext = GOAL + STAGE_KG; upg.crazy = 1; openShed(); startBrawl(); },
       brawlInfo() { return brawl ? { t: brawl.t, beaten: brawl.beaten, S: brawl.S, queue: brawl.queue.length, active: brawl.active.map(b => b.def.key), on: bosses.filter(b => !b.done).map(b => b.def.key + ':' + b.mode + ':' + Math.round(b.hp)), k: bossK() } : null; },
       runStats() { return runStats; },
+      speed: v => { if (v !== undefined) { gameSpeed = v; speedUi(); } return gameSpeed; },
       setCrazyOn(v) { crazyOn = v; },
       tallyAll: () => JSON.parse(JSON.stringify(tally)),
       lbSyncNow() { return lbSync(); },

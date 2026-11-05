@@ -18,6 +18,7 @@ const BOARDS = {
 const ORIGINS = ['https://www.janhoney.com', 'https://janhoney.com'];
 const STORY_BOSSES = 8; // the fewest bosses a finished story can have (older games had 8)
 const MAX_STORY = 9; // the most (the honey bound uses this)
+const MAX_SPEED = 2.5; // the game's fastest speed setting: its clock can run up to this much faster than real time
 const TOKEN_DAYS = 7;
 const TICKET_DAYS = 4;
 const BANNED = ['fuck', 'shit', 'cunt', 'nigg', 'nigr', 'faggot', 'bitch', 'whore', 'slut', 'rapist', 'nazi', 'hitler', 'porn', 'penis',
@@ -189,11 +190,11 @@ async function submit(env, b) {
   const bosses = s.bosses | 0, ef = s.endlessFights | 0, cf = s.crazyFights | 0;
   const no = msg => { throw bad('check', msg); };
   if (![value, tie, played].every(Number.isFinite) || value <= 0) no("That score doesn't add up.");
-  if (played > real + 20) no("That run took less real time than the game says it did.");
+  if (played > real * MAX_SPEED + 20) no("That run took less real time than the game says it did.");
   if (board === 'speed') {
     if (bosses < STORY_BOSSES) no('Beat every boss first.');
     if (value < 300) no('That time is too fast to be real.');
-    if (value > played + 5 || value > real + 20) no("That time doesn't match the run.");
+    if (value > played + 5 || value > real * MAX_SPEED + 20) no("That time doesn't match the run.");
   } else {
     const round = Math.floor(value);
     if (round !== value || round < 1 || round > 2000) no("That round doesn't add up.");
