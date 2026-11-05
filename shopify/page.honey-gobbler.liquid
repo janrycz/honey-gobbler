@@ -1,5 +1,5 @@
 {% layout none %}
-{% comment %} Honey Gobbler IX (687570): this template loads the asset honey-gobbler-ix.js {% endcomment %}
+{% comment %} Honey Gobbler IX (3f0c35): this template loads the asset honey-gobbler-ix.js {% endcomment %}
 <!doctype html>
 <html lang="en">
 <head>
@@ -98,7 +98,7 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
 .legend em { font-style: normal; font-variant-numeric: tabular-nums; font-weight: 700; margin-left: auto; color: var(--honey-deep); white-space: nowrap; }
 .legend .bad em { color: var(--sus); }
 .swatch { width: 14px; height: 14px; border-radius: 4px; flex: none; }
-.roster { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; }
+.roster { display: grid; grid-template-columns: repeat(9, 1fr); gap: 3px; }
 .roster span { background: var(--ink); color: var(--wax); border-radius: 10px; padding: 7px 2px 6px; font: 700 .66rem var(--body); line-height: 1.25; font-variant-numeric: tabular-nums; }
 .roster span b { display: block; font-family: var(--display); font-size: .98rem; color: var(--honey); }
 .btn {
@@ -301,7 +301,7 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
       <div class="card">
         <h1>Honey Gobbler IX</h1>
         <p class="kicker">The best honey in the universe is under attack.</p>
-        <p>Grandad's hives are dripping with raw honeydew from the Subcarpathian hills. The season runs March to October. Every 150 kg you harvest, someone turns up to ruin it. Beat all eight and you sell out.</p>
+        <p>Grandad's hives are dripping with raw honeydew from the Subcarpathian hills. The season runs March to October. Every 150 kg you harvest, someone turns up to ruin it. Beat all nine and you sell out.</p>
         <div class="legend">
           <div><span class="swatch" style="background:#9a4a12;border-radius:50%;box-shadow:0 0 6px #ffd36b"></span>Honeydew drop<em>50–200 g</em></div>
           <div><span class="swatch" style="background:linear-gradient(#e2b23a 0 30%,#7a2f0c 30%);box-shadow:0 0 6px #ffd36b"></span>Ryczkowski jar<em>1.2 kg</em></div>
@@ -314,7 +314,7 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
         </div>
         <p><b>Purity</b> is your health. Hit 0% and your honey is officially sus. Anything with a red ring is fake. Real honey tops your purity up a little, Grandad's comb a lot. Fill the <b>Addictive</b> meter for a rush. In boss fights, every drop you catch gets flicked back at the boss and saved for <b>Grandad's Shed</b>, where you shop after each boss.</p>
         <div class="roster" aria-label="Boss checkpoints">
-          <span><b>150</b>Mar</span><span><b>300</b>Apr</span><span><b>450</b>May</span><span><b>600</b>Jun</span><span><b>750</b>Jul</span><span><b>900</b>Aug</span><span><b>1050</b>Sep</span><span><b>1200</b>Oct</span>
+          <span><b>150</b>Mar</span><span><b>300</b>Apr</span><span><b>450</b>May</span><span><b>600</b>Jun</span><span><b>750</b>Mid</span><span><b>900</b>Jul</span><span><b>1050</b>Aug</span><span><b>1200</b>Sep</span><span><b>1350</b>Oct</span>
         </div>
         <button class="btn" id="startBtn" type="button">Start the harvest</button>
         <div class="actions"><button class="btn ghost small" data-ach type="button">Achievements <span class="achcount"></span></button><button class="btn ghost small" data-lb type="button" hidden>Leaderboard</button></div>
@@ -379,8 +379,8 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
       <div class="card">
         <div class="stamp">SOLD OUT</div>
         <h2>We sold out</h2>
-        <div class="big">1,200 kg</div>
-        <p>That's 1,000 of our 1.2 kg jars. In your tea, your coffee, your oats, your eggs. Every last one is gone.</p>
+        <div class="big">1,350 kg</div>
+        <p>That's 1,125 of our 1.2 kg jars. In your tea, your coffee, your oats, your eggs. Every last one is gone.</p>
         <div class="stock"><span><b>0</b>left in the EU</span><span><b>0</b>left in the UK</span></div>
         <p class="quote">Is it really the best honey in the universe?<span>Try it yourself and let me know.</span></p>
         <p>It's autumn. The bees don't make honey now. Join the waitlist and you'll hear first when the next harvest is in.</p>
@@ -452,9 +452,9 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
 <script src="{{ 'honey-gobbler-ix.js' | asset_url }}" defer></script>
 <script>
 window.addEventListener('load', function () { // shows a red bar if this template and the game script come from different builds
-  if (window.HG_BUILD === 'Honey Gobbler IX (687570)') return;
+  if (window.HG_BUILD === 'Honey Gobbler IX (3f0c35)') return;
   var d = document.createElement('div');
-  d.textContent = 'Wrong game script. This template is Honey Gobbler IX (687570) and needs the asset honey-gobbler-ix.js, but the page loaded ' + (window.HG_BUILD ? window.HG_BUILD : 'an older script or none') + '. Paste the new honey-gobbler-ix.js into Assets.';
+  d.textContent = 'Wrong game script. This template is Honey Gobbler IX (3f0c35) and needs the asset honey-gobbler-ix.js, but the page loaded ' + (window.HG_BUILD ? window.HG_BUILD : 'an older script or none') + '. Paste the new honey-gobbler-ix.js into Assets.';
   d.style.cssText = 'position:fixed;left:0;right:0;top:0;z-index:99999;background:#c8102e;color:#fff;font:600 15px/1.4 system-ui,sans-serif;padding:10px 14px;text-align:center';
   document.body.appendChild(d);
 });

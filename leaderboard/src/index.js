@@ -4,7 +4,8 @@
 // with a secret that only Shopify and this Worker know. So nobody can post a score under someone else's account.
 //
 // Boards: endless (highest round, kg breaks ties), speed (fastest win against every boss), crazy (highest round, for runs
-// where more than half of the endless fights were crazy-mode fights). One entry per customer per board; only the best counts.
+// where at least half of the rounds were crazy mode, or the last quarter of them were and that's 3 or more; the round you
+// end in counts. Older games sent only fight counts: for them it's more than half of the endless fights). One entry per customer per board; only the best counts.
 //
 // Every run asks for a ticket when it starts. A score has to come with a ticket, and the time since the ticket was issued
 // has to be long enough for the score. That stops casual cheating; anything that slips through can be hidden by hand.
@@ -15,7 +16,8 @@ const BOARDS = {
   speed: { desc: false },
 };
 const ORIGINS = ['https://www.janhoney.com', 'https://janhoney.com'];
-const STORY_BOSSES = 8;
+const STORY_BOSSES = 8; // the fewest bosses a finished story can have (older games had 8)
+const MAX_STORY = 9; // the most (the honey bound uses this)
 const TOKEN_DAYS = 7;
 const TICKET_DAYS = 4;
 const BANNED = ['fuck', 'shit', 'cunt', 'nigg', 'nigr', 'faggot', 'bitch', 'whore', 'slut', 'rapist', 'nazi', 'hitler', 'porn', 'penis',
@@ -198,8 +200,14 @@ async function submit(env, b) {
     if (bosses < STORY_BOSSES) no('Finish the story first.');
     if (ef < round - 1) no("That round doesn't match the fights in the run.");
     if (played < 300 + 20 * round) no('That round came too fast to be real.');
-    if (tie > 150 * (STORY_BOSSES + round + 2) + 200) no('Too much honey for that round.');
-    if ((board === 'crazy') !== (cf * 2 > ef)) no(board === 'crazy' ? 'Less than half of the fights were crazy mode, so this goes on Endless.' : 'More than half of the fights were crazy mode, so this goes on Crazy mode.');
+    if (tie > 150 * (MAX_STORY + round + 2) + 200) no('Too much honey for that round.');
+    let crazy;
+    if (s.crazyRounds !== undefined) {
+      const cr = s.crazyRounds | 0, ct = s.crazyTail | 0;
+      if (cr < 0 || ct < 0 || cr > round || ct > cr || cr > cf + 1) no("The crazy mode rounds don't add up.");
+      crazy = cr >= Math.ceil(round / 2) || (ct >= 3 && ct >= Math.ceil(round / 4));
+    } else crazy = cf * 2 > ef;
+    if ((board === 'crazy') !== crazy) no(board === 'crazy' ? 'Not enough of the rounds were crazy mode, so this goes on Endless.' : 'Enough of the rounds were crazy mode, so this goes on Crazy mode.');
   }
   const row = { value, tie: board === 'speed' ? 0 : tie };
   const cur = await env.DB.prepare('SELECT value, tie FROM scores WHERE board = ? AND cid = ?').bind(board, cid).first();

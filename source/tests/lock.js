@@ -47,6 +47,8 @@ const out = process.argv[2];
   for (let i = 0; i < 4; i++) { await q.mouse.click(500, 400); await q.waitForTimeout(400); }
   await q.keyboard.press('p'); await q.waitForTimeout(200);
   console.log('blocked page', JSON.stringify(await q.evaluate(() => Object.assign(__hg.lockState(), { state: __hg.get().state }))), await q.evaluate(() => document.getElementById('lockBtn').textContent));
+  await q.click('#lockBtn'); await q.waitForTimeout(100);
+  console.log('after retry click', JSON.stringify(await q.evaluate(() => __hg.lockState())), await q.evaluate(() => [document.getElementById('lockBtn').textContent, document.getElementById('lockBtn').disabled]));
   console.log('ERRORS', JSON.stringify(errs));
   await b.close();
 })();

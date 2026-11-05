@@ -6,8 +6,8 @@ const fs = require('fs');
 //  - the expert dodge bot
 // A start counts as a trap only if every plan gets hit.
 const out = __dirname, page = process.env.PAGE || 'page.html', mob = process.env.MOB === '1', round = +(process.env.ROUND || 0), seeds = +(process.env.SEEDS || 6);
-const ALL = { 0: ['toss', 'susRain', 'feeder', 'syrupStorm'], 1: ['fees', 'vc', 'factorio', 'jobs', 'crow', 'ski', 'gifs', 'cnc', 'roblox', 'doubleFees'], 2: ['notify', 'sheets', 'bars', 'chess', 'knight', 'deenbuddy', 'fired', 'errors', 'checkmate'], 3: ['rope', 'prices', 'pushups', 'resin', 'drinks', 'ropeDouble'], 4: ['blend', 'volley', 'dilemma', 'dilemma2', 'axes', 'axeChop'], 5: ['hypergamy', 'needles', 'ratings', 'pills', 'liver', 'courseAd', 'chatFlood', 'bonesmash', 'subathon'], 6: ['barrage', 'hexagons', 'missingLink', 'quarks', 'fishLegs', 'bigbang', 'quarkStorm'] };
-const ATKS = process.env.ATKS === 'all' ? Object.entries(ALL).flatMap(([i, l]) => l.map(a => [+i, a])) : (process.env.ATKS || '2:checkmate,4:dilemma2,6:quarks,6:quarkStorm').split(',').map(s => { const [i, a] = s.split(':'); return [+i, a]; });
+const ALL = { 0: ['toss', 'susRain', 'feeder', 'syrupStorm'], 1: ['fees', 'vc', 'factorio', 'jobs', 'crow', 'ski', 'gifs', 'cnc', 'roblox', 'doubleFees'], 2: ['notify', 'sheets', 'bars', 'chess', 'knight', 'deenbuddy', 'fired', 'errors', 'checkmate'], 3: ['goyBeam', 'goyBeam2', 'goyWords', 'susHoney', 'whatsapp', 'slides'], 4: ['rope', 'prices', 'pushups', 'resin', 'drinks', 'ropeDouble'], 5: ['blend', 'volley', 'dilemma', 'dilemma2', 'axes', 'axeChop'], 6: ['hypergamy', 'needles', 'ratings', 'pills', 'liver', 'courseAd', 'chatFlood', 'bonesmash', 'subathon'], 7: ['barrage', 'hexagons', 'missingLink', 'quarks', 'fishLegs', 'bigbang', 'quarkStorm'] };
+const ATKS = process.env.ATKS === 'all' ? Object.entries(ALL).flatMap(([i, l]) => l.map(a => [+i, a])) : (process.env.ATKS || '2:checkmate,5:dilemma2,7:quarks,7:quarkStorm').split(',').map(s => { const [i, a] = s.split(':'); return [+i, a]; });
 const botSrc = fs.readFileSync(out + '/dodgebot.js', 'utf8');
 (async () => {
   const b = await chromium.launch({ args: ['--disable-dev-shm-usage'] });

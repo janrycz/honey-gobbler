@@ -12,7 +12,7 @@ window.dodge = (frames, opts = {}) => {
       for (const q of T.fakes) { const dt = (T.sy - q.y) / Math.max(30, q.vy); if (dt < -0.15 || dt > 1.1) continue; const span = q.amp + q.r * 0.6 + hitR; xs.forEach((x, i) => { if (Math.abs(x - q.base) < span) score[i] -= 30 * (1.25 - dt); }); }
       for (const p of T.proj) {
         if (p.harmless) {
-          const col = { beam: 14, rope: 24, hammer: 30, chop: 24 }[p.k];
+          const col = p.half || { beam: 14, rope: 24, hammer: 30, chop: 24 }[p.k];
           if (col) { const half = col * p.G + hitR * 0.7; xs.forEach((x, i) => { if (Math.abs(x - p.x) < half) score[i] -= 60; }); }
           else if (p.k === 'bar') { const half = p.w / 2 + hitR * 0.7; xs.forEach((x, i) => { if (Math.abs(x - p.x) < half) score[i] -= 60; }); }
           else if (p.k === 'ring') xs.forEach((x, i) => { const d = Math.hypot(x - p.x, T.sy - p.y); if (d < p.R + 14 + T.S * 0.3) score[i] -= 45; });
@@ -22,7 +22,14 @@ window.dodge = (frames, opts = {}) => {
         }
         if (p.safe) continue;
         let x = p.x, y = p.y, vx = p.vx, vy = p.vy;
-        for (let s2 = 1; s2 <= 24; s2++) { const t = s2 * 0.05; if (t < p.delay) continue; vy += p.g * 0.05; x += vx * 0.05; y += vy * 0.05; if (Math.abs(y - T.sy) < 26 + p.r) { xs.forEach((xx, i) => { if (Math.abs(xx - x) < p.r * 0.7 + hitR) score[i] -= 50 * (1.3 - t); }); break; } }
+        const bnc = p.k === 'goyWord' ? 0.72 : p.k === 'pill' ? 0.7 : 0; let nb = 0, was = false; // bouncers: it sees the bounce coming, like a person would
+        for (let s2 = 1; s2 <= 24; s2++) {
+          const t = s2 * 0.05; if (t < p.delay) continue; vy += p.g * 0.05; x += vx * 0.05; y += vy * 0.05;
+          if (bnc && y > T.H - 14 && vy > 0 && nb < 3) { y = T.H - 14; vy = -Math.abs(vy) * bnc; vx *= p.k === 'pill' ? 0.45 : 0.6; nb++; }
+          const near = Math.abs(y - T.sy) < 26 + p.r;
+          if (near && !was) { xs.forEach((xx, i) => { if (Math.abs(xx - x) < p.r * 0.7 + hitR) score[i] -= 50 * (1.3 - t); }); if (!bnc) break; }
+          was = near;
+        }
       }
       let best = 0, bs = -1e9;
       xs.forEach((x, i) => { const sc = score[i] - Math.abs(x - T.sx) * 0.004; if (sc > bs) { bs = sc; best = i; } });

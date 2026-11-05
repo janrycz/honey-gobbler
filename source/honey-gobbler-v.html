@@ -90,7 +90,7 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
 .legend em { font-style: normal; font-variant-numeric: tabular-nums; font-weight: 700; margin-left: auto; color: var(--honey-deep); white-space: nowrap; }
 .legend .bad em { color: var(--sus); }
 .swatch { width: 14px; height: 14px; border-radius: 4px; flex: none; }
-.roster { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; }
+.roster { display: grid; grid-template-columns: repeat(9, 1fr); gap: 3px; }
 .roster span { background: var(--ink); color: var(--wax); border-radius: 10px; padding: 7px 2px 6px; font: 700 .66rem var(--body); line-height: 1.25; font-variant-numeric: tabular-nums; }
 .roster span b { display: block; font-family: var(--display); font-size: .98rem; color: var(--honey); }
 .btn {
@@ -290,7 +290,7 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
       <div class="card">
         <h1>Honey Gobbler IX</h1>
         <p class="kicker">The best honey in the universe is under attack.</p>
-        <p>Grandad's hives are dripping with raw honeydew from the Subcarpathian hills. The season runs March to October. Every 150 kg you harvest, someone turns up to ruin it. Beat all eight and you sell out.</p>
+        <p>Grandad's hives are dripping with raw honeydew from the Subcarpathian hills. The season runs March to October. Every 150 kg you harvest, someone turns up to ruin it. Beat all nine and you sell out.</p>
         <div class="legend">
           <div><span class="swatch" style="background:#9a4a12;border-radius:50%;box-shadow:0 0 6px #ffd36b"></span>Honeydew drop<em>50–200 g</em></div>
           <div><span class="swatch" style="background:linear-gradient(#e2b23a 0 30%,#7a2f0c 30%);box-shadow:0 0 6px #ffd36b"></span>Ryczkowski jar<em>1.2 kg</em></div>
@@ -303,7 +303,7 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
         </div>
         <p><b>Purity</b> is your health. Hit 0% and your honey is officially sus. Anything with a red ring is fake. Real honey tops your purity up a little, Grandad's comb a lot. Fill the <b>Addictive</b> meter for a rush. In boss fights, every drop you catch gets flicked back at the boss and saved for <b>Grandad's Shed</b>, where you shop after each boss.</p>
         <div class="roster" aria-label="Boss checkpoints">
-          <span><b>150</b>Mar</span><span><b>300</b>Apr</span><span><b>450</b>May</span><span><b>600</b>Jun</span><span><b>750</b>Jul</span><span><b>900</b>Aug</span><span><b>1050</b>Sep</span><span><b>1200</b>Oct</span>
+          <span><b>150</b>Mar</span><span><b>300</b>Apr</span><span><b>450</b>May</span><span><b>600</b>Jun</span><span><b>750</b>Mid</span><span><b>900</b>Jul</span><span><b>1050</b>Aug</span><span><b>1200</b>Sep</span><span><b>1350</b>Oct</span>
         </div>
         <button class="btn" id="startBtn" type="button">Start the harvest</button>
         <div class="actions"><button class="btn ghost small" data-ach type="button">Achievements <span class="achcount"></span></button><button class="btn ghost small" data-lb type="button" hidden>Leaderboard</button></div>
@@ -368,8 +368,8 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
       <div class="card">
         <div class="stamp">SOLD OUT</div>
         <h2>We sold out</h2>
-        <div class="big">1,200 kg</div>
-        <p>That's 1,000 of our 1.2 kg jars. In your tea, your coffee, your oats, your eggs. Every last one is gone.</p>
+        <div class="big">1,350 kg</div>
+        <p>That's 1,125 of our 1.2 kg jars. In your tea, your coffee, your oats, your eggs. Every last one is gone.</p>
         <div class="stock"><span><b>0</b>left in the EU</span><span><b>0</b>left in the UK</span></div>
         <p class="quote">Is it really the best honey in the universe?<span>Try it yourself and let me know.</span></p>
         <p>It's autumn. The bees don't make honey now. Join the waitlist and you'll hear first when the next harvest is in.</p>
@@ -438,7 +438,7 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
   const TAU = Math.PI * 2;
 
   // ---------- tuning ----------
-  const STAGE_KG = 150, BOSS_COUNT = 8, GOAL = STAGE_KG * BOSS_COUNT;
+  const STAGE_KG = 150, BOSS_COUNT = 9, GOAL = STAGE_KG * BOSS_COUNT;
   const thresholdFor = i => STAGE_KG * (i + 1); // 150 ... 1050
   const KG = { jar: 1.2, box: 10, comb: 5, shilajit: 1.2, lab: 0 }; // drops carry their own 50-200 g
   const FILL = { drop: .035, jar: .07, box: .12, comb: .05, shilajit: 0, lab: 0 };
@@ -488,6 +488,7 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
     { m: 'April', name: 'First blossom', col: '#ffc4d8', top: '#3c2a10', mid: '#25170a', glow: 'rgba(255,214,140,.14)', part: 'petal' },
     { m: 'May', name: 'Spring flow', col: '#fff3b0', top: '#3d2b0f', mid: '#25170a', glow: 'rgba(255,225,140,.15)', part: 'fluff' },
     { m: 'June', name: 'Early summer', col: '#ffe27a', top: '#3e260c', mid: '#26150a', glow: 'rgba(255,200,90,.17)', part: 'pollen' },
+    { m: 'Midsummer', name: 'Longest days', col: '#ffd060', top: '#40250b', mid: '#27150a', glow: 'rgba(255,185,70,.18)', part: 'pollen' },
     { m: 'July', name: 'High summer', col: '#ffb347', top: '#47230a', mid: '#2a1509', glow: 'rgba(255,150,40,.2)', part: 'heat' },
     { m: 'August', name: 'Honeydew season', col: '#b9d98a', top: '#2f220e', mid: '#1f160a', glow: 'rgba(170,200,100,.12)', part: 'needle' },
     { m: 'September', name: 'Last of the season', col: '#ff8a3c', top: '#3b1b0b', mid: '#241008', glow: 'rgba(220,90,30,.16)', part: 'leaf' },
@@ -529,6 +530,7 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
   const ALLY_BOSS_LINES = {
     keeper: 'sus beekeeper pls send lab results to loksd corporation',
     ceo: 'app founder owes loksd corporation 400$ download fee',
+    lecturer: 'lecturer pls stop asking about whatsapp. loksd corporation uses discord',
     ironfit: 'shilajit coach charges 1k for story post. loksd corporation charges 2k to read it',
     apologist: 'honey apologist pls check ur notes, there is a fee',
     looks: 'looksmaxxer pls stop mewing in vc',
@@ -590,13 +592,14 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
     { id: 'trust', name: 'Trust me bro', desc: 'Beat the Sus Beekeeper without getting hit.' },
     { id: 'blacklist', name: 'Off the blacklist', desc: 'Beat Colonex.' },
     { id: 'fired', name: "You're fired", desc: 'Beat the App Founder.' },
+    { id: 'nextq', name: 'Next question', desc: 'Beat the Lecturer.' },
     { id: 'bigman', name: 'Big man ting', desc: 'Beat the Shilajit Coach.' },
     { id: 'notes', name: 'Check my notes', desc: 'Beat the Honey Apologist.' },
     { id: 'mogger', name: 'Mogger', desc: 'Beat the Looksmaxxer.' },
     { id: 'blocked', name: 'Blocked', desc: 'Beat the Disprover.' },
     { id: 'sold', name: 'Sold out', desc: 'Finish a run.', stat: 'season', goal: BOSS_COUNT, show: n => n + ' / ' + BOSS_COUNT + ' bosses' },
-    { id: 'fast', name: 'Sold out fast', desc: 'Finish a run in under 14 minutes.' },
-    { id: 'spoon', name: 'A spoon and nothing else', desc: 'Beat all eight bosses without buying anything in the shed.' },
+    { id: 'fast', name: 'Sold out fast', desc: 'Finish a run in under 15 minutes.' },
+    { id: 'spoon', name: 'A spoon and nothing else', desc: 'Beat all nine bosses without buying anything in the shed.' },
     { id: 'nospare', name: 'No spare frames', desc: 'Finish a run without using a second chance.' },
     { id: 'raw', name: 'Raw and unfiltered', desc: 'Finish a run without your purity ever dropping below 50%.' },
     { id: 'endless', name: 'Endless', desc: 'Reach round 5 of endless mode.', stat: 'round', goal: 5, show: n => 'round ' + n + ' / 5' },
@@ -654,9 +657,21 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
       attacks: ['notify', 'sheets', 'bars', 'chess', 'knight', 'deenbuddy', 'fired', 'errors', 'knight'],
     },
     {
+      key: 'lecturer', name: 'The Lecturer', tag: 'Lecturer', sub: 'Live from the studio. Judging your haircut. Asking about WhatsApp.', hp: 270, pace: 0.95, phonePace: 0.85, dmgMul: 1.1,
+      intro: 'WHATSAPP? WHATSAPP??',
+      lines: ["I'm not interested to be religious, but I don't have a choice. If I stay the same bum I am, in the clubs of Manhattan, smoking grass all day, walking like a goy everywhere I go, what kind of a girl will I get?",
+        'Jew or goy? GOYYYYYYY', 'WHATSAPP? WHATSAPP??', 'Look at this haircut. Look at it!', 'Who cuts hair like this? Who?', 'Next slide. Next slide!',
+        'Every day the same story.', 'Stop with the clubs.', "I'm telling you for your own good.", 'You want a good wife? Fix the hair first.',
+        '!תתעורר', '?מה זה הדבר הזה', '!די כבר', '!יאללה, הבא'],
+      p2line: "Now I'm serious. Next slide!", p2attacks: ['goyBeam2', 'slides'],
+      defeat: 'OK. OK. Next question.',
+      lose: 'The Lecturer asked what kind of a girl you will get. Nobody answered.',
+      attacks: ['goyBeam', 'goyWords', 'susHoney', 'whatsapp', 'slides', 'goyWords'],
+    },
+    {
       key: 'ironfit', name: 'The Shilajit Coach', tag: 'Shilajit Coach', sub: 'No gym. Just pushups, pullups and a lot of shilajit.', hp: 300, pace: 0.7, dmgMul: 1.3,
       intro: "Don't eat this if you're not married.",
-      lines: ["Don't eat this if you're not married.", 'Is water wet?', 'Big man ting yeah', 'If you really have a premium product, raise your prices.', '1k for a story post.', 'No gym. Pushups and pullups.', '20 grams of creatine a day.', 'Watermelon juice and saffron water.', 'Day 1 of 500 pushups.', 'Lock in.', "Discipline is free. My shilajit isn't.", "Creatine, shilajit, saffron. That's the stack.", 'Premium product. Premium price. Simple.', 'Pushups in the morning. Pushups at night.', 'Raw honey? Respect. Still not shilajit.', 'No excuses. Only pushups.'],
+      lines: ["Don't eat this if you're not married.", 'Big man ting yeah', 'If you really have a premium product, raise your prices.', '1k for a story post.', 'No gym. Pushups and pullups.', '20 grams of creatine a day.', 'Watermelon juice and saffron water.', 'Day 1 of 500 pushups.', 'Lock in.', "Discipline is free. My shilajit isn't.", "Creatine, shilajit, saffron. That's the stack.", 'Premium product. Premium price. Simple.', 'Pushups in the morning. Pushups at night.', 'Raw honey? Respect. Still not shilajit.', 'No excuses. Only pushups.'],
       p2line: 'Day two. Lesgo.', p2attacks: ['ropeDouble'],
       defeat: 'Respect. Big man ting yeah.',
       lose: 'The Shilajit Coach charged you 1k for a story post.',
@@ -753,7 +768,7 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
   let invincible = false, bot = false, frozen = false; // test switches, only reachable with #debug
   let shieldT = 0, shieldHits = 0, shieldMax = 0; // Honeycomb shield
   let brawl = null; // fight every boss at once: just for fun, nothing lost either way
-  let runStats = { endlessFights: 0, crazyFights: 0 }; // for the leaderboard
+  let runStats = { endlessFights: 0, crazyFights: 0, crazyTail: 0 }; // for the leaderboard
   let gore = [], beeDown = []; // body parts flying off (Terraria-style deaths); worker bees waiting to come back
   let upg, pcd, readyAt, bees = [], smokeT = 0, magnetT = 0, extractT = 0, extractRun = null, shedFromPause = false, allyQueue = null, shedSel = null, shedPending = null, shedPinned = false, hikeSaid = false, smokeSlow = 0.6, smokeDur = 3, magnetReach = 0.15;
   let knightHint = false, qd = null, savings = 0, fightSaved = 0, crazyOn = false, chat = null, fightHits = 0, comboT = 0, kgSpent = 0, endlessBag = [], lastEndless = -1;
@@ -800,7 +815,7 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
     endless = false; endlessNext = 0; endlessRound = 0; revivesLeft = REVIVES; endlessSeen = {};
     upg = { thick: 0, bee: 0, colonex: 0, smoker: 0, magnet: 0, extractor: 0, queen: 0, shield: 0, lab: 0, wax: 0, sweet: 0, hives: 0, crazy: 0 }; pcd = { smoker: 0, magnet: 0, extractor: 0, queen: 0, shield: 0, lab: 0 }; readyAt = { smoker: 0, magnet: 0, extractor: 0, queen: 0, shield: 0, lab: 0 };
     bees = []; smokeT = 0; magnetT = 0; extractT = 0; extractRun = null; shieldT = 0; shieldHits = 0; allyQueue = null; hikeSaid = false;
-    qd = null; savings = 0; fightSaved = 0; crazyOn = false; chat = null; fightHits = 0; knightHint = false; brawl = null; runStats = { endlessFights: 0, crazyFights: 0 };
+    qd = null; savings = 0; fightSaved = 0; crazyOn = false; chat = null; fightHits = 0; knightHint = false; brawl = null; runStats = { endlessFights: 0, crazyFights: 0, crazyTail: 0 };
     updateHud();
   }
 
@@ -963,10 +978,10 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
   document.addEventListener('pointerlockerror', () => { if (performance.now() - lockLostAt > 1500) lockErrors++; lockLabel(); }); // e.g. a page that isn't allowed to lock
   function lockLabel() {
     const el = $('lockBtn'); el.hidden = !canLock;
-    el.disabled = lockErrors >= 3;
-    el.textContent = lockErrors >= 3 ? 'Mouse lock: not available here' : 'Mouse lock: ' + (lockPref ? 'on' : 'off');
+    el.disabled = false;
+    el.textContent = lockErrors >= 3 ? 'Mouse lock: blocked, click to retry' : 'Mouse lock: ' + (lockPref ? 'on' : 'off');
   }
-  $('lockBtn').addEventListener('click', () => { lockPref = !lockPref; try { localStorage.setItem('honey-gobbler-lock', lockPref ? '1' : '0'); } catch (e) {} lockLabel(); });
+  $('lockBtn').addEventListener('click', () => { if (lockErrors >= 3) { lockErrors = 0; lockPref = true; } else lockPref = !lockPref; try { localStorage.setItem('honey-gobbler-lock', lockPref ? '1' : '0'); } catch (e) {} lockLabel(); });
   stage.addEventListener('pointermove', pointer);
   stage.addEventListener('pointerdown', pointer);
   ['pointerup', 'pointercancel'].forEach(t => stage.addEventListener(t, () => { drag = null; }));
@@ -1628,7 +1643,7 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
       const rec = !best.brawl || time < best.brawl;
       if (rec) { best.brawl = time; saveBest(); }
       achUnlock('brawl');
-      line = 'All eight at once, in ' + fmtTime(time) + '.' + (rec ? " That's your best." : ' Your best is ' + fmtTime(best.brawl) + '.') + ' Nothing lost, boy.';
+      line = 'All nine at once, in ' + fmtTime(time) + '.' + (rec ? " That's your best." : ' Your best is ' + fmtTime(best.brawl) + '.') + ' Nothing lost, boy.';
     } else line = 'You beat ' + beaten + ' of ' + BOSS_COUNT + ' in ' + fmtTime(time) + '. Nothing lost. Your run carries on.';
     openShed();
     grandadSay(line);
@@ -1836,13 +1851,13 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
     if (h > 0) floatText(spoon.x, spoon.y - 60, '+' + Math.round(h) + '% purity', '#ffe9a8');
     sfx.bossDown(); shake = reduceMotion ? 0 : 12;
     if (b.def.key === 'looks') chatReact('Clipping this', 3);
-    const a = { keeper: fightHits === 0 ? 'trust' : null, colonex: 'blacklist', ceo: 'fired', ironfit: 'bigman', apologist: 'notes', looks: 'mogger', disprover: 'blocked', hornet: 'pest' }[b.def.key];
+    const a = { keeper: fightHits === 0 ? 'trust' : null, colonex: 'blacklist', ceo: 'fired', lecturer: 'nextq', ironfit: 'bigman', apologist: 'notes', looks: 'mogger', disprover: 'blocked', hornet: 'pest' }[b.def.key];
     if (a) achUnlock(a);
   }
   function finishFight() {
     if (brawl) { brawlEnd(true); return; }
     const wasEndless = bosses[0].endless, two = bosses.length > 1;
-    if (wasEndless) { runStats.endlessFights++; if (two) runStats.crazyFights++; }
+    if (wasEndless) { runStats.endlessFights++; if (two) runStats.crazyFights++; runStats.crazyTail = two ? runStats.crazyTail + 1 : 0; }
     boss = null; bosses = []; chat = null; qd = null; ally = null;
     if (two) { achUnlock('crazy'); achAdd('crazyWins', 1); }
     if (wasEndless) { endlessRound++; endlessNext += STAGE_KG; achStat('round', endlessRound + 1); lbSubmit(lbEntry(), null); openShed(); return; } // saved after every round, quietly
@@ -2290,7 +2305,7 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
       return 4.6;
     },
     resin(b) {
-      say(pick(["Don't eat this if you're not married.", 'Is water wet?']));
+      say("Don't eat this if you're not married.");
       const k = bossK(), x0 = b.x, y0 = b.y + 20 * k;
       fan(fanN(moreE(4), 70 * G), 1).forEach((s, i) => proj.push(P(Object.assign({ k: 'resinBlob', name: 'Shilajit resin', color: '#1a1410', x: x0, y: y0, r: 13, dmg: 10, vr: rnd(-3, 3), delay: i * 0.18, sticky: 'resin' }, lob(x0, y0, clamp(spoon.x + s * 70 * G, 30, W - 30), 1.15, 380)))));
       return 2.6;
@@ -2365,6 +2380,45 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
       say(pick(["Your canthal tilt is why the honey isn't selling.", 'Ur a Jeffrey.']));
       fallers(4, () => { const text = pick(RATINGS); return { k: 'rate', name: 'Rated ' + text, color: '#ff5a6e', text, vy: rnd(130, 170), r: 18, dmg: 10 }; }, 0.3);
       return 2.6;
+    },
+    goyBeam(b) { // a big laser down your column
+      say(pick(['Jew or goy? GOYYYYYYY', 'GOYYYYYYY']), { force: true });
+      proj.push(P({ k: 'beam', harmless: true, dmg: 12, name: 'Goy beam', color: '#7cc4ff', x: clamp(spoon.x, 20, W - 20), y: H / 2, tele: 0.95, on: 0.5, half: 26, label: 'GOY BEAM', nolegs: true }));
+      return 2.6;
+    },
+    goyBeam2(b) { // two of them, the second a moment later beside the first
+      say('GOYYYYYYY', { force: true });
+      const off = W * (W < 560 ? 0.32 : 0.22), x1 = clamp(spoon.x, 20, W - 20), x2 = clamp(x1 + (x1 < W / 2 ? off : -off), 20, W - 20);
+      proj.push(P({ k: 'beam', harmless: true, dmg: 12, name: 'Goy beam', color: '#7cc4ff', x: x1, y: H / 2, tele: 0.95, on: 0.5, half: 26, label: 'GOY BEAM', nolegs: true }));
+      proj.push(P({ k: 'beam', harmless: true, dmg: 12, name: 'Goy beam', color: '#7cc4ff', x: x2, y: H / 2, tele: 1.6, on: 0.5, half: 26, label: 'GOY BEAM', nolegs: true }));
+      return 3.2;
+    },
+    goyWords(b) { // the words bounce around like the pills and squash when they hit something
+      say(pick(['!גוי', '?גוי או יהודי', 'Jew or goy?']));
+      const k = bossK(), x0 = b.x, y0 = b.y + 20 * k;
+      for (let i = 0, n = b.p2 ? cntA(3) : cntA(2); i < n; i++) proj.push(P(Object.assign({ k: 'goyWord', word: Math.random() < 0.5 ? 'גוי' : 'גויים', name: 'Goy', color: '#7cc4ff', x: x0, y: y0, r: 14, dmg: 7, vr: rnd(-1.2, 1.2), delay: i * 0.25, bounces: 0, sq: 0 }, lob(x0, y0, clamp(spoon.x + rnd(-150, 150) * G, 20, W - 20), 0.95, 700))));
+      return 2.7;
+    },
+    susHoney(b) { // sus honey that leaves the floor sticky, like the Sus Beekeeper's
+      say(pick(['Take the honey. Take it!', 'Very good honey. Very sticky.']));
+      const k = bossK(), x0 = b.x - 30 * k, y0 = b.y + 20 * k;
+      fan(fanN(moreE(2), 80 * G), 1).forEach((sd, i) => proj.push(P(Object.assign({ k: 'susjar', name: 'Sus honey', color: '#ffcc33', x: x0, y: y0, r: 16, dmg: 10, vr: rnd(-2, 2), delay: i * 0.22, sticky: 'syrup' }, lob(x0, y0, clamp(spoon.x + sd * 80 * G, 20, W - 20), 1.1, 320)))));
+      return 2.6;
+    },
+    whatsapp(b) { // message bubbles rain down around you
+      say('WHATSAPP? WHATSAPP??', { force: true });
+      const n = cntA(5), sp = 62 * Math.max(0.75, G), half = (n - 1) / 2 * sp, cx = clamp(spoon.x, 16 + half, Math.max(16 + half, W - 16 - half)); // kept off the walls, so they don't pile up in a corner
+      for (let i = 0; i < n; i++) {
+        const x = clamp(cx + (i - (n - 1) / 2) * sp + rnd(-10, 10), 16, W - 16);
+        proj.push(P({ k: 'waBubble', name: 'WhatsApp', color: '#25d366', x, y: combBottom() + 8, vy: rnd(210, 250), r: 13, dmg: 7, delay: i * 0.17 }));
+      }
+      return 2.6;
+    },
+    slides(b) { // photos of haircuts, thrown like slides
+      say(pick(['Look at this haircut. Look at it!', 'Who cuts hair like this? Who?', 'Next slide. Next slide!']));
+      const k = bossK(), x0 = b.x + 30 * k, y0 = b.y, n = b.p2 ? cntA(3) : cntA(2);
+      for (let i = 0; i < n; i++) proj.push(P(Object.assign({ k: 'slide', name: 'Haircut slide', color: '#e8e2d4', x: x0, y: y0, r: 17, dmg: 9, vr: rnd(-3, 3), delay: i * 0.3, cut: i % 2 }, lob(x0, y0, clamp(spoon.x + rnd(-90, 90) * G, 20, W - 20), rnd(0.95, 1.2), 520))));
+      return 2.8;
     },
     pills(b) {
       say('Endocrine warfare is killing your T, bro.');
@@ -2661,13 +2715,14 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
         continue;
       }
       if (k === 'beam' || k === 'rope') {
-        const t0 = p.t - p.tele, on = k === 'rope' ? 0.45 : p.on, half = (k === 'rope' ? 24 : 14) * G;
+        const t0 = p.t - p.tele, on = k === 'rope' ? 0.45 : p.on, half = (k === 'rope' ? 24 : p.half || 14) * G;
         if (t0 >= 0 && !p.fired) {
           p.fired = true; shake = reduceMotion ? 0 : (k === 'rope' ? 9 : 5);
-          if (k === 'beam') {
+          if (k === 'beam' && !p.nolegs) {
             sfx.whoosh();
             for (let j = 0; j < 4; j++) proj.push(P({ k: 'leg', name: 'Chair leg', color: '#b07a45', x: p.x, y: H * rnd(0.4, 0.6), vx: (j % 2 ? 1 : -1) * rnd(120, 220), vy: rnd(-220, -80), g: 600, r: 10, dmg: 8, vr: rnd(-8, 8) }));
-          } else {
+          } else if (k === 'beam') sfx.boom();
+          else {
             sfx.thud();
             sticky.push({ x: p.x, w: 130 * G, life: 6, kind: 'resin' });
             splat(p.x, H - 12, '#1a1410', 10);
@@ -2855,6 +2910,12 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
       }
       if (k === 'bishop' && ((p.x < p.r && p.vx < 0) || (p.x > W - p.r && p.vx > 0))) p.vx *= -1;
       if (k === 'syringe') p.rot = Math.atan2(p.vy, p.vx);
+      if (k === 'goyWord') {
+        p.sq = Math.max(0, (p.sq || 0) - dt * 5);
+        if (p.y > H - 14 && p.vy > 0 && p.bounces < 3) { p.y = H - 14; p.vy = -Math.abs(p.vy) * 0.72; p.vx *= 0.6; p.bounces++; p.sq = 1; }
+        if ((p.x < p.r + 8 && p.vx < 0) || (p.x > W - p.r - 8 && p.vx > 0)) { p.vx *= -1; p.sq = 1; }
+        if (p.bounces > 0 && p.y < combBottom() + 10 && p.vy < 0) { p.vy = Math.abs(p.vy) * 0.6; p.sq = 1; }
+      }
       if (k === 'pill') {
         if (p.y > H - 12 && p.vy > 0 && p.bounces < 3) { p.y = H - 12; p.vy = -Math.abs(p.vy) * 0.7; p.vx *= 0.45; p.bounces++; } // they bounce more in place, so they can't skid you into a corner
         if ((p.x < p.r && p.vx < 0) || (p.x > W - p.r && p.vx > 0)) p.vx *= -1;
@@ -3665,13 +3726,15 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
       const pulse = .5 + .5 * Math.sin(t * 18);
       ctx.setLineDash([8, 8]); ctx.lineWidth = 2; ctx.strokeStyle = `rgba(155,231,255,${.4 + pulse * .5})`;
       ctx.beginPath(); ctx.moveTo(p.x, top); ctx.lineTo(p.x, H); ctx.stroke(); ctx.setLineDash([]);
-      txt('CNC', p.x, top + 14, 11, '#9be7ff', 900);
+      txt(p.label || 'CNC', p.x, p.half ? H * 0.6 : top + 14, p.half ? 13 : 11, '#9be7ff', 900);
+      if (p.half) { ctx.strokeStyle = `rgba(124,196,255,${.25 + pulse * .3})`; ctx.strokeRect(p.x - p.half * G, top, p.half * 2 * G, H - top); }
       return;
     }
-    const a = 1 - clamp((p.t - p.tele - p.on) / 0.2, 0, 1);
+    const a = 1 - clamp((p.t - p.tele - p.on) / 0.2, 0, 1), hw = (p.half ? p.half - 2 : 12) * G;
     ctx.globalAlpha = a;
-    ctx.fillStyle = 'rgba(155,231,255,.35)'; ctx.fillRect(p.x - 12 * G, top, 24 * G, H - top);
-    ctx.fillStyle = '#ffffff'; ctx.fillRect(p.x - 3 * G, top, 6 * G, H - top);
+    ctx.fillStyle = p.half ? 'rgba(124,196,255,.45)' : 'rgba(155,231,255,.35)'; ctx.fillRect(p.x - hw, top, hw * 2, H - top);
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(p.x - (p.half ? 7 : 3) * G, top, (p.half ? 14 : 6) * G, H - top);
+    if (p.label && p.half) { ctx.save(); ctx.translate(p.x, (top + H) / 2); ctx.rotate(-Math.PI / 2); outlined(p.label, 0, 0, 20, '#1f4fd1'); ctx.restore(); }
     ctx.globalAlpha = 1;
   }
   function drawRope(p, t) {
@@ -3784,6 +3847,21 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
     const w = ctx.measureText(p.label).width + 8;
     roundRect(-w / 2, -22, w, 12, 3); ctx.fillStyle = '#16161c'; ctx.fill();
     txt(p.label, 0, -15.6, 8, '#ffffff', 900);
+  }
+  function drawWaBubble() { // a green chat bubble with a question mark
+    ctx.fillStyle = '#25d366'; circle(0, 0, 13); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(-9, 7); ctx.lineTo(-14, 15); ctx.lineTo(-2, 11); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; circle(0, 0, 13); ctx.stroke();
+    txt('?', 0, 1, 15, '#ffffff', 900);
+  }
+  function drawSlide(p) { // a photo of a haircut: a dark head shape in profile with the hair standing up (no face)
+    ctx.fillStyle = '#fbfaf6'; roundRect(-17, -17, 34, 34, 3); ctx.fill(); ctx.strokeStyle = '#8c8577'; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.fillStyle = '#d8d3c8'; ctx.fillRect(-14, -14, 28, 28);
+    ctx.fillStyle = '#5b5550'; ctx.beginPath(); ctx.ellipse(1, 3, 8.5, 10, 0, 0, TAU); ctx.fill(); ctx.fillRect(-2, 10, 7, 6);
+    ctx.fillStyle = '#1d1a18'; ctx.beginPath();
+    if (p.cut) { ctx.moveTo(-7, -2); for (let i = 0; i < 6; i++) { ctx.lineTo(-6 + i * 3, -14 - (i % 2) * 3); ctx.lineTo(-4.5 + i * 3, -6); } ctx.lineTo(9, -1); ctx.closePath(); } // spiky mohawk
+    else { ctx.moveTo(-8, -1); ctx.quadraticCurveTo(-6, -15, 6, -12); ctx.quadraticCurveTo(14, -9, 12, -16); ctx.quadraticCurveTo(10, -4, 9, 0); ctx.closePath(); } // the swoop
+    ctx.fill();
   }
   function drawPill(p) {
     const r = p.r, body = () => roundRect(-r * 1.15, -r * 0.5, r * 2.3, r, r * 0.5);
@@ -4070,6 +4148,9 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
           case 'hexShard': hexPath(0, 0, p.r); ctx.fillStyle = '#f2a516'; ctx.fill(); break;
           case 'syringe': drawSyringe(p); break;
           case 'pill': drawPill(p); break;
+          case 'goyWord': { const q = p.sq || 0; ctx.scale(1 + 0.45 * q, 1 - 0.4 * q); outlined(p.word, 0, 0, W < 560 ? 46 : 32, '#9fd4ff'); break; }
+          case 'waBubble': drawWaBubble(); break;
+          case 'slide': drawSlide(p); break;
           case 'liver': drawLiver(p.r); break;
           case 'ad': drawAd(); break;
           case 'axe': drawAxe(p.r); break;
@@ -4283,6 +4364,32 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
     ctx.beginPath(); ctx.moveTo(-15.5, -46); ctx.quadraticCurveTo(-20, -18, -8, -4); ctx.quadraticCurveTo(0, 2, 8, -4); ctx.quadraticCurveTo(20, -18, 15.5, -46); ctx.quadraticCurveTo(12, -35, 0, -35); ctx.quadraticCurveTo(-12, -35, -15.5, -46); ctx.fill();
     roundRect(-8, -39, 16, 4, 2); ctx.fill();
     ctx.restore();
+  }
+  function drawLecturer(b, t) {
+    const skin = '#d9a77f', suit = '#17171c', up = b.pose > 0, wag = Math.sin(t * (up ? 16 : 2.5)) * (up ? 5 : 1.5);
+    ctx.fillStyle = suit; roundRect(-20, 36, 17, 32, 4); ctx.fill(); roundRect(3, 36, 17, 32, 4); ctx.fill();
+    ctx.fillStyle = '#050505'; ctx.beginPath(); ctx.ellipse(-12, 69, 12, 5, 0, 0, TAU); ctx.fill(); ctx.beginPath(); ctx.ellipse(12, 69, 12, 5, 0, 0, TAU); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(-32, -14); ctx.quadraticCurveTo(-31, -23, -20, -24); ctx.lineTo(20, -24); ctx.quadraticCurveTo(31, -23, 32, -14); ctx.lineTo(28, 38); ctx.lineTo(-28, 38); ctx.closePath();
+    ctx.fillStyle = suit; ctx.fill();
+    ctx.fillStyle = '#f4f1ea'; ctx.beginPath(); ctx.moveTo(-10, -24); ctx.lineTo(0, 10); ctx.lineTo(10, -24); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,.12)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(-10, -24); ctx.lineTo(-4, 12); ctx.moveTo(10, -24); ctx.lineTo(4, 12); ctx.stroke(); // lapels
+    // left arm down with his notes, right arm up with one finger raised
+    limb(-30, -14, -38, 12, 13, suit); limb(-38, 12, -28, 28, 11, suit);
+    ctx.fillStyle = '#f4f1ea'; ctx.save(); ctx.translate(-26, 30); ctx.rotate(-0.25); ctx.fillRect(-9, -6, 18, 13); ctx.strokeStyle = '#b8b2a5'; ctx.lineWidth = 1; for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.moveTo(-7, -3 + i * 4); ctx.lineTo(7, -3 + i * 4); ctx.stroke(); } ctx.restore();
+    ctx.fillStyle = skin; circle(-28, 28, 5.5); ctx.fill();
+    limb(30, -14, 44, -22, 13, suit); limb(44, -22, 40 + wag, -52, 11, suit);
+    ctx.fillStyle = '#f4f1ea'; circle(40 + wag, -53, 5.8); ctx.fill();
+    ctx.fillStyle = skin; circle(40 + wag, -58, 6); ctx.fill(); roundRect(38 + wag, -74, 4.5, 15, 2); ctx.fill();
+    // head (no face): neck, ears, black kippah, grey sides, and the long white beard
+    ctx.fillStyle = skin; roundRect(-7, -32, 14, 10, 3); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(-15.5, -46, 3.5, 5, 0, 0, TAU); ctx.fill(); ctx.beginPath(); ctx.ellipse(15.5, -46, 3.5, 5, 0, 0, TAU); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(0, -47, 15, 18, 0, 0, TAU); ctx.fill();
+    ctx.fillStyle = '#c9c6bf'; ctx.beginPath(); ctx.ellipse(-13, -52, 3.5, 8, 0.2, 0, TAU); ctx.fill(); ctx.beginPath(); ctx.ellipse(13, -52, 3.5, 8, -0.2, 0, TAU); ctx.fill();
+    ctx.fillStyle = '#0b0b0d'; ctx.beginPath(); ctx.ellipse(0, -63, 12.5, 5.5, 0, Math.PI, TAU); ctx.fill(); ctx.fillRect(-12.5, -63.5, 25, 2);
+    ctx.fillStyle = '#f2f1ec';
+    ctx.beginPath(); ctx.moveTo(-15, -50); ctx.quadraticCurveTo(-23, -18, -13, 12); ctx.quadraticCurveTo(-6, 26, 0, 28); ctx.quadraticCurveTo(6, 26, 13, 12); ctx.quadraticCurveTo(23, -18, 15, -50); ctx.quadraticCurveTo(11, -36, 0, -36); ctx.quadraticCurveTo(-11, -36, -15, -50); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = 'rgba(150,145,135,.55)'; ctx.lineWidth = 1.2;
+    for (let i = -2; i <= 2; i++) { ctx.beginPath(); ctx.moveTo(i * 5, -34); ctx.quadraticCurveTo(i * 6 + Math.sin(t * 2 + i) * 1.5, -6, i * 3.5, 20); ctx.stroke(); }
   }
   function drawApologist(b, t) {
     const skin = '#ebc4a5';
@@ -4543,7 +4650,7 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
     const w = 44 * k; ctx.fillStyle = 'rgba(0,0,0,.45)'; ctx.fillRect(-w / 2, -p.r - 12, w, 5); ctx.fillStyle = '#c8102e'; ctx.fillRect(-w / 2, -p.r - 12, w * Math.max(0, p.hp / p.max), 5);
     ctx.restore();
   }
-  const BOSS_DRAW = { keeper: drawKeeper, colonex: drawColonex, ceo: drawCEO, ironfit: drawIronfit, apologist: drawApologist, looks: drawLooks, disprover: drawDisprover, hornet: drawHornet };
+  const BOSS_DRAW = { keeper: drawKeeper, colonex: drawColonex, ceo: drawCEO, lecturer: drawLecturer, ironfit: drawIronfit, apologist: drawApologist, looks: drawLooks, disprover: drawDisprover, hornet: drawHornet };
 
   function drawBoss(b, t) {
     if (b.done) return;
@@ -4999,7 +5106,7 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
     const raw = maxed ? 0 : s.cost[lv];
     return { lv, maxed, locked, base: maxed ? 0 : r10(raw), cost: maxed ? 0 : r10(raw * priceMult()) };
   }
-  function priceMult() { return endless || bossIdx > 3 ? PRICE_HIKE : 1; } // bosses 1-4 beaten means the coach is done
+  function priceMult() { return endless || bossIdx > 4 ? PRICE_HIKE : 1; } // bosses 1-5 beaten means the coach is done
   function anythingToBuy() { return SHOP.some(s => { const inf = itemInfo(s); return !inf.locked && !inf.maxed; }); }
   const canBuy = inf => !inf.locked && !inf.maxed && wallet() >= inf.cost;
   function grandadSay(text) {
@@ -5025,7 +5132,7 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
     $('dName').textContent = s.name + (s.max > 1 ? '  ·  level ' + inf.lv + ' of ' + s.max : '');
     $('dDesc').textContent = s.desc + (s.key ? (touchUI ? ' Tap its button on the right to use it.' : ' Click anywhere or press ' + s.key + ' to use it.') : '');
     $('dNow').textContent = 'Now: ' + s.lvText(inf.lv);
-    $('dNext').textContent = s.max === 1 ? (inf.lv ? 'Switch it on or off here whenever you like.' : inf.locked ? 'Locked: beat all eight bosses first.' : 'Every endless boss fight becomes two bosses at once. Warning: it is hard.') : inf.maxed ? 'Fully upgraded.' : 'Next: ' + s.lvText(inf.lv + 1);
+    $('dNext').textContent = s.max === 1 ? (inf.lv ? 'Switch it on or off here whenever you like.' : inf.locked ? 'Locked: beat all nine bosses first.' : 'Every endless boss fight becomes two bosses at once. Warning: it is hard.') : inf.maxed ? 'Fully upgraded.' : 'Next: ' + s.lvText(inf.lv + 1);
     const btn = $('buyBtn');
     if (s.id === 'crazy' && inf.lv) { btn.textContent = crazyOn ? 'Turn crazy mode off' : 'Turn crazy mode on'; btn.disabled = false; }
     else if (inf.locked) { btn.textContent = 'Locked'; btn.disabled = true; }
@@ -5046,7 +5153,7 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
     grandadSay(GRANDAD_BUY[id]);
     if (id === 'colonex') {
       const line = upg.colonex === 1
-        ? (endless || bossIdx > 3 ? 'I spoke with the Shilajit Coach and I think I should start charging more' : 'loksd corporation has raised its rates')
+        ? (endless || bossIdx > 4 ? 'I spoke with the Shilajit Coach and I think I should start charging more' : 'loksd corporation has raised its rates')
         : upg.colonex === 2 ? 'loksd corporation is a premium product' : pick(COLONEX_RAISE);
       allyQueue = line; hear('Colonex', line);
       $('cmsgText').textContent = line; $('colonexMsg').hidden = false;
@@ -5068,6 +5175,7 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
     setTimeout(prepBuzz, 200);
     if (!hikeSaid && priceMult() > 1 && anythingToBuy()) { hikeSaid = true; grandadSay(GRANDAD_HIKE); }
     else if (!endless && bossIdx === BOSS_COUNT - 1 && !fromPause) grandadSay('Hornets. In my day we used a tennis racket.');
+    else if (!endless && bossIdx === 3 && !fromPause) grandadSay("Some fella's coming to lecture you about your haircut. Just nod.");
     else grandadSay(pick(GRANDAD_HI));
     selectItem(shedSel && itemInfo(SHOP.find(x => x.id === shedSel)).locked === false ? shedSel : SHOP[0].id);
     hideOverlays(); $('shedScreen').hidden = false;
@@ -5154,7 +5262,7 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
     if (tally.spent === 0) achUnlock('spoon');
     if (revivesLeft === REVIVES) achUnlock('nospare');
     if (tally.minPurity >= 50) achUnlock('raw');
-    if (elapsed < 14 * 60) achUnlock('fast');
+    if (elapsed < 15 * 60) achUnlock('fast');
     $('soldScreen').hidden = false; $('endlessBtn').focus();
     $('lbSold').hidden = true; lbSubmit(lbEntry(), $('lbSold'));
   }
@@ -5175,7 +5283,7 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
     b.addEventListener('click', () => {
       shedPinned = true; cancelBuy(); selectItem(s.id);
       const inf = itemInfo(s);
-      if (inf.locked && s.id === 'crazy') grandadSay("Beat all eight first. Then we'll talk.");
+      if (inf.locked && s.id === 'crazy') grandadSay("Beat all nine first. Then we'll talk.");
       else if (s.id === 'crazy' && !inf.lv) grandadSay("Two at once is hard, boy. Properly hard. Don't say I didn't warn you.");
       else if (!inf.locked && !inf.maxed && wallet() < inf.cost) grandadSay(GRANDAD_BROKE);
     });
@@ -5210,7 +5318,7 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
   // Each run gets a ticket when it starts; scores are sent with it. Nothing here runs in the artifact.
   const LB = window.HG_LB && window.HG_LB.api ? window.HG_LB : null;
   const LB_PEND = 'honey-gobbler-lb-pending', LB_NAMES = { endless: 'Endless', speed: 'Speedrun', crazy: 'Crazy mode' };
-  const LB_DESC = { endless: 'Highest round in endless mode. Honey harvested breaks ties.', speed: 'Fastest win against all eight bosses, from the first drop.', crazy: 'Highest round in endless runs where more than half of the fights were crazy mode.' };
+  const LB_DESC = { endless: 'Highest round in endless mode. Honey harvested breaks ties.', speed: 'Fastest win against all nine bosses, from the first drop.', crazy: 'Highest round in endless runs where at least half the rounds were crazy mode, or the last quarter of them (3 or more) were.' };
   let lbRun = null, lbMe = null, lbBoard = 'endless', lbFrom = null;
   async function lbCall(path, body) {
     let r;
@@ -5227,8 +5335,10 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
   }
   function lbEntry() { // what this run would put on a board right now
     if (!LB || !lbRun || !lbRun.ticket) return null;
-    const stats = { played: Math.floor(elapsed), bosses: Math.min(bossIdx, BOSS_COUNT), endlessFights: runStats.endlessFights, crazyFights: runStats.crazyFights };
-    if (endless) return { board: runStats.crazyFights * 2 > runStats.endlessFights ? 'crazy' : 'endless', value: endlessRound + 1, tie: Math.floor(score * 10) / 10, stats, ticket: lbRun.ticket };
+    const N = endlessRound + 1, crazyRounds = runStats.crazyFights + (crazyOn ? 1 : 0), crazyTail = crazyOn ? runStats.crazyTail + 1 : 0;
+    const stats = { played: Math.floor(elapsed), bosses: Math.min(bossIdx, BOSS_COUNT), endlessFights: runStats.endlessFights, crazyFights: runStats.crazyFights, crazyRounds, crazyTail };
+    const isCrazy = crazyRounds >= Math.ceil(N / 2) || (crazyTail >= 3 && crazyTail >= Math.ceil(N / 4));
+    if (endless) return { board: isCrazy ? 'crazy' : 'endless', value: N, tie: Math.floor(score * 10) / 10, stats, ticket: lbRun.ticket };
     if (state === 'won' && lbRun.wonAt) return { board: 'speed', value: Math.round(lbRun.wonAt * 10) / 10, tie: 0, stats, ticket: lbRun.ticket };
     return null;
   }
@@ -5438,7 +5548,7 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
         sx: spoon.x, sy: spoon.y, W, H, S: spoonSize(), G,
         fakes: items.filter(i => i.kind === 'bad' && !i.held && !i.carried).map(i => ({ x: i.x, y: i.y, vy: i.vy, r: i.r * G, base: i.base, amp: i.amp })),
         honey: items.filter(i => i.kind !== 'bad' && !i.suck && !i.held).map(i => ({ x: i.x, y: i.y, vy: i.vy, v: i.kind === 'box' ? 10 : i.kind === 'jar' || i.kind === 'shilajit' ? 1.2 : i.kind === 'comb' ? 3 : 0.12 })),
-        proj: proj.filter(p => !p.dead).map(p => ({ k: p.k, x: p.x, y: p.y, vx: p.vx || 0, vy: p.vy || 0, g: p.g || 0, r: (p.r || 14) * ps(p), harmless: !!p.harmless, delay: p.delay || 0, tele: p.tele, t: p.t, w: p.w, tx: p.tx, ty: p.ty, floor: p.floor, c: p.c, st: p.st, R: p.R, mx: p.mx, safe: !!p.safe, G })),
+        proj: proj.filter(p => !p.dead).map(p => ({ k: p.k, x: p.x, y: p.y, vx: p.vx || 0, vy: p.vy || 0, g: p.g || 0, r: (p.r || 14) * ps(p), harmless: !!p.harmless, delay: p.delay || 0, tele: p.tele, t: p.t, w: p.w, tx: p.tx, ty: p.ty, floor: p.floor, c: p.c, st: p.st, R: p.R, mx: p.mx, safe: !!p.safe, half: p.half, G })),
       }),
       itemsInfo: () => items.map(i => ({ kind: i.kind, x: Math.round(i.x), y: Math.round(i.y), suck: !!i.suck })),
       setEndless(on) { endless = on; },
@@ -5483,6 +5593,7 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
       brawl() { if (state !== 'play') start(); endless = true; bossIdx = BOSS_COUNT; score = endlessNext = GOAL + STAGE_KG; upg.crazy = 1; openShed(); startBrawl(); },
       brawlInfo() { return brawl ? { t: brawl.t, beaten: brawl.beaten, S: brawl.S, queue: brawl.queue.length, active: brawl.active.map(b => b.def.key), on: bosses.filter(b => !b.done).map(b => b.def.key + ':' + b.mode + ':' + Math.round(b.hp)), k: bossK() } : null; },
       runStats() { return runStats; },
+      setCrazyOn(v) { crazyOn = v; },
       tallyAll: () => JSON.parse(JSON.stringify(tally)),
       lbSyncNow() { return lbSync(); },
       spoonFx: () => ({ vstack: spoon.vstack, mark: +spoon.mark.toFixed(1), anaph: +spoon.anaph.toFixed(1), venom: +spoon.venom.toFixed(1) }),

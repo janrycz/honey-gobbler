@@ -34,6 +34,18 @@ ok('endless submit', en.j.improved && en.j.rank === 1, en.j);
 ok('crazy refused when < half crazy', (await call('/api/submit', { token: A, ticket: st.j.ticket, board: 'crazy', value: 7, tie: 2300, stats: { played: 1500, bosses: 8, endlessFights: 7, crazyFights: 3 } })).j.error === 'check');
 ok('endless refused when > half crazy', (await call('/api/submit', { token: A, ticket: st.j.ticket, board: 'endless', value: 7, tie: 2300, stats: { played: 1500, bosses: 8, endlessFights: 7, crazyFights: 4 } })).j.error === 'check');
 ok('crazy ok when > half', (await call('/api/submit', { token: A, ticket: st.j.ticket, board: 'crazy', value: 7, tie: 2300, stats: { played: 1500, bosses: 8, endlessFights: 7, crazyFights: 4 } })).j.improved === true);
+// the new rule: N rounds, crazy if >= ceil(N/2) crazy rounds, or the last ceil(N/4) (and 3 or more) were crazy; the round you end in counts
+const nr = (v, cr, ct, cf, board) => call('/api/submit', { token: A, ticket: st.j.ticket, board, value: v, tie: 1000, stats: { played: 1500 + 20 * v, bosses: 9, endlessFights: v - 1, crazyFights: cf, crazyRounds: cr, crazyTail: ct } });
+ok('new rule: 5 of 10 crazy goes on crazy', (await nr(10, 5, 0, 5, 'crazy')).j.error === undefined);
+ok('new rule: 4 of 10 crazy refused on crazy', (await nr(10, 4, 1, 4, 'crazy')).j.error === 'check');
+ok('new rule: last 3 of 10 crazy goes on crazy', (await nr(10, 3, 3, 2, 'crazy')).j.error === undefined);
+ok('new rule: last 3 of 10 refused on endless', (await nr(10, 3, 3, 2, 'endless')).j.error === 'check');
+ok('new rule: last 7 of 30 is not enough', (await nr(30, 7, 7, 6, 'crazy')).j.error === 'check');
+ok('new rule: last 8 of 30 goes on crazy', (await nr(30, 8, 8, 7, 'crazy')).j.error === undefined);
+ok('new rule: last 2 of 8 is not enough (needs 3)', (await nr(8, 2, 2, 1, 'crazy')).j.error === 'check');
+ok('new rule: tail bigger than crazy rounds refused', (await nr(10, 3, 5, 3, 'crazy')).j.error === 'check');
+ok('new rule: more crazy rounds than fights refused', (await nr(10, 8, 0, 3, 'crazy')).j.error === 'check');
+ok('9-boss honey fits', (await call('/api/submit', { token: A, ticket: st.j.ticket, board: 'endless', value: 2, tie: 150 * 11 + 100, stats: { played: 1500, bosses: 9, endlessFights: 1, crazyFights: 0, crazyRounds: 0, crazyTail: 0 } })).j.error === undefined);
 ok('too much honey refused', (await call('/api/submit', { token: A, ticket: st.j.ticket, board: 'endless', value: 7, tie: 99999, stats: { played: 1500, bosses: 8, endlessFights: 7, crazyFights: 0 } })).j.error === 'check');
 ok('bad ticket refused', (await call('/api/submit', { token: A, ticket: 'nope', board: 'endless', value: 7, tie: 2300, stats: { played: 1500, bosses: 8, endlessFights: 7 } })).j.error === 'ticket');
 const st2 = await call('/api/start', {}); await db.prepare('UPDATE runs SET created = created - 4000 WHERE id = ?').bind(st2.j.ticket).run();
