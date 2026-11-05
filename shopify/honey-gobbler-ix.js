@@ -172,7 +172,7 @@
     { id: 'mogger', name: 'Mogger', desc: 'Beat the Looksmaxxer.' },
     { id: 'blocked', name: 'Blocked', desc: 'Beat the Disprover.' },
     { id: 'sold', name: 'Sold out', desc: 'Finish a run.', stat: 'season', goal: BOSS_COUNT, show: n => n + ' / ' + BOSS_COUNT + ' bosses' },
-    { id: 'fast', name: 'Sold out fast', desc: 'Finish a run in under 15 minutes.' },
+    { id: 'fast', name: 'Sold out fast', desc: 'Finish a run in under 16 minutes.' },
     { id: 'spoon', name: 'A spoon and nothing else', desc: 'Beat all nine bosses without buying anything in the shed.' },
     { id: 'nospare', name: 'No spare frames', desc: 'Finish a run without using a second chance.' },
     { id: 'raw', name: 'Raw and unfiltered', desc: 'Finish a run without your purity ever dropping below 50%.' },
@@ -224,7 +224,7 @@
     {
       key: 'ceo', name: 'The App Founder', tag: 'App Founder', sub: 'Download his app. Track your honey. Never say the other app.', hp: 250, pace: 0.8, dmgMul: 1.08,
       intro: 'Download my app.',
-      lines: ['Download my app.', 'Track your honey.', "Why aren't we getting views?", "You're fired!", 'You used to be my head of marketing!', "We don't say that name in this office.", 'Chess after this?', 'Who made this spreadsheet?', 'Did you track your honey today?', 'Rate us five stars.', "What's our MRR?", 'Churn is up. Who did this?', 'Downloads are flat. Why are downloads flat?', "We're pre-revenue. It's a strategy.", 'Our daily active users is three. One of them is me.', 'Can we A/B test the honey?', 'Push notifications fix churn.', 'Our CAC is higher than our LTV. Is that bad?', 'ARR is MRR times twelve. Put it on the slide.', 'We need to pivot. To honey.'],
+      lines: ['Download my app.', 'Track your honey.', 'I only marry white women.', "Why aren't we getting views?", "You're fired!", 'You used to be my head of marketing!', "We don't say that name in this office.", 'Chess after this?', 'Who made this spreadsheet?', 'Did you track your honey today?', 'Rate us five stars.', "What's our MRR?", 'Churn is up. Who did this?', 'Downloads are flat. Why are downloads flat?', "We're pre-revenue. It's a strategy.", 'Our daily active users is three. One of them is me.', 'Can we A/B test the honey?', 'Push notifications fix churn.', 'Our CAC is higher than our LTV. Is that bad?', 'ARR is MRR times twelve. Put it on the slide.', 'We need to pivot. To honey.'],
       p2line: 'Checkmate in three.', p2attacks: ['checkmate'],
       defeat: "Fine. You're rehired. Chess tomorrow?",
       lose: 'The App Founder fired you. Nobody downloaded the app.',
@@ -4836,7 +4836,7 @@
     if (tally.spent === 0) achUnlock('spoon');
     if (revivesLeft === REVIVES) achUnlock('nospare');
     if (tally.minPurity >= 50) achUnlock('raw');
-    if (elapsed < 15 * 60) achUnlock('fast');
+    if (elapsed < 16 * 60) achUnlock('fast');
     $('soldScreen').hidden = false; $('endlessBtn').focus();
     $('lbSold').hidden = true; lbSubmit(lbEntry(), $('lbSold'));
   }
@@ -5100,4 +5100,4 @@
   };
   window.claude?.hot?.ready ? window.claude.hot.ready(boot) : boot(window.claude?.hot?.data ?? {});
 })();
-window.HG_BUILD = 'Honey Gobbler IX (3f0c35)';
+window.HG_BUILD = 'Honey Gobbler IX (4766ce)';
