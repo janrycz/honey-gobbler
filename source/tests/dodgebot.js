@@ -22,10 +22,10 @@ window.dodge = (frames, opts = {}) => {
         }
         if (p.safe) continue;
         let x = p.x, y = p.y, vx = p.vx, vy = p.vy;
-        const bnc = p.k === 'goyWord' ? 0.72 : p.k === 'pill' ? 0.7 : 0; let nb = 0, was = false; // bouncers: it sees the bounce coming, like a person would
+        const bnc = p.k === 'goyWord' ? 0.84 : p.k === 'pill' ? 0.7 : 0; let nb = 0, was = false; // bouncers: it sees the bounce coming, like a person would
         for (let s2 = 1; s2 <= 24; s2++) {
           const t = s2 * 0.05; if (t < p.delay) continue; vy += p.g * 0.05; x += vx * 0.05; y += vy * 0.05;
-          if (bnc && y > T.H - 14 && vy > 0 && nb < 3) { y = T.H - 14; vy = -Math.abs(vy) * bnc; vx *= p.k === 'pill' ? 0.45 : 0.6; nb++; }
+          if (bnc && y > T.H - 14 && vy > (p.k === 'goyWord' ? 420 : 0) && nb < (p.k === 'goyWord' && T.W >= 560 ? 4 : 3)) { y = T.H - 14; vy = -Math.abs(vy) * bnc; vx *= p.k === 'pill' ? 0.45 : 0.85; nb++; }
           const near = Math.abs(y - T.sy) < 26 + p.r;
           if (near && !was) { xs.forEach((xx, i) => { if (Math.abs(xx - x) < p.r * 0.7 + hitR) score[i] -= 50 * (1.3 - t); }); if (!bnc) break; }
           was = near;
