@@ -12,7 +12,7 @@ const { chromium } = require('playwright'); const fs = require('fs');
   r.boss = await p.evaluate(() => { const g = __hg.get(); return JSON.stringify({ key: g.bosses[0].key || g.bosses[0].name, hp: g.bosses[0].max, idx: g.bossIdx, season: document.querySelector('#season, .season') && document.querySelector('#season, .season').textContent }); });
   await shot('intro');
   const step = n => p.evaluate(n => { for (let i = 0; i < n; i++) { __hg.hold(); __hg.step(1); } }, n);
-  for (const [atk, wait] of [['goyBeam', 50], ['goyBeam', 72], ['goyBeam2', 50], ['goyBeam2', 105], ['goyWords', 45], ['goyWords', 70], ['goyWords', 100], ['goyWords', 160], ['susHoney', 75], ['whatsapp', 60], ['iphones', 45], ['scream', 40], ['scream', 95], ['goyBeam', 20]]) {
+  for (const [atk, wait] of [['goyBeam', 50], ['goyBeam', 72], ['goyBeam2', 50], ['goyBeam2', 105], ['goyWords', 45], ['goyWords', 70], ['goyWords', 100], ['goyWords', 160], ['susHoney', 75], ['whatsapp', 60], ['tower5g', 40], ['tower5g', 75], ['tower5g', 110], ['scream', 40], ['goyBeam', 20], ['goyBeam', 66]]) {
     await p.evaluate(a => { __hg.clearProj && __hg.clearProj(); __hg.hold(); __hg.attack(a); }, atk);
     await step(wait); await shot(atk + wait);
     r[atk + wait] = await p.evaluate(() => JSON.stringify(__hg.projKinds()) + ' sticky ' + JSON.stringify(__hg.get().sticky || ''));

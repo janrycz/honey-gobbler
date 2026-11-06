@@ -1,5 +1,5 @@
 {% layout none %}
-{% comment %} Honey Gobbler IX (9fe17f): this template loads the asset honey-gobbler-ix.js {% endcomment %}
+{% comment %} Honey Gobbler IX (e5854f): this template loads the asset honey-gobbler-ix.js {% endcomment %}
 <!doctype html>
 <html lang="en">
 <head>
@@ -457,9 +457,9 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
 <script src="{{ 'honey-gobbler-ix.js' | asset_url }}" defer></script>
 <script>
 window.addEventListener('load', function () { // shows a red bar if this template and the game script come from different builds
-  if (window.HG_BUILD === 'Honey Gobbler IX (9fe17f)') return;
+  if (window.HG_BUILD === 'Honey Gobbler IX (e5854f)') return;
   var d = document.createElement('div');
-  d.textContent = 'Wrong game script. This template is Honey Gobbler IX (9fe17f) and needs the asset honey-gobbler-ix.js, but the page loaded ' + (window.HG_BUILD ? window.HG_BUILD : 'an older script or none') + '. Paste the new honey-gobbler-ix.js into Assets.';
+  d.textContent = 'Wrong game script. This template is Honey Gobbler IX (e5854f) and needs the asset honey-gobbler-ix.js, but the page loaded ' + (window.HG_BUILD ? window.HG_BUILD : 'an older script or none') + '. Paste the new honey-gobbler-ix.js into Assets.';
   d.style.cssText = 'position:fixed;left:0;right:0;top:0;z-index:99999;background:#c8102e;color:#fff;font:600 15px/1.4 system-ui,sans-serif;padding:10px 14px;text-align:center';
   document.body.appendChild(d);
 });

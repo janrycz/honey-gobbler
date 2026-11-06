@@ -662,16 +662,16 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
       attacks: ['notify', 'sheets', 'bars', 'chess', 'knight', 'deenbuddy', 'fired', 'errors', 'knight'],
     },
     {
-      key: 'lecturer', name: 'The Lecturer', tag: 'Lecturer', sub: 'Live from the studio. Judging your haircut. Asking about WhatsApp.', hp: 270, pace: 0.95, phonePace: 0.75, dmgMul: 1.1,
-      intro: "I'm not interested to be religious but I don't have a choice. If I stay the same bum I am in the clubs of Manhattan, smoking grass all day, walking like a goy everywhere I go, what kind of a girl will I get?", // he opens with it, so everyone gets to read it
+      key: 'lecturer', name: 'The Lecturer', tag: 'Lecturer', sub: 'Live from the studio. Judging your haircut. Asking about WhatsApp.', hp: 270, pace: 0.85, phonePace: 1.1, dmgMul: 1.2,
+      intro: 'WHATSAPP? WHATSAPP??',
       lines: ["I'm not interested to be religious but I don't have a choice. If I stay the same bum I am in the clubs of Manhattan, smoking grass all day, walking like a goy everywhere I go, what kind of a girl will I get?",
         'Jew or goy? GOYYYYYYY', 'WHATSAPP? WHATSAPP??', 'Look at this haircut. Look at it!', 'Who cuts hair like this? Who?', 'Is this a Jewish haircut or a goy haircut?',
-        'iPhone? iPhone?? Garbage!', 'Every day the same story.', 'Stop with the clubs.', "I'm telling you for your own good.", 'You want a good wife? Fix the hair first.',
+        'Every day the same story.', 'Stop with the clubs.', "I'm telling you for your own good.",
         '?מה קורה', '!אתה גוי', '!תתעורר', '?מה זה הדבר הזה', '!די כבר'],
       p2line: "Now I'm serious. Listen to me!", p2attacks: ['goyBeam2', 'scream'],
-      defeat: 'OK. OK. But fix the hair.',
+      defeat: 'Every day the same story.',
       lose: 'The Lecturer asked what kind of a girl you will get. Nobody answered.',
-      attacks: ['goyBeam', 'goyWords', 'susHoney', 'whatsapp', 'iphones', 'goyWords', 'scream'],
+      attacks: ['goyBeam', 'goyWords', 'susHoney', 'tower5g', 'whatsapp', 'goyWords', 'scream'],
     },
     {
       key: 'ironfit', name: 'The Shilajit Coach', tag: 'Shilajit Coach', sub: 'No gym. Just pushups, pullups and a lot of shilajit.', hp: 300, pace: 0.7, dmgMul: 1.3,
@@ -1170,7 +1170,7 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
     }
   }
   function hear(who, text) { if (!heard.has(who)) heard.set(who, new Set()); heard.get(who).add(text); }
-  function lineDur(text) { return Math.max(8, Math.min(22, 2.4 + text.split(' ').length * 0.7)); }
+  function lineDur(text) { return Math.max(8, Math.min(13, 2.4 + text.split(' ').length * 0.7)); }
   function lsay(b, text) { return say(text, { force: !(b.say && b.say.t > 1 && b.say.text.length > 60) }, b); } // shouts over short lines, never over a long one
   function say(text, o = {}, b = boss) {
     if (!b) return false;
@@ -2403,17 +2403,17 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
       fallers(4, () => { const text = pick(RATINGS); return { k: 'rate', name: 'Rated ' + text, color: '#ff5a6e', text, vy: rnd(130, 170), r: 18, dmg: 10 }; }, 0.3);
       return 2.6;
     },
-    goyBeam(b) { // the goy beam: a big ray gun drops down over your column, charges, and fires
-      lsay(b, pick(['Jew or goy? GOYYYYYYY', 'GOYYYYYYY']));
-      proj.push(P({ k: 'beam', harmless: true, dmg: 12, name: 'Goy beam', color: '#7cc4ff', x: clamp(spoon.x, 76 * Math.max(0.8, G), W - 76 * Math.max(0.8, G)), y: H / 2, tele: 0.95, on: 0.5, half: 26, label: 'GOY BEAM', nolegs: true, gun: true }));
-      return 2.6;
+    goyBeam(b) { // the goy beam: a ray gun on a tripod next to him aims at you. "Jew or goy?" ... "GOYYYYYYY"
+      say('Jew or goy?', { force: true }, b);
+      proj.push(P({ k: 'goyGun', harmless: true, dmg: 14, name: 'Goy beam', color: '#7cc4ff', side: spoon.x < b.x ? -1 : 1, x: b.x, y: b.y, tele: 1.2, on: 0.5, half: 24 }));
+      return 2.8;
     },
-    goyBeam2(b) { // two guns, the second a moment later beside the first
-      lsay(b, 'GOYYYYYYY');
-      const off = W * (W < 560 ? 0.32 : 0.22), m = 76 * Math.max(0.8, G), x1 = clamp(spoon.x, m, W - m), x2 = clamp(x1 + (x1 < W / 2 ? off : -off), m, W - m);
-      proj.push(P({ k: 'beam', harmless: true, dmg: 12, name: 'Goy beam', color: '#7cc4ff', x: x1, y: H / 2, tele: 0.95, on: 0.5, half: 26, label: 'GOY BEAM', nolegs: true, gun: true }));
-      proj.push(P({ k: 'beam', harmless: true, dmg: 12, name: 'Goy beam', color: '#7cc4ff', x: x2, y: H / 2, tele: 1.6, on: 0.5, half: 26, label: 'GOY BEAM', nolegs: true, gun: true }));
-      return 3.2;
+    goyBeam2(b) { // one on each side; the second fires a moment after the first
+      say('Jew or goy?', { force: true }, b);
+      const first = spoon.x < b.x ? -1 : 1;
+      proj.push(P({ k: 'goyGun', harmless: true, dmg: 14, name: 'Goy beam', color: '#7cc4ff', side: first, x: b.x, y: b.y, tele: 1.2, on: 0.5, half: 24 }));
+      proj.push(P({ k: 'goyGun', harmless: true, dmg: 14, name: 'Goy beam', color: '#7cc4ff', side: -first, x: b.x, y: b.y, tele: W < 560 ? 2.15 : 1.9, on: 0.5, half: 24 })); // phones: it locks only after the first beam is gone, so there's always a way out
+      return 3.4;
     },
     goyWords(b) { // גּוֹי, גּוֹיִם and גּוֹיָה bounce around like rubber balls and squash on every hit
       lsay(b, pick(['!אתה גוי', '?גוי או יהודי', 'Jew or goy?']));
@@ -2436,11 +2436,11 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
       }
       return 2.6;
     },
-    iphones(b) { // the smartphone rant: phones go in the bin, or at you
-      lsay(b, pick(['iPhone? iPhone?? Garbage!', 'Throw the phone away. Throw it!', 'Smartphone? Stupid phone!']));
-      const k = bossK(), x0 = b.x + 34 * k, y0 = b.y, n = b.p2 ? cntA(3) : cntA(2);
-      for (let i = 0; i < n; i++) proj.push(P(Object.assign({ k: 'phone', name: 'Smartphone', color: '#9fb4c8', x: x0, y: y0, r: 15, dmg: 9, vr: rnd(-5, 5), delay: i * 0.3 }, lob(x0, y0, clamp(spoon.x + rnd(-90, 90) * G, 20, W - 20), rnd(0.95, 1.2), 520))));
-      return 2.8;
+    tower5g(b) { // a 5G mast shoots up out of the floor near you and sends out signal waves: get out of its range
+      const k = Math.max(0.75, G), R = (W < 560 ? 190 : 250) * k;
+      const tx = clamp(spoon.x + rnd(-70, 70) * G, 40 * k, W - 40 * k);
+      proj.push(P({ k: 'tower5g', harmless: true, name: '5G mast', color: '#b48cff', x: tx, y: H, cy: H - 6 - 150 * k, tele: 0.95, R, waves: b.p2 ? 4 : 3, gap: 0.42, dur: 0.75, dmg: 7, hitW: [], sent: [] }));
+      return 3.6;
     },
     scream(b) { // the screaming: a wall of AAAAA comes down with one gap in it
       lsay(b, 'AAAAAAAAAAAAAA!');
@@ -2801,6 +2801,38 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
         continue;
       }
       if (k === 'gapMark') { if (p.t > p.life) proj.splice(i, 1); continue; }
+      if (k === 'goyGun') {
+        const o = p.owner, kk = bossK();
+        const gk = Math.max(0.8, G) * 1.15;
+        if (p.px === undefined) { // set down on the floor next to him, and it stays there even if he moves
+          if (o && fighting(o)) { p.x = clamp(o.x + p.side * 118 * kk, 70 * gk, W - 70 * gk); p.y = o.y + 70 * kk; }
+          p.px = p.x; p.py = p.y - 92 * gk; // the pivot, on top of the tripod
+        }
+        const lockAt = p.tele - Math.min(0.4, p.tele * 0.35);
+        if (p.t < lockAt) p.ang = Math.atan2(spoon.y - p.py, spoon.x - p.px); // it follows you...
+        else if (!p.locked) { p.locked = true; sfx.hit(); if (o && fighting(o)) say('GOYYYYYYY', { force: true }, o); } // ...then locks: "Jew or goy?" ... "GOYYYYYYY", then it fires
+        if (p.t >= p.tele && !p.fired) { p.fired = true; sfx.boom(); shake = reduceMotion ? 0 : 5; }
+        if (p.fired && p.t < p.tele + p.on && !p.hit) {
+          const c = Math.cos(p.ang), sn = Math.sin(p.ang), nx = p.px + c * 62 * gk, ny = p.py + sn * 62 * gk, dx = spoon.x - nx, dy = spoon.y - ny;
+          if (dx * c + dy * sn > -10 && Math.abs(-dx * sn + dy * c) < p.half * G + spoonSize() * 0.3) { p.hit = true; hurtSpoon(p.dmg, p.color, p.name, { boss: o || boss }); if (state !== 'play') return; }
+        }
+        if (p.t > p.tele + p.on + 0.35) proj.splice(i, 1);
+        continue;
+      }
+      if (k === 'tower5g') {
+        const kk = Math.max(0.75, G), th = 150 * kk, end = p.tele + (p.waves - 1) * p.gap + p.dur;
+        const up = ease(clamp(p.t / 0.45, 0, 1)) * (1 - ease(clamp((p.t - end) / 0.4, 0, 1)));
+        p.ax = p.x; p.ay = H - 6 - th * up; // the antennas at the top of the mast
+        for (let w = 0; w < p.waves; w++) {
+          const u = (p.t - p.tele - w * p.gap) / p.dur;
+          if (u < 0 || u > 1) continue;
+          if (!p.sent[w]) { p.sent[w] = true; sfx.whoosh(); }
+          if (p.hitW[w]) continue;
+          if (Math.abs(Math.hypot(spoon.x - p.ax, spoon.y - p.ay) - ease(u) * p.R) < 12 * kk + spoonSize() * 0.3) { p.hitW[w] = true; hurtSpoon(p.dmg, p.color, p.name, { boss: p.owner || boss }); if (state !== 'play') return; }
+        }
+        if (p.t > end + 0.45) proj.splice(i, 1);
+        continue;
+      }
       if (k === 'bigSting' && !p.fired) {
         const o = p.owner, lockAt = p.tele - Math.min(0.34, p.tele * 0.4);
         if (p.t < lockAt) { // the line follows you...
@@ -3267,7 +3299,7 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
     }
   }
   function speechBox(text, ax, ay, side, o = {}) {
-    const fs = o.small ? Math.round(clamp(15 * G, 12, 15)) : Math.round(clamp(19 * G, 14, 19)), lh = fs + 5, discord = !!o.discord;
+    const fs = o.fs || (o.small ? Math.round(clamp(15 * G, 12, 15)) : Math.round(clamp(19 * G, 14, 19))), lh = fs + 5, discord = !!o.discord;
     ctx.font = `600 ${fs}px "Instrument Sans", sans-serif`;
     const lines = wrap(text, o.maxW - 26);
     let tw = Math.max(...lines.map(l => ctx.measureText(l).width));
@@ -3752,41 +3784,73 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
     ctx.fillStyle = 'rgba(255,255,255,.18)'; ctx.fillRect(p.x - p.w / 2, H - p.cur, p.w * .25, p.cur);
     txt(p.label, p.x, H - p.cur + 12, 10, '#ffffff', 900, '"Instrument Sans", sans-serif', p.w - 6);
   }
-  function gunGeo(p) { // where the ray gun hangs: it drops down out of the comb, and goes back up after firing
-    const k = Math.max(0.8, G) * 1.5, life = p.tele + p.on + 0.2, u = p.t, top = combBottom();
-    const drop = u < 0.3 ? ease(u / 0.3) : u > life - 0.2 ? 1 - ease(clamp((u - (life - 0.2)) / 0.2, 0, 1)) : 1;
-    const gy = top - 46 * k + drop * 82 * k;
-    return { k, gy, noz: gy + 44 * k, x: clamp(p.x, 52 * k, W - 52 * k) };
-  }
-  function drawGoyGun(p, t) { // an original big ray gun the goy beam comes out of: drops down, charges, fires, goes back up
-    const { k, gy } = gunGeo(p), u = p.t, charge = clamp(u / p.tele, 0, 1), firing = u >= p.tele, blink = Math.sin(t * 20) > 0;
-    ctx.save(); ctx.translate(p.x, gy);
-    ctx.strokeStyle = '#1d1530'; ctx.lineWidth = 4 * k; ctx.beginPath(); ctx.moveTo(30 * k, -16 * k); ctx.bezierCurveTo(44 * k, -40 * k, 20 * k, -60 * k, 36 * k, -90 * k); ctx.stroke(); // power cable
-    ctx.fillStyle = '#3a2c63'; // fins
-    ctx.beginPath(); ctx.moveTo(-40 * k, -14 * k); ctx.lineTo(-52 * k, -30 * k); ctx.lineTo(-26 * k, -16 * k); ctx.closePath(); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(40 * k, -14 * k); ctx.lineTo(52 * k, -30 * k); ctx.lineTo(26 * k, -16 * k); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = '#a7b0be'; ctx.strokeStyle = '#3d4350'; ctx.lineWidth = 2 * k; // the emitter cone, pointing down
-    ctx.beginPath(); ctx.moveTo(-15 * k, 14 * k); ctx.lineTo(15 * k, 14 * k); ctx.lineTo(27 * k, 40 * k); ctx.lineTo(-27 * k, 40 * k); ctx.closePath(); ctx.fill(); ctx.stroke();
-    ctx.strokeStyle = '#d7b65a'; ctx.lineWidth = 2.5 * k; // coils
-    for (let i = 0; i < 3; i++) { const yy = (20 + i * 7) * k, w = (18 + i * 3.5) * k; ctx.beginPath(); ctx.ellipse(0, yy, w, 2.6 * k, 0, 0, TAU); ctx.stroke(); }
-    ctx.fillStyle = '#4b3a78'; ctx.strokeStyle = '#1d1530'; ctx.lineWidth = 3 * k; roundRect(-48 * k, -18 * k, 96 * k, 36 * k, 16 * k); ctx.fill(); ctx.stroke(); // body
-    ctx.fillStyle = '#ffd36b'; ctx.fillRect(-46 * k, 6 * k, 92 * k, 4 * k);
-    ctx.fillStyle = '#ece8f7'; roundRect(-31 * k, -10 * k, 62 * k, 14 * k, 3 * k); ctx.fill();
-    ctx.fillStyle = '#2a1d52'; ctx.font = `900 ${Math.round(9.5 * k)}px "Instrument Sans", sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('GOY BEAM', 0, -3 * k);
-    ctx.fillStyle = blink ? '#ff4d4d' : '#5a1a1a'; circle(-40 * k, -4 * k, 3.5 * k); ctx.fill();
-    ctx.fillStyle = blink ? '#2b5a2b' : '#5cff7a'; circle(40 * k, -4 * k, 3.5 * k); ctx.fill();
-    const glow = firing ? 1 : charge; // the dish lights up as it charges
-    ctx.fillStyle = `rgba(124,196,255,${0.35 + 0.65 * glow})`; ctx.beginPath(); ctx.ellipse(0, 40 * k, 28 * k, 6 * k, 0, 0, TAU); ctx.fill();
-    ctx.fillStyle = `rgba(255,255,255,${0.3 * glow + (firing ? 0.5 : 0)})`; circle(0, 44 * k, (6 + 14 * glow) * k); ctx.fill();
-    if (!firing && charge > 0.3) { ctx.strokeStyle = `rgba(160,220,255,${charge})`; ctx.lineWidth = 1.5 * k; for (let i = 0; i < 3; i++) { const a = t * 9 + i * 2.1, rr = (16 + 10 * Math.sin(t * 13 + i)) * k; ctx.beginPath(); ctx.moveTo(0, 44 * k); ctx.lineTo(Math.cos(a) * rr, 44 * k + Math.abs(Math.sin(a)) * rr); ctx.stroke(); } } // sparks
+  function drawBeam(p, t) { drawBeamBody(p, t, combBottom()); }
+  function drawGoyGun(p, t) { // an original ray gun on a tripod beside him: it pops up, follows you, locks (red line), and fires
+    const gk = Math.max(0.8, G) * 1.15, end = p.tele + p.on;
+    const pop = p.t < 0.25 ? ease(p.t / 0.25) : p.t > end ? 1 - clamp((p.t - end) / 0.35, 0, 1) : 1;
+    if (pop <= 0 || p.px === undefined) return;
+    const c = Math.cos(p.ang), sn = Math.sin(p.ang), mx = p.px + c * 62 * gk, my = p.py + sn * 62 * gk, L = W + H;
+    if (!p.fired) { // the aim line
+      ctx.save(); ctx.setLineDash([12, 9]); ctx.lineWidth = p.locked ? 4 : 2.5;
+      ctx.strokeStyle = p.locked ? `rgba(226,32,48,${0.6 + 0.4 * Math.sin(t * 30)})` : 'rgba(124,196,255,.55)';
+      ctx.beginPath(); ctx.moveTo(mx, my); ctx.lineTo(mx + c * L, my + sn * L); ctx.stroke(); ctx.restore();
+    } else if (p.t < end + 0.2) { // the beam
+      const a = 1 - clamp((p.t - end) / 0.2, 0, 1), hw = (p.half - 2) * G;
+      ctx.save(); ctx.globalAlpha = a; ctx.translate(mx, my); ctx.rotate(p.ang);
+      ctx.fillStyle = 'rgba(124,196,255,.45)'; ctx.fillRect(0, -hw, L, hw * 2);
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(0, -7 * G, L, 14 * G);
+      ctx.save(); ctx.translate(Math.min(L, 260 * G), 0); if (c < 0) ctx.rotate(Math.PI); outlined('GOY BEAM', 0, 0, 20, '#1f4fd1'); ctx.restore();
+      ctx.restore();
+    }
+    ctx.save(); ctx.translate(p.px, p.py); ctx.scale(pop, pop);
+    ctx.strokeStyle = '#2b2f36'; ctx.lineWidth = 5 * gk; ctx.lineCap = 'round'; // tripod
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-30 * gk, 92 * gk); ctx.moveTo(0, 0); ctx.lineTo(30 * gk, 92 * gk); ctx.moveTo(0, 0); ctx.lineTo(4 * gk, 94 * gk); ctx.stroke();
+    ctx.fillStyle = '#2b2f36'; circle(0, 0, 8 * gk); ctx.fill();
+    ctx.rotate(p.ang); if (c < 0) ctx.scale(1, -1); // keeps its label the right way up
+    const charge = clamp(p.t / p.tele, 0, 1), glow = p.fired ? 1 : charge, blink = Math.sin(t * 20) > 0;
+    ctx.fillStyle = '#a7b0be'; ctx.strokeStyle = '#3d4350'; ctx.lineWidth = 2 * gk; // emitter cone
+    ctx.beginPath(); ctx.moveTo(34 * gk, -14 * gk); ctx.lineTo(34 * gk, 14 * gk); ctx.lineTo(60 * gk, 26 * gk); ctx.lineTo(60 * gk, -26 * gk); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle = '#d7b65a'; ctx.lineWidth = 2.5 * gk; // coils
+    for (let i = 0; i < 3; i++) { const xx = (40 + i * 7) * gk, h = (17 + i * 3.5) * gk; ctx.beginPath(); ctx.ellipse(xx, 0, 2.6 * gk, h, 0, 0, TAU); ctx.stroke(); }
+    ctx.fillStyle = '#4b3a78'; ctx.strokeStyle = '#1d1530'; ctx.lineWidth = 3 * gk; roundRect(-44 * gk, -18 * gk, 80 * gk, 36 * gk, 15 * gk); ctx.fill(); ctx.stroke(); // body
+    ctx.fillStyle = '#3a2c63'; ctx.beginPath(); ctx.moveTo(-40 * gk, -16 * gk); ctx.lineTo(-58 * gk, -30 * gk); ctx.lineTo(-24 * gk, -18 * gk); ctx.closePath(); ctx.fill(); // fin
+    ctx.fillStyle = '#ffd36b'; ctx.fillRect(-42 * gk, 7 * gk, 76 * gk, 4 * gk);
+    ctx.fillStyle = '#ece8f7'; roundRect(-32 * gk, -11 * gk, 60 * gk, 14 * gk, 3 * gk); ctx.fill();
+    ctx.fillStyle = '#2a1d52'; ctx.font = `900 ${Math.round(9.5 * gk)}px "Instrument Sans", sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.save(); if (c < 0) ctx.scale(-1, 1); ctx.fillText('GOY BEAM', (c < 0 ? 2 : -2) * gk, -4 * gk); ctx.restore(); // never mirrored
+    ctx.fillStyle = blink ? '#ff4d4d' : '#5a1a1a'; circle(-38 * gk, 0, 3.2 * gk); ctx.fill();
+    ctx.fillStyle = `rgba(124,196,255,${0.35 + 0.65 * glow})`; ctx.beginPath(); ctx.ellipse(60 * gk, 0, 6 * gk, 26 * gk, 0, 0, TAU); ctx.fill(); // the dish lights up as it charges
+    ctx.fillStyle = `rgba(255,255,255,${0.3 * glow + (p.fired ? 0.5 : 0)})`; circle(64 * gk, 0, (6 + 13 * glow) * gk); ctx.fill();
+    if (!p.fired && charge > 0.3) { ctx.strokeStyle = `rgba(160,220,255,${charge})`; ctx.lineWidth = 1.5 * gk; for (let i = 0; i < 3; i++) { const a = t * 9 + i * 2.1, rr = (14 + 9 * Math.sin(t * 13 + i)) * gk; ctx.beginPath(); ctx.moveTo(64 * gk, 0); ctx.lineTo(64 * gk + Math.abs(Math.cos(a)) * rr, Math.sin(a) * rr); ctx.stroke(); } } // sparks
     ctx.restore();
   }
-  function drawBeam(p, t) {
-    if (p.gun) { // the beam and its warning start at the gun's dish; the gun itself is drawn later, over the bosses' name bars
-      if (p.t >= 0.3 && p.t <= p.tele + p.on) drawBeamBody(p, t, gunGeo(p).noz);
-      return;
+  function drawTower5g(p, t) { // an original lattice mast with three antenna panels and a blinking light
+    const kk = Math.max(0.75, G), base = H - 6, end = p.tele + (p.waves - 1) * p.gap + p.dur;
+    if (p.t < p.tele) { // its range
+      ctx.save(); ctx.setLineDash([10, 8]); ctx.lineWidth = 2.5; ctx.strokeStyle = `rgba(180,140,255,${0.35 + 0.3 * Math.sin(t * 14)})`;
+      ctx.beginPath(); ctx.arc(p.x, p.cy, p.R, 0, TAU); ctx.stroke(); ctx.restore();
     }
-    drawBeamBody(p, t, combBottom());
+    for (let w = 0; w < p.waves; w++) { // the signal waves
+      const u = (p.t - p.tele - w * p.gap) / p.dur;
+      if (u < 0 || u > 1) continue;
+      ctx.strokeStyle = `rgba(190,150,255,${1 - u * 0.8})`; ctx.lineWidth = (7 * (1 - u) + 2) * kk;
+      ctx.beginPath(); ctx.arc(p.ax, p.ay, ease(u) * p.R, 0, TAU); ctx.stroke();
+    }
+    const top = p.ay; if (top >= base - 2) return;
+    ctx.save();
+    ctx.strokeStyle = '#9aa3ad'; ctx.lineWidth = 3 * kk; ctx.lineCap = 'round'; // the mast
+    ctx.beginPath(); ctx.moveTo(p.x - 18 * kk, base); ctx.lineTo(p.x - 5 * kk, top + 14 * kk); ctx.moveTo(p.x + 18 * kk, base); ctx.lineTo(p.x + 5 * kk, top + 14 * kk); ctx.stroke();
+    ctx.lineWidth = 1.5 * kk; ctx.beginPath(); // bracing
+    for (let y = base, n = 0; y > top + 22 * kk; y -= 18 * kk, n++) {
+      const f1 = (base - y) / (base - top), f2 = (base - y + 18 * kk) / (base - top), w1 = 18 * kk - 13 * kk * f1, w2 = 18 * kk - 13 * kk * Math.min(1, f2);
+      ctx.moveTo(p.x + (n % 2 ? w1 : -w1), y); ctx.lineTo(p.x + (n % 2 ? -w2 : w2), y - 18 * kk);
+    }
+    ctx.stroke();
+    ctx.fillStyle = '#e9ecef'; ctx.strokeStyle = '#6b7380'; ctx.lineWidth = 1.5 * kk; // antenna panels
+    for (const dx of [-11, 0, 11]) { roundRect(p.x + dx * kk - 4 * kk, top + (dx ? 4 : 0) * kk, 8 * kk, 22 * kk, 2 * kk); ctx.fill(); ctx.stroke(); }
+    ctx.fillStyle = '#4b3a78'; roundRect(p.x - 13 * kk, top + 28 * kk, 26 * kk, 14 * kk, 3 * kk); ctx.fill();
+    ctx.fillStyle = '#ffffff'; ctx.font = `900 ${Math.round(10 * kk)}px "Instrument Sans", sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('5G', p.x, top + 35.5 * kk);
+    ctx.fillStyle = Math.sin(t * 9) > 0 ? '#ff4d4d' : '#5a1a1a'; circle(p.x, top - 4 * kk, 3.5 * kk); ctx.fill();
+    ctx.restore();
   }
   function drawBeamBody(p, t, top) {
     if (p.t < p.tele) {
@@ -3931,14 +3995,6 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
     if (!p.sqAx) ctx.translate(0, fs * 0.42 * (1 - sy)); // flattens onto the floor rather than shrinking in mid-air
     ctx.scale(sx, sy);
     outlined(p.word, 0, 0, fs, '#9fd4ff');
-  }
-  function drawPhone() { // a plain smartphone, no logo
-    ctx.fillStyle = '#16171b'; roundRect(-10, -18, 20, 36, 4); ctx.fill();
-    ctx.strokeStyle = '#5c6470'; ctx.lineWidth = 1.5; ctx.stroke();
-    const g = ctx.createLinearGradient(0, -15, 0, 15); g.addColorStop(0, '#3a6fd8'); g.addColorStop(1, '#8a4fd0');
-    ctx.fillStyle = g; roundRect(-8, -15, 16, 30, 2.5); ctx.fill();
-    ctx.fillStyle = '#16171b'; roundRect(-3.5, -14.5, 7, 2.6, 1.3); ctx.fill();
-    ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.fillRect(-6, -11, 5, 1.5); ctx.fillRect(-6, -8, 9, 1.5);
   }
   function drawPill(p) {
     const r = p.r, body = () => roundRect(-r * 1.15, -r * 0.5, r * 2.3, r, r * 0.5);
@@ -4139,7 +4195,7 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
     ctx.quadraticCurveTo(13, -10, 12, -4); ctx.lineTo(4, -6); ctx.quadraticCurveTo(2, 2, 9, 10); ctx.closePath(); ctx.fill(); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(-5, -13); ctx.quadraticCurveTo(-10, -5, -7, 2); ctx.stroke();
   }
-  const SPECIAL = { gapMark: 1, knight: 1, ring: 1, smoke: 1, bar: 1, beam: 1, belt: 1, rope: 1, crowFly: 1, blendSrc: 1, allyFee: 1, hyper: 1, hammer: 1, chop: 1 };
+  const SPECIAL = { goyGun: 1, tower5g: 1, gapMark: 1, knight: 1, ring: 1, smoke: 1, bar: 1, beam: 1, belt: 1, rope: 1, crowFly: 1, blendSrc: 1, allyFee: 1, hyper: 1, hammer: 1, chop: 1 };
   function drawProj(p, t) {
     if (p.dead) return;
     if (p.k === 'stamp' && p.delay > 0) { drawStampTele(p, t); return; }
@@ -4149,6 +4205,8 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
       case 'smoke': return;
       case 'bar': drawBar(p, t); return;
       case 'beam': drawBeam(p, t); return;
+      case 'goyGun': drawGoyGun(p, t); return;
+      case 'tower5g': drawTower5g(p, t); return;
       case 'rope': drawRope(p, t); return;
       case 'belt': drawBelt(p, t); return;
       case 'hyper': drawHyper(p, t); return;
@@ -4227,7 +4285,6 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
           case 'pill': drawPill(p); break;
           case 'goyWord': drawGoyWord(p); break;
           case 'waBubble': drawWaBubble(); break;
-          case 'phone': drawPhone(); break;
           case 'scream': ctx.translate(Math.sin(p.t * 47 + p.ph) * 1.8, Math.cos(p.t * 39 + p.ph) * 1.2); outlined('A', 0, 0, 30, '#ff6b5a'); break;
           case 'liver': drawLiver(p.r); break;
           case 'ad': drawAd(); break;
@@ -4756,7 +4813,7 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
     const k = bossK() * b.scale;
     ctx.globalAlpha = Math.min(1, b.say.t * 4) * Math.max(b.alpha, b.def.joins || b.gone ? 1 : 0);
     const narrow = W < 560, two = b.n > 1;
-    const o = { maxW: b.brawl ? Math.min(250, W * 0.44) : two ? Math.min(300, W * 0.46) : narrow ? W * 0.82 : Math.min(360, W * 0.5), discord: b.def.key === 'colonex', minY: combBottom() + 34, avoid: allyBox };
+    const o = { maxW: b.brawl ? Math.min(250, W * 0.44) : two ? Math.min(300, W * 0.46) : narrow ? W * 0.82 : Math.min(360, W * 0.5), discord: b.def.key === 'colonex', minY: combBottom() + 34, avoid: allyBox, small: narrow && b.say.text.length > 90 }; // long lines get smaller writing on phones
     if (two && !b.brawl) { o.lo = b.slot ? W / 2 + 4 : 8; o.hi = b.slot ? W - 8 : W / 2 - 4; }
     if ((narrow || two) && b.mode !== 'down') speechBox(b.say.text, b.x, b.y + 74 * k, 'below', o);
     else if (b.x < W / 2) speechBox(b.say.text, b.x + 52 * k, b.y - 38 * k, 'right', o);
@@ -4778,7 +4835,7 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
     if (!ally || !ally.say || !anyFighting()) return;
     const k = Math.max(0.42, bossK() * 0.55);
     ctx.globalAlpha = Math.min(1, ally.say.t * 4);
-    allyBox = speechBox(ally.say.text, ally.x + 14 * k, ally.y - 34 * k, 'right', { small: true, maxW: Math.min(240, W * 0.6), discord: true });
+    allyBox = speechBox(ally.say.text, ally.x + 14 * k, ally.y - 34 * k, 'right', W < 560 ? { small: true, fs: 10, maxW: Math.min(190, W * 0.5), discord: true } : { small: true, maxW: Math.min(240, W * 0.6), discord: true });
     ctx.globalAlpha = 1;
   }
   function drawBossUI(b) {
@@ -5052,7 +5109,6 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
     for (const p of particles) { ctx.globalAlpha = Math.max(0, p.life); ctx.fillStyle = p.color; circle(p.x, p.y, p.r); ctx.fill(); }
     ctx.globalAlpha = 1;
     for (const b of bosses) drawBossUI(b);
-    for (const p of proj) if (p.gun) drawGoyGun(p, t); // the goy beam's ray gun hangs over everything up there
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     for (const f of floaters) {
       if (f.fs === undefined) measureFloater(f);
@@ -5633,7 +5689,7 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
         sx: spoon.x, sy: spoon.y, W, H, S: spoonSize(), G,
         fakes: items.filter(i => i.kind === 'bad' && !i.held && !i.carried).map(i => ({ x: i.x, y: i.y, vy: i.vy, r: i.r * G, base: i.base, amp: i.amp })),
         honey: items.filter(i => i.kind !== 'bad' && !i.suck && !i.held).map(i => ({ x: i.x, y: i.y, vy: i.vy, v: i.kind === 'box' ? 10 : i.kind === 'jar' || i.kind === 'shilajit' ? 1.2 : i.kind === 'comb' ? 3 : 0.12 })),
-        proj: proj.filter(p => !p.dead).map(p => ({ k: p.k, x: p.x, y: p.y, vx: p.vx || 0, vy: p.vy || 0, g: p.g || 0, r: (p.r || 14) * ps(p), harmless: !!p.harmless, delay: p.delay || 0, tele: p.tele, t: p.t, w: p.w, tx: p.tx, ty: p.ty, floor: p.floor, c: p.c, st: p.st, R: p.R, mx: p.mx, safe: !!p.safe, half: p.half, G })),
+        proj: proj.filter(p => !p.dead).map(p => ({ k: p.k, x: p.x, y: p.y, vx: p.vx || 0, vy: p.vy || 0, g: p.g || 0, r: (p.r || 14) * ps(p), harmless: !!p.harmless, delay: p.delay || 0, tele: p.tele, t: p.t, w: p.w, tx: p.tx, ty: p.ty, floor: p.floor, c: p.c, st: p.st, R: p.R, mx: p.mx, safe: !!p.safe, half: p.half, ang: p.ang, px: p.px, py: p.py, fired: !!p.fired, on: p.on, cy: p.cy, G })),
       }),
       itemsInfo: () => items.map(i => ({ kind: i.kind, x: Math.round(i.x), y: Math.round(i.y), suck: !!i.suck })),
       setEndless(on) { endless = on; },

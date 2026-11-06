@@ -12,11 +12,16 @@ window.dodge = (frames, opts = {}) => {
       for (const q of T.fakes) { const dt = (T.sy - q.y) / Math.max(30, q.vy); if (dt < -0.15 || dt > 1.1) continue; const span = q.amp + q.r * 0.6 + hitR; xs.forEach((x, i) => { if (Math.abs(x - q.base) < span) score[i] -= 30 * (1.25 - dt); }); }
       for (const p of T.proj) {
         if (p.harmless) {
-          const col = p.half || { beam: 14, rope: 24, hammer: 30, chop: 24 }[p.k];
+          const col = p.k === 'goyGun' ? 0 : p.half || { beam: 14, rope: 24, hammer: 30, chop: 24 }[p.k];
           if (col) { const half = col * p.G + hitR * 0.7; xs.forEach((x, i) => { if (Math.abs(x - p.x) < half) score[i] -= 60; }); }
           else if (p.k === 'bar') { const half = p.w / 2 + hitR * 0.7; xs.forEach((x, i) => { if (Math.abs(x - p.x) < half) score[i] -= 60; }); }
           else if (p.k === 'ring') xs.forEach((x, i) => { const d = Math.hypot(x - p.x, T.sy - p.y); if (d < p.R + 14 + T.S * 0.3) score[i] -= 45; });
           else if (p.k === 'knight' && p.st === 'tele' && Math.abs(p.ty - p.floor) < p.c * 0.5) xs.forEach((x, i) => { if (Math.abs(x - p.tx) < p.c * 0.5 + T.S * 0.25) score[i] -= 60; });
+          else if (p.k === 'goyGun' && p.ang !== undefined && !(p.fired && p.t > p.tele + p.on)) { // where the aim line crosses the spoon's row
+            const c = Math.cos(p.ang), sn = Math.sin(p.ang);
+            if (Math.abs(sn) > 0.15) { const xl = p.px + (T.sy - p.py) * c / sn, half = (p.half * p.G + hitR * 0.7) / Math.abs(sn); xs.forEach((x, i) => { if (Math.abs(x - xl) < half) score[i] -= 60; }); }
+          }
+          else if (p.k === 'tower5g') xs.forEach((x, i) => { if (Math.hypot(x - p.x, T.sy - p.cy) < p.R + 12 * p.G + T.S * 0.3) score[i] -= 45; });
           else if (p.k === 'belt') xs.forEach((x, i) => { if (Math.abs(x - p.mx) < 40 * p.G + T.S * 0.3) score[i] -= 50; });
           continue;
         }
@@ -32,8 +37,9 @@ window.dodge = (frames, opts = {}) => {
         }
       }
       let best = 0, bs = -1e9;
-      xs.forEach((x, i) => { const sc = score[i] - Math.abs(x - T.sx) * 0.004; if (sc > bs) { bs = sc; best = i; } });
-      tx = xs[best];
+      const prev = window.__dodgeTx; // sticks with the way it already chose when it's just as good, like a person would, instead of dithering
+      xs.forEach((x, i) => { const sc = score[i] - Math.abs(x - T.sx) * 0.004 - (prev != null && Math.abs(prev - T.sx) < T.W * 0.5 ? Math.abs(x - prev) * 0.003 : 0); if (sc > bs) { bs = sc; best = i; } });
+      tx = xs[best]; window.__dodgeTx = tx;
     }
     const maxStep = widthsPerSec * T.W / 60;
     __hg.spoonTo(T.sx + Math.max(-maxStep, Math.min(maxStep, tx - T.sx)));
