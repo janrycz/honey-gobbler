@@ -1,0 +1,186 @@
+{% comment %}
+  Patreon call-out for the waitlist page. All the text is editable in the theme editor.
+  The Patreon and Discord icons are built into the stylesheet below as single-colour masks, painted
+  in the text colour, so they always match the text, including when the button changes on hover.
+{% endcomment %}
+
+<div
+  class="patreon-callout"
+  style="
+    {% if block.settings.background_color != blank %}--patreon-callout-bg: {{ block.settings.background_color }};{% endif %}
+    {% if block.settings.border_color != blank %}--patreon-callout-border: {{ block.settings.border_color }};{% endif %}
+  "
+  {{ block.shopify_attributes }}
+>
+  {%- if block.settings.heading != blank or block.settings.note != blank -%}
+    <div class="patreon-callout__intro">
+      {%- if block.settings.heading != blank -%}
+        <h2 class="patreon-callout__heading h4">{{ block.settings.heading | escape }}</h2>
+      {%- endif -%}
+      {%- if block.settings.note != blank -%}
+        <p class="patreon-callout__note">{{ block.settings.note | escape }}</p>
+      {%- endif -%}
+    </div>
+  {%- endif -%}
+
+  {%- if block.settings.link != blank -%}
+    <a
+      class="button-secondary patreon-callout__button"
+      href="{{ block.settings.link }}"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      <span class="patreon-callout__icon patreon-callout__icon--patreon" aria-hidden="true"></span>
+      <span>{{ block.settings.link_label | default: block.settings.link | escape }}</span>
+    </a>
+  {%- endif -%}
+
+  {%- if block.settings.perk != blank -%}
+    <p class="patreon-callout__perk">
+      <span class="patreon-callout__icon patreon-callout__icon--discord" aria-hidden="true"></span>
+      <span class="patreon-callout__perk-text">{{ block.settings.perk | escape }}</span>
+    </p>
+  {%- endif -%}
+</div>
+
+{% stylesheet %}
+  .patreon-callout {
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--gap-lg, 1.5rem);
+    padding: 2rem 1.5rem;
+    text-align: center;
+    color: var(--color-foreground);
+    background-color: var(--patreon-callout-bg, transparent);
+    border: 1px solid var(--patreon-callout-border, transparent);
+    border-radius: 16px;
+  }
+
+  .patreon-callout > *,
+  .patreon-callout__intro > * {
+    margin: 0;
+  }
+
+  .patreon-callout__intro {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .patreon-callout__heading {
+    text-wrap: balance;
+  }
+
+  .patreon-callout__note {
+    font-style: italic;
+    font-size: 0.875em;
+    opacity: 0.75;
+  }
+
+  .patreon-callout .patreon-callout__button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6em;
+    text-decoration: none;
+  }
+
+  .patreon-callout__perk {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6em;
+  }
+
+  .patreon-callout__perk-text {
+    text-align: left;
+    text-wrap: balance;
+  }
+
+  .patreon-callout__icon {
+    flex: none;
+    display: inline-block;
+    width: 1.5em;
+    height: 1.5em;
+    background-color: currentColor;
+    -webkit-mask: var(--icon) center / contain no-repeat;
+    mask: var(--icon) center / contain no-repeat;
+  }
+
+  .patreon-callout__icon--patreon {
+    --icon: url("data:image/png;base64,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");
+  }
+
+  .patreon-callout__icon--discord {
+    --icon: url("data:image/png;base64,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");
+  }
+
+  @media screen and (max-width: 749px) {
+    .patreon-callout {
+      padding: 1.5rem 1rem;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Patreon call-out",
+  "tag": null,
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Join my Patreon to get an even bigger discount at launch!"
+    },
+    {
+      "type": "text",
+      "id": "note",
+      "label": "Small print",
+      "default": "UK and EU only"
+    },
+    {
+      "type": "url",
+      "id": "link",
+      "label": "Patreon link"
+    },
+    {
+      "type": "text",
+      "id": "link_label",
+      "label": "Button text",
+      "default": "Patreon.com/janrycz"
+    },
+    {
+      "type": "text",
+      "id": "perk",
+      "label": "Line next to the Discord icon",
+      "default": "+ Permanent access to my Discord server"
+    },
+    {
+      "type": "header",
+      "content": "Colours"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background",
+      "default": "#FDF6E4"
+    },
+    {
+      "type": "color",
+      "id": "border_color",
+      "label": "Border",
+      "default": "#E9D9BB"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Patreon call-out",
+      "category": "t:categories.basic"
+    }
+  ]
+}
+{% endschema %}
