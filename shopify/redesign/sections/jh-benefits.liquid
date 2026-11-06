@@ -1,0 +1,104 @@
+{% render 'jh-tokens' %}
+
+<section class="jh jh-benefits jh-bg--{{ section.settings.background }}">
+  <div class="jh-container">
+    <ul class="jh-benefits__list" role="list">
+      {%- for block in section.blocks -%}
+        <li class="jh-benefits__item" {{ block.shopify_attributes }}>{{ block.settings.label | escape }}</li>
+      {%- endfor -%}
+    </ul>
+    {%- if section.settings.note != blank -%}
+      <p class="jh-benefits__note">{{ section.settings.note | escape }}</p>
+    {%- endif -%}
+  </div>
+</section>
+
+{% stylesheet %}
+  .jh-benefits {
+    padding-block: 36px 32px;
+    border-bottom: 1px solid var(--jh-line);
+  }
+
+  .jh-benefits__list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px 36px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .jh-benefits__item {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight, 600);
+    font-size: clamp(1.25rem, 2.2vw, 1.625rem);
+    line-height: 1.2;
+    color: var(--jh-green);
+  }
+
+  .jh-benefits__item::before {
+    content: '';
+    flex: none;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: var(--jh-amber);
+  }
+
+  .jh-benefits__note {
+    margin: 16px 0 0;
+    text-align: center;
+    font-size: 0.9375rem;
+    opacity: 0.75;
+  }
+
+  @media screen and (max-width: 749px) {
+    .jh-benefits__list {
+      gap: 8px 22px;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "JH benefits row",
+  "tag": "div",
+  "settings": [
+    { "type": "text", "id": "note", "label": "Line underneath", "default": "Not heated above hive temperature at any stage." },
+    {
+      "type": "select",
+      "id": "background",
+      "label": "Background",
+      "options": [
+        { "value": "ivory", "label": "Ivory" },
+        { "value": "sand", "label": "Sand" }
+      ],
+      "default": "ivory"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "item",
+      "name": "Benefit",
+      "settings": [{ "type": "text", "id": "label", "label": "Label", "default": "Raw" }]
+    }
+  ],
+  "max_blocks": 8,
+  "presets": [
+    {
+      "name": "JH benefits row",
+      "blocks": [
+        { "type": "item", "settings": { "label": "Raw" } },
+        { "type": "item", "settings": { "label": "Unfiltered" } },
+        { "type": "item", "settings": { "label": "Unblended" } },
+        { "type": "item", "settings": { "label": "No added syrup" } },
+        { "type": "item", "settings": { "label": "Family apiary" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

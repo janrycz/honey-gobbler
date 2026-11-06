@@ -1,0 +1,175 @@
+{% render 'jh-tokens' %}
+
+{%- comment -%}
+  Customer reviews. The rating and count come live from the product's review data (Judge.me).
+  The quotes are blocks: copy them word for word from real reviews.
+{%- endcomment -%}
+
+{%- liquid
+  assign p = section.settings.product
+  if p == blank
+    assign p = all_products['honeydew-liden-honey-1200-g']
+  endif
+  if p != blank
+    assign rating = p.metafields.reviews.rating.value
+    assign rating_count = p.metafields.reviews.rating_count.value
+  endif
+-%}
+
+<section
+  id="{{ section.settings.anchor_id | default: 'reviews' | handleize }}"
+  class="jh jh-section jh-reviews jh-bg--{{ section.settings.background }}"
+>
+  <div class="jh-container">
+    <div class="jh-reviews__head">
+      <div>
+        {%- if section.settings.eyebrow != blank -%}
+          <p class="jh-eyebrow">{{ section.settings.eyebrow | escape }}</p>
+        {%- endif -%}
+        {%- if section.settings.heading != blank -%}
+          <h2 class="jh-title">{{ section.settings.heading | escape }}</h2>
+        {%- endif -%}
+      </div>
+      {%- if rating_count != blank and rating_count > 0 -%}
+        <p class="jh-reviews__summary">
+          <span class="jh-stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+          <span><strong>{{ rating.rating | round: 1 }}</strong> out of 5 from {{ rating_count }} reviews</span>
+        </p>
+      {%- endif -%}
+    </div>
+
+    <ul class="jh-reviews__grid" role="list">
+      {%- for block in section.blocks -%}
+        <li class="jh-review" {{ block.shopify_attributes }}>
+          <span class="jh-stars jh-review__stars" aria-label="5 out of 5 stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+          <blockquote class="jh-review__quote">{{ block.settings.quote | escape | newline_to_br }}</blockquote>
+          <p class="jh-review__author">{{ block.settings.author | escape }}</p>
+        </li>
+      {%- endfor -%}
+    </ul>
+
+    {%- if p != blank and section.settings.link_label != blank -%}
+      <a class="jh-link jh-reviews__more" href="{{ p.url }}#judgeme_product_reviews">{{ section.settings.link_label | escape }}</a>
+    {%- endif -%}
+  </div>
+</section>
+
+{% stylesheet %}
+  .jh-reviews__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 8px 32px;
+    margin-bottom: 40px;
+  }
+
+  .jh-reviews__head .jh-title {
+    margin-bottom: 0;
+  }
+
+  .jh-reviews__summary {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+    font-size: 0.9375rem;
+  }
+
+  .jh-reviews__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media screen and (min-width: 750px) {
+    .jh-reviews__grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media screen and (min-width: 1100px) {
+    .jh-reviews__grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  .jh-review {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 28px;
+    border-radius: 4px;
+    background-color: var(--jh-ivory);
+  }
+
+  .jh-bg--ivory .jh-review {
+    background-color: var(--jh-sand);
+  }
+
+  .jh-review__stars {
+    font-size: 0.875rem;
+  }
+
+  .jh-review__quote {
+    flex: 1;
+    margin: 0;
+    font-family: var(--font-heading--family);
+    font-size: 1.3125rem;
+    line-height: 1.35;
+  }
+
+  .jh-review__author {
+    margin: 0;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    opacity: 0.75;
+  }
+
+  .jh-reviews__more {
+    display: inline-block;
+    margin-top: 28px;
+    font-size: 0.9375rem;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "JH reviews",
+  "tag": "div",
+  "settings": [
+    { "type": "product", "id": "product", "label": "Product", "info": "Where the rating and review count come from." },
+    { "type": "text", "id": "anchor_id", "label": "Anchor for links", "default": "reviews" },
+    {
+      "type": "select",
+      "id": "background",
+      "label": "Background",
+      "options": [
+        { "value": "ivory", "label": "Ivory" },
+        { "value": "sand", "label": "Sand" }
+      ],
+      "default": "sand"
+    },
+    { "type": "text", "id": "eyebrow", "label": "Small line above heading", "default": "Reviews" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "What customers say" },
+    { "type": "text", "id": "link_label", "label": "Link to all reviews", "default": "Read all reviews" }
+  ],
+  "blocks": [
+    {
+      "type": "review",
+      "name": "Review",
+      "settings": [
+        { "type": "textarea", "id": "quote", "label": "Quote" },
+        { "type": "text", "id": "author", "label": "Name" }
+      ]
+    }
+  ],
+  "max_blocks": 8,
+  "presets": [{ "name": "JH reviews" }]
+}
+{% endschema %}

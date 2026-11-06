@@ -1,0 +1,340 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "hero": {
+      "type": "jh-hero",
+      "settings": {
+        "image": "shopify://shop_images/DSC06167.jpg",
+        "image_position": "center",
+        "height": "full",
+        "overlay": 30,
+        "eyebrow": "Family apiary, Podkarpackie, Poland",
+        "heading": "Raw Polish honeydew honey",
+        "text": "Harvested from our family apiary in the Subcarpathian hills.",
+        "button_label": "Shop honey",
+        "link_label": "Our story"
+      }
+    },
+    "benefits": {
+      "type": "jh-benefits",
+      "settings": {
+        "note": "Not heated above hive temperature at any stage.",
+        "background": "ivory"
+      },
+      "blocks": {
+        "item_1": {
+          "type": "item",
+          "settings": {
+            "label": "Raw"
+          }
+        },
+        "item_2": {
+          "type": "item",
+          "settings": {
+            "label": "Unfiltered"
+          }
+        },
+        "item_3": {
+          "type": "item",
+          "settings": {
+            "label": "Unblended"
+          }
+        },
+        "item_4": {
+          "type": "item",
+          "settings": {
+            "label": "No added syrup"
+          }
+        },
+        "item_5": {
+          "type": "item",
+          "settings": {
+            "label": "Family apiary"
+          }
+        }
+      },
+      "block_order": [
+        "item_1",
+        "item_2",
+        "item_3",
+        "item_4",
+        "item_5"
+      ]
+    },
+    "product": {
+      "type": "jh-product",
+      "settings": {
+        "product": "honeydew-liden-honey-1200-g",
+        "anchor_id": "shop",
+        "background": "ivory",
+        "eyebrow": "Our honey",
+        "heading": "Honeydew honey",
+        "weight_label": "1.2 kg",
+        "text": "<p>Darker than blossom honey and less sweet, with a long, resinous, almost malty finish. It crystallises slowly.</p>",
+        "offer": "Buy 2, get 20% off your second jar!",
+        "add_label": "Add to cart",
+        "trust_1": "Secure checkout",
+        "trust_2": "UK delivery in 2 to 3 days",
+        "trust_3": "EU delivery in 3 to 4 days",
+        "details_label": "Full product details",
+        "max_uk": 13,
+        "max_eu": 19,
+        "ship_to": "AT,BE,BG,CZ,DK,EE,FI,FR,DE,HU,IE,IT,LV,LT,LU,NL,PL,PT,RO,SK,SI,ES,SE,GB,AE"
+      },
+      "blocks": {
+        "point_1": {
+          "type": "point",
+          "settings": {
+            "label": "Raw"
+          }
+        },
+        "point_2": {
+          "type": "point",
+          "settings": {
+            "label": "Unfiltered"
+          }
+        },
+        "point_3": {
+          "type": "point",
+          "settings": {
+            "label": "Unblended"
+          }
+        },
+        "point_4": {
+          "type": "point",
+          "settings": {
+            "label": "No added syrup"
+          }
+        },
+        "point_5": {
+          "type": "point",
+          "settings": {
+            "label": "Family apiary"
+          }
+        }
+      },
+      "block_order": [
+        "point_1",
+        "point_2",
+        "point_3",
+        "point_4",
+        "point_5"
+      ]
+    },
+    "story": {
+      "type": "jh-story",
+      "settings": {
+        "anchor_id": "our-story",
+        "image": "shopify://shop_images/AAA3.jpg",
+        "image_side": "left",
+        "background": "sand",
+        "eyebrow": "Our story",
+        "heading": "From my grandad's hives",
+        "text": "<p>I'm Jan Ryczkowski. I was born in Doncaster and now live at my grandad's in Podkarpackie, in the south-east of Poland.</p><p>He keeps the bees. I run the shop, the orders and the deliveries, and my mum packs the UK orders in Doncaster.</p><p>We only sell honey from our own hives, so there is only so much each year. When it runs out, the next jars come with the next harvest.</p>"
+      }
+    },
+    "apiary": {
+      "type": "jh-story",
+      "settings": {
+        "anchor_id": "apiary",
+        "image": "shopify://shop_images/AAAA2.jpg",
+        "image_side": "right",
+        "background": "ivory",
+        "eyebrow": "The apiary",
+        "heading": "In the hills near Strzyżów",
+        "text": "<p>The hives stand on my grandad's land near Strzyżów, with trees all around them. That matters, because our honey isn't made from flowers.</p><p>Most honey comes from flower nectar. Honeydew honey comes from honeydew, a sweet sap that small insects leave on the leaves and needles of trees. The bees collect it and turn it into a honey that is darker, less sweet and higher in minerals than blossom honey.</p>",
+        "steps_heading": "From the hive to your door"
+      },
+      "blocks": {
+        "step_1": {
+          "type": "step",
+          "settings": {
+            "text": "The bees collect honeydew from the trees around the apiary."
+          }
+        },
+        "step_2": {
+          "type": "step",
+          "settings": {
+            "text": "My grandad takes the honey from the hives once it is ready."
+          }
+        },
+        "step_3": {
+          "type": "step",
+          "settings": {
+            "text": "It goes into jars without being heated above hive temperature, filtered or mixed with any other honey."
+          }
+        },
+        "step_4": {
+          "type": "step",
+          "settings": {
+            "text": "We pack every order by hand and send it from Poland, or from Doncaster for UK orders."
+          }
+        }
+      },
+      "block_order": [
+        "step_1",
+        "step_2",
+        "step_3",
+        "step_4"
+      ]
+    },
+    "reviews": {
+      "type": "jh-reviews",
+      "settings": {
+        "product": "honeydew-liden-honey-1200-g",
+        "anchor_id": "reviews",
+        "background": "sand",
+        "eyebrow": "Reviews",
+        "heading": "What customers say",
+        "link_label": "Read all reviews"
+      },
+      "blocks": {
+        "review_1": {
+          "type": "review",
+          "settings": {
+            "quote": "One of the best honeys I have ever had! The package came was well protected and arrived safely.",
+            "author": "Noureddine"
+          }
+        },
+        "review_2": {
+          "type": "review",
+          "settings": {
+            "quote": "It was my first time trying Honeydew honey, and wont be my last. Its thick, dark amber in colour, not overly sweet and hint of flowery taste which I love in a honey.",
+            "author": "A.h."
+          }
+        },
+        "review_3": {
+          "type": "review",
+          "settings": {
+            "quote": "Most wonderful honey - beautiful texture and delicate floral flavour. My family and I love it and we will definitely buy more next season",
+            "author": "M A."
+          }
+        },
+        "review_4": {
+          "type": "review",
+          "settings": {
+            "quote": "It arrived very well packaged and in great timing. The honey is very high quality and thick.",
+            "author": "B.E"
+          }
+        }
+      },
+      "block_order": [
+        "review_1",
+        "review_2",
+        "review_3",
+        "review_4"
+      ]
+    },
+    "faq": {
+      "type": "jh-faq",
+      "settings": {
+        "anchor_id": "faq",
+        "background": "ivory",
+        "eyebrow": "FAQ",
+        "heading": "Questions",
+        "text": "<p>Anything else? Email <a href=\"mailto:janryczkowski30@gmail.com\">janryczkowski30@gmail.com</a>.</p>"
+      },
+      "blocks": {
+        "question_1": {
+          "type": "question",
+          "settings": {
+            "question": "What is honeydew honey?",
+            "answer": "<p>Honey made from honeydew rather than flower nectar. Honeydew is a sweet sap that small insects leave on trees. Bees collect it, and the honey they make from it is darker and less sweet than blossom honey, with a resinous, almost malty taste.</p>"
+          }
+        },
+        "question_2": {
+          "type": "question",
+          "settings": {
+            "question": "What does raw mean here?",
+            "answer": "<p>It is not heated above hive temperature at any stage, it is not filtered and it is not blended with any other honey. Nothing is added to it.</p>"
+          }
+        },
+        "question_3": {
+          "type": "question",
+          "settings": {
+            "question": "My honey has gone thick or grainy. Is that normal?",
+            "answer": "<p>Yes. Raw honey crystallises over time. Honeydew honey does it slowly, but it will happen. To make it runny again, stand the closed jar in warm water, below 40°C, and stir now and then.</p>"
+          }
+        },
+        "question_4": {
+          "type": "question",
+          "settings": {
+            "question": "How should I store it?",
+            "answer": "<p>Keep the jar closed, below 25°C and out of direct sunlight. It doesn't need to go in the fridge.</p>"
+          }
+        },
+        "question_5": {
+          "type": "question",
+          "settings": {
+            "question": "Can babies have it?",
+            "answer": "<p>No. Honey is not suitable for babies under 12 months.</p>"
+          }
+        },
+        "question_6": {
+          "type": "question",
+          "settings": {
+            "question": "Where do you deliver, and how long does it take?",
+            "answer": "<p>We deliver to the UK, the UAE and every EU country except Croatia, Cyprus, Greece and Malta.</p><p>UK orders are sent from Doncaster and usually arrive in 2 to 3 days. EU orders are sent from Poland and usually arrive in 3 to 4 days.</p>"
+          }
+        },
+        "question_7": {
+          "type": "question",
+          "settings": {
+            "question": "How much is delivery?",
+            "answer": "<ul><li>UK: £8 for one jar, £11 for two</li><li>EU: from €14 for one jar, depending on the country</li><li>Poland: 25 zł</li></ul><p>You'll see the exact cost at checkout before you pay.</p>"
+          }
+        },
+        "question_8": {
+          "type": "question",
+          "settings": {
+            "question": "Is checkout secure?",
+            "answer": "<p>Yes. Payments go through Shopify's checkout, and we never see or store your card details.</p>"
+          }
+        },
+        "question_9": {
+          "type": "question",
+          "settings": {
+            "question": "Can I return my order?",
+            "answer": "<p>If a jar arrives damaged, email us a photo within 14 days of delivery and we'll replace it or refund you. Unopened jars can be returned within 14 days of delivery: email us first and we'll tell you where to send them.</p>"
+          }
+        },
+        "question_10": {
+          "type": "question",
+          "settings": {
+            "question": "Why does the label say spadziowo-nektarowy?",
+            "answer": "<p>That's a labelling mistake on this batch. The honey is pure honeydew honey (spadziowy). We'll correct it on next year's labels.</p>"
+          }
+        }
+      },
+      "block_order": [
+        "question_1",
+        "question_2",
+        "question_3",
+        "question_4",
+        "question_5",
+        "question_6",
+        "question_7",
+        "question_8",
+        "question_9",
+        "question_10"
+      ]
+    }
+  },
+  "order": [
+    "hero",
+    "benefits",
+    "product",
+    "story",
+    "apiary",
+    "reviews",
+    "faq"
+  ]
+}

@@ -1,0 +1,147 @@
+{% render 'jh-tokens' %}
+
+<section
+  id="{{ section.settings.anchor_id | default: 'faq' | handleize }}"
+  class="jh jh-section jh-faq jh-bg--{{ section.settings.background }}"
+>
+  <div class="jh-container jh-faq__inner">
+    <div class="jh-faq__head">
+      {%- if section.settings.eyebrow != blank -%}
+        <p class="jh-eyebrow">{{ section.settings.eyebrow | escape }}</p>
+      {%- endif -%}
+      {%- if section.settings.heading != blank -%}
+        <h2 class="jh-title">{{ section.settings.heading | escape }}</h2>
+      {%- endif -%}
+      {%- if section.settings.text != blank -%}
+        <div class="jh-body jh-faq__intro">{{ section.settings.text }}</div>
+      {%- endif -%}
+    </div>
+
+    <div class="jh-faq__list">
+      {%- for block in section.blocks -%}
+        <details class="jh-faq__item" {{ block.shopify_attributes }}>
+          <summary class="jh-faq__question">
+            <span>{{ block.settings.question | escape }}</span>
+            <span class="jh-faq__icon" aria-hidden="true"></span>
+          </summary>
+          <div class="jh-body jh-faq__answer">{{ block.settings.answer }}</div>
+        </details>
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+{% stylesheet %}
+  .jh-faq__inner {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  @media screen and (min-width: 990px) {
+    .jh-faq__inner {
+      grid-template-columns: 1fr 1.6fr;
+      gap: clamp(48px, 7vw, 112px);
+      align-items: start;
+    }
+
+    .jh-faq__head {
+      position: sticky;
+      top: 100px;
+    }
+  }
+
+  .jh-faq__list {
+    border-top: 1px solid var(--jh-line);
+  }
+
+  .jh-faq__item {
+    border-bottom: 1px solid var(--jh-line);
+  }
+
+  .jh-faq__question {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 22px 0;
+    cursor: pointer;
+    list-style: none;
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight, 600);
+    font-size: clamp(1.25rem, 2vw, 1.5rem);
+    line-height: 1.25;
+    color: var(--jh-green);
+  }
+
+  .jh-faq__question::-webkit-details-marker {
+    display: none;
+  }
+
+  .jh-faq__icon {
+    position: relative;
+    flex: none;
+    width: 14px;
+    height: 14px;
+  }
+
+  .jh-faq__icon::before,
+  .jh-faq__icon::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 14px;
+    height: 1.5px;
+    background-color: var(--jh-amber);
+    transition: transform 0.2s ease;
+  }
+
+  .jh-faq__icon::after {
+    transform: rotate(90deg);
+  }
+
+  .jh-faq__item[open] .jh-faq__icon::after {
+    transform: rotate(0deg);
+  }
+
+  .jh-faq__answer {
+    padding: 0 0 24px;
+    max-width: 38em;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "JH FAQ",
+  "tag": "div",
+  "settings": [
+    { "type": "text", "id": "anchor_id", "label": "Anchor for links", "default": "faq" },
+    {
+      "type": "select",
+      "id": "background",
+      "label": "Background",
+      "options": [
+        { "value": "ivory", "label": "Ivory" },
+        { "value": "sand", "label": "Sand" }
+      ],
+      "default": "ivory"
+    },
+    { "type": "text", "id": "eyebrow", "label": "Small line above heading", "default": "FAQ" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Questions" },
+    { "type": "richtext", "id": "text", "label": "Text" }
+  ],
+  "blocks": [
+    {
+      "type": "question",
+      "name": "Question",
+      "settings": [
+        { "type": "text", "id": "question", "label": "Question" },
+        { "type": "richtext", "id": "answer", "label": "Answer" }
+      ]
+    }
+  ],
+  "max_blocks": 16,
+  "presets": [{ "name": "JH FAQ" }]
+}
+{% endschema %}

@@ -1,0 +1,107 @@
+{%- comment -%}
+  Shared colours and base styles for the JanHoney (jh-) sections.
+  The colours follow Theme settings > Colors, so changing the palette there changes these too:
+  background = ivory, foreground = charcoal, Color 1 = sand, Color 2 = forest green,
+  Color 3 = honey amber, Color 4 = line colour.
+{%- endcomment -%}
+<style>
+  :root {
+    --jh-ivory: {{ settings.color_palette.background | default: '#F7F2E8' }};
+    --jh-charcoal: {{ settings.color_palette.foreground | default: '#22201D' }};
+    --jh-sand: {{ settings.color_palette.color1 | default: '#EFE6D6' }};
+    --jh-green: {{ settings.color_palette.color2 | default: '#263C2F' }};
+    --jh-amber: {{ settings.color_palette.color3 | default: '#C98A2E' }};
+    --jh-line: {{ settings.color_palette.color4 | default: '#DCCDB2' }};
+  }
+</style>
+
+{% stylesheet %}
+  .jh {
+    color: var(--jh-charcoal);
+    font-family: var(--font-body--family);
+  }
+
+  .jh *,
+  .jh *::before,
+  .jh *::after {
+    box-sizing: border-box;
+  }
+
+  .jh-container {
+    width: 100%;
+    max-width: 1200px;
+    margin-inline: auto;
+    padding-inline: clamp(20px, 5vw, 48px);
+  }
+
+  .jh-section {
+    padding-block: clamp(64px, 9vw, 120px);
+    scroll-margin-top: 72px;
+  }
+
+  .jh-bg--ivory {
+    background-color: var(--jh-ivory);
+  }
+
+  .jh-bg--sand {
+    background-color: var(--jh-sand);
+  }
+
+  .jh-bg--green {
+    background-color: var(--jh-green);
+    color: var(--jh-ivory);
+  }
+
+  .jh-eyebrow {
+    margin: 0 0 16px;
+    font-family: var(--font-body--family);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    line-height: 1.4;
+    text-transform: uppercase;
+    color: var(--jh-amber);
+  }
+
+  .jh-title {
+    margin: 0 0 24px;
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight, 600);
+    font-size: clamp(2.25rem, 4.6vw, 3.5rem);
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    color: var(--jh-green);
+    text-wrap: balance;
+  }
+
+  .jh-bg--green .jh-title {
+    color: var(--jh-ivory);
+  }
+
+  .jh-body {
+    font-size: 1.0625rem;
+    line-height: 1.7;
+    max-width: 34em;
+  }
+
+  .jh-body p {
+    margin: 0 0 1em;
+  }
+
+  .jh-body > :last-child {
+    margin-bottom: 0;
+  }
+
+  .jh-stars {
+    color: var(--jh-amber);
+    letter-spacing: 2px;
+  }
+
+  .jh-body a,
+  .jh-link {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 4px;
+  }
+{% endstylesheet %}

@@ -1,0 +1,140 @@
+{% render 'jh-tokens' %}
+
+{%- comment -%}
+  A styled line for the product page.
+  Price style: shows the live price, then " / " and the text (for example "1.2 kg").
+  Points style: separate the points with commas and they show with small amber dots.
+{%- endcomment -%}
+
+{%- assign style = block.settings.style -%}
+<div class="jh jh-line jh-line--{{ style }}" {{ block.shopify_attributes }}>
+  {%- case style -%}
+    {%- when 'price' -%}
+      {%- assign p = closest.product | default: product -%}
+      {%- if p != blank -%}
+        <p class="jh-line__price">
+          <span class="jh-line__amount">{{ p.selected_or_first_available_variant.price | money_without_trailing_zeros }}</span>
+          {%- if block.settings.text != blank -%}
+            <span class="jh-line__unit">/ {{ block.settings.text | escape }}</span>
+          {%- endif -%}
+        </p>
+      {%- endif -%}
+    {%- when 'points' -%}
+      {%- assign points = block.settings.text | split: ',' -%}
+      <ul class="jh-line__points" role="list">
+        {%- for point in points -%}
+          {%- assign label = point | strip -%}
+          {%- if label != blank -%}<li>{{ label | escape }}</li>{%- endif -%}
+        {%- endfor -%}
+      </ul>
+    {%- when 'trust' -%}
+      {%- assign points = block.settings.text | split: ',' -%}
+      <ul class="jh-line__trust" role="list">
+        {%- for point in points -%}
+          {%- assign label = point | strip -%}
+          {%- if label != blank -%}<li>{{ label | escape }}</li>{%- endif -%}
+        {%- endfor -%}
+      </ul>
+    {%- else -%}
+      <p class="jh-eyebrow jh-line__eyebrow">{{ block.settings.text | escape }}</p>
+  {%- endcase -%}
+</div>
+
+{% stylesheet %}
+  .jh-line {
+    width: 100%;
+  }
+
+  .jh-line__eyebrow {
+    margin: 0;
+  }
+
+  .jh-line__price {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin: 0;
+  }
+
+  .jh-line__amount {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight, 600);
+    font-size: 2rem;
+    line-height: 1;
+  }
+
+  .jh-line__unit {
+    font-size: 1rem;
+    opacity: 0.75;
+  }
+
+  .jh-line__points {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 0.9375rem;
+  }
+
+  .jh-line__points li {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .jh-line__points li::before {
+    content: '';
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background-color: var(--jh-amber);
+  }
+
+  .jh-line__trust {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 0.875rem;
+    opacity: 0.85;
+  }
+
+  .jh-line__trust li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .jh-line__trust li::before {
+    content: '';
+    width: 14px;
+    height: 1px;
+    background-color: var(--jh-amber);
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "JH line",
+  "tag": null,
+  "settings": [
+    {
+      "type": "select",
+      "id": "style",
+      "label": "Style",
+      "options": [
+        { "value": "eyebrow", "label": "Small heading" },
+        { "value": "price", "label": "Price with weight" },
+        { "value": "points", "label": "Key points (comma separated)" },
+        { "value": "trust", "label": "Reassurance list (comma separated)" }
+      ],
+      "default": "eyebrow"
+    },
+    { "type": "text", "id": "text", "label": "Text" }
+  ],
+  "presets": [{ "name": "JH line" }]
+}
+{% endschema %}

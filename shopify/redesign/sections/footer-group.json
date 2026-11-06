@@ -1,0 +1,41 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "type": "footer",
+  "name": "t:names.footer",
+  "sections": {
+    "jh_footer": {
+      "type": "jh-footer",
+      "settings": {
+        "brand": "Ryczkowski Honey",
+        "tagline": "Raw honeydew honey from our family apiary in Podkarpackie, Poland.",
+        "menu_heading": "Explore",
+        "menu": "draft-main-menu",
+        "extra_label_1": "Join the waitlist",
+        "extra_link_1": "shopify://pages/contact",
+        "extra_label_2": "Honey Gobbler",
+        "extra_link_2": "shopify://pages/game",
+        "contact_heading": "Contact",
+        "email": "janryczkowski30@gmail.com",
+        "business": "Jan Ryczkowski\nPodkarpackie, Poland",
+        "social_heading": "Follow",
+        "instagram": "https://www.instagram.com/janrycz/",
+        "youtube": "https://www.youtube.com/@JanRyczkowski",
+        "tiktok": "https://www.tiktok.com/@janrycz",
+        "x": "https://x.com/JanRycz",
+        "secure_text": "Secure checkout by Shopify",
+        "show_payment_icons": true
+      }
+    }
+  },
+  "order": [
+    "jh_footer"
+  ]
+}

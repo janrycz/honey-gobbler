@@ -1,0 +1,575 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "main": {
+      "type": "product-information",
+      "blocks": {
+        "custom_liquid_Pa8RyK": {
+          "type": "custom-liquid",
+          "name": "t:names.custom_liquid",
+          "settings": {
+            "custom_liquid": "{% liquid\n  assign max_uk = 13\n  assign max_eu = 19\n\n  assign p = closest.product\n  if p == blank\n    assign p = product\n  endif\n  assign v = p.selected_or_first_available_variant\n\n  if localization.country.iso_code == 'GB'\n    assign qty = v.metafields.custom.stock_uk.value\n    assign max = max_uk\n  else\n    assign qty = v.metafields.custom.stock_eu.value\n    assign max = max_eu\n  endif\n\n  assign hexchars = '0123456789ABCDEF'\n\n  assign g_now = 0\n  if qty != blank and max > 0\n    assign g_now = qty | times: 255 | divided_by: max\n    if g_now > 255\n      assign g_now = 255\n    endif\n  endif\n\n  assign g_half = g_now | divided_by: 2\n\n  assign hi = g_now | divided_by: 16\n  assign lo = g_now | modulo: 16\n  assign hichar = hexchars | slice: hi, 1\n  assign lochar = hexchars | slice: lo, 1\n  assign col_now = '#FF' | append: hichar | append: lochar | append: '00'\n\n  assign hi2 = g_half | divided_by: 16\n  assign lo2 = g_half | modulo: 16\n  assign hichar2 = hexchars | slice: hi2, 1\n  assign lochar2 = hexchars | slice: lo2, 1\n  assign col_half = '#FF' | append: hichar2 | append: lochar2 | append: '00'\n\n  assign fg = '#FFFFFF'\n  if g_now > 130\n    assign fg = '#000000'\n  endif\n\n  if qty == 0\n    assign bg = '#FF0000'\n    assign fg = '#FFFFFF'\n    assign msg = 'Sold out'\n  elsif qty == 1\n    assign bg = '#FF0000'\n    assign msg = 'Only 1 left!'\n  else\n    assign bg = 'linear-gradient(to right, ' | append: col_now | append: ', ' | append: col_half | append: ')'\n    assign msg = 'Only ' | append: qty | append: ' left!'\n  endif\n%}\n\n{% if qty != blank %}\n<div class=\"stockbadge-pdp\" style=\"position:absolute;top:0.8em;right:0.8em;z-index:50;padding:0.55em 0.9em;border-radius:0.45em;background:{{ bg }};color:{{ fg }};font-size:clamp(13px, 1.4vw, 21px);font-weight:600;line-height:1.2;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .15s;\">{{ msg }}</div>\n\n<script>\n(function () {\n  function init() {\n    var badge = document.querySelector('.stockbadge-pdp:not([data-moved])');\n    if (!badge) return;\n\n    var img = document.querySelector('.product-media-container img');\n    if (!img) return;\n\n    badge.setAttribute('data-moved', '1');\n\n    var wrap = document.createElement('span');\n    wrap.style.position = 'relative';\n    wrap.style.display = 'inline-block';\n    wrap.style.maxWidth = '100%';\n    wrap.style.lineHeight = '0';\n\n    img.parentNode.insertBefore(wrap, img);\n    wrap.appendChild(img);\n    wrap.appendChild(badge);\n\n    badge.style.lineHeight = '1.2';\n    badge.style.opacity = '1';\n  }\n\n  if (document.readyState === 'loading') {\n    document.addEventListener('DOMContentLoaded', init);\n  } else {\n    init();\n  }\n})();\n</script>\n{% endif %}"
+          },
+          "blocks": {}
+        },
+        "disclosures_g9mWze": {
+          "type": "disclosures",
+          "name": "t:names.disclosures",
+          "settings": {
+            "heading": "Disclosures",
+            "heading_preset": "h5",
+            "open_by_default": false,
+            "icon": "caret",
+            "disclosure_heading_preset": "h6",
+            "text_color": "",
+            "dividers": true,
+            "divider_color": "{{ settings.color_palette.color2 }}",
+            "padding-block-start": 0,
+            "padding-block-end": 0,
+            "padding-inline-start": 0,
+            "padding-inline-end": 0
+          },
+          "blocks": {}
+        },
+        "media-gallery": {
+          "type": "_product-media-gallery",
+          "static": true,
+          "settings": {
+            "media_presentation": "carousel",
+            "media_columns": "one",
+            "image_gap": 4,
+            "large_first_image": false,
+            "icons_style": "arrow",
+            "slideshow_controls_style": "counter",
+            "slideshow_mobile_controls_style": "dots",
+            "thumbnail_position": "right",
+            "thumbnail_width": 44,
+            "thumbnail_radius": 0,
+            "aspect_ratio": "adapt",
+            "constrain_to_viewport": true,
+            "media_fit": "contain",
+            "media_radius": 0,
+            "extend_media": false,
+            "zoom": true,
+            "video_loop": false,
+            "hide_variants": true,
+            "padding-block-start": 0,
+            "padding-block-end": 0,
+            "padding-inline-start": 0,
+            "padding-inline-end": 0
+          },
+          "blocks": {}
+        },
+        "product-details": {
+          "type": "_product-details",
+          "static": true,
+          "settings": {
+            "width": "fill",
+            "custom_width": 100,
+            "width_mobile": "fill",
+            "custom_width_mobile": 100,
+            "height": "fit",
+            "details_position": "flex-start",
+            "gap": 28,
+            "sticky_details_desktop": true,
+            "background_media": "none",
+            "background_color": "",
+            "video_position": "cover",
+            "background_image_position": "cover",
+            "border": "none",
+            "border_width": 1,
+            "border_opacity": 100,
+            "border_color": "",
+            "border_radius": 0,
+            "padding-block-start": 24,
+            "padding-block-end": 24,
+            "padding-inline-start": 0,
+            "padding-inline-end": 0
+          },
+          "blocks": {
+            "group_icgrde": {
+              "type": "group",
+              "name": "t:names.header",
+              "settings": {
+                "content_direction": "column",
+                "vertical_on_mobile": true,
+                "horizontal_alignment": "flex-start",
+                "vertical_alignment": "center",
+                "align_baseline": false,
+                "horizontal_alignment_flex_direction_column": "flex-start",
+                "vertical_alignment_flex_direction_column": "center",
+                "gap": 14,
+                "width": "fill",
+                "custom_width": 100,
+                "width_mobile": "fill",
+                "custom_width_mobile": 100,
+                "height": "fit",
+                "custom_height": 100,
+                "background_media": "none",
+                "background_color": "",
+                "video_position": "cover",
+                "background_image_position": "cover",
+                "toggle_overlay": false,
+                "overlay_color": "#00000026",
+                "overlay_style": "solid",
+                "gradient_direction": "to top",
+                "border": "none",
+                "border_width": 1,
+                "border_opacity": 100,
+                "border_color": "",
+                "border_radius": 0,
+                "link": "",
+                "open_in_new_tab": false,
+                "placeholder": "",
+                "padding-block-start": 0,
+                "padding-block-end": 0,
+                "padding-inline-start": 0,
+                "padding-inline-end": 0
+              },
+              "blocks": {
+                "jh_eyebrow": {
+                  "type": "jh-line",
+                  "settings": {
+                    "style": "eyebrow",
+                    "text": "Family apiary, Podkarpackie, Poland"
+                  },
+                  "blocks": {}
+                },
+                "text_xrnftG": {
+                  "type": "text",
+                  "name": "t:names.product_title",
+                  "settings": {
+                    "text": "<h1>Raw Polish honeydew honey</h1>",
+                    "width": "100%",
+                    "max_width": "normal",
+                    "alignment": "left",
+                    "type_preset": "h2",
+                    "font": "var(--font-body--family)",
+                    "font_size": "1rem",
+                    "line_height": "normal",
+                    "letter_spacing": "normal",
+                    "case": "none",
+                    "wrap": "pretty",
+                    "half_size_mobile": false,
+                    "text_color": "",
+                    "background": false,
+                    "background_color": "#00000026",
+                    "corner_radius": 0,
+                    "padding-block-start": 0,
+                    "padding-block-end": 0,
+                    "padding-inline-start": 0,
+                    "padding-inline-end": 0
+                  },
+                  "blocks": {}
+                },
+                "jh_price": {
+                  "type": "jh-line",
+                  "settings": {
+                    "style": "price",
+                    "text": "1.2 kg"
+                  },
+                  "blocks": {}
+                },
+                "jh_points": {
+                  "type": "jh-line",
+                  "settings": {
+                    "style": "points",
+                    "text": "Raw, Unfiltered, Unblended, No added syrup, Family apiary"
+                  },
+                  "blocks": {}
+                }
+              },
+              "block_order": [
+                "jh_eyebrow",
+                "text_xrnftG",
+                "jh_price",
+                "jh_points"
+              ]
+            },
+            "divider_VJhene": {
+              "type": "_divider",
+              "name": "t:names.divider",
+              "settings": {
+                "thickness": 1,
+                "corner_radius": "square",
+                "divider_color": "{{ settings.color_palette.color4 }}",
+                "width_percent": 100,
+                "padding-block-start": 0,
+                "padding-block-end": 0
+              },
+              "blocks": {}
+            },
+            "variant_picker_R3rGDr": {
+              "type": "variant-picker",
+              "settings": {
+                "variant_style": "buttons",
+                "show_swatches": false,
+                "option_label_text_color": "",
+                "variant_style_class": "default",
+                "custom_variant_background": "{{ settings.color_palette.background }}",
+                "custom_variant_text": "{{ settings.color_palette.foreground }}",
+                "custom_variant_border": "{{ settings.color_palette.foreground }}",
+                "selected_variant_style_class": "default",
+                "custom_selected_variant_background": "{{ settings.color_palette.foreground }}",
+                "custom_selected_variant_text": "{{ settings.color_palette.background }}",
+                "custom_selected_variant_border": "{{ settings.color_palette.foreground }}",
+                "alignment": "left",
+                "padding-block-start": 0,
+                "padding-block-end": 0,
+                "padding-inline-start": 0,
+                "padding-inline-end": 0
+              },
+              "blocks": {}
+            },
+            "buy_buttons_eYQEYi": {
+              "type": "buy-buttons",
+              "settings": {
+                "stacking": true,
+                "text_color": "",
+                "show_pickup_availability": false,
+                "gift_card_form": true,
+                "recipient_button_style": "default",
+                "recipient_button_background": "{{ settings.color_palette.background }}",
+                "recipient_button_text": "{{ settings.color_palette.foreground }}",
+                "recipient_button_border": "{{ settings.color_palette.foreground }}",
+                "selected_recipient_button_style": "default",
+                "selected_recipient_button_background": "{{ settings.color_palette.foreground }}",
+                "selected_recipient_button_text": "{{ settings.color_palette.background }}",
+                "selected_recipient_button_border": "{{ settings.color_palette.foreground }}",
+                "input_style": "default",
+                "input_background_color": "{{ settings.color_palette.background }}",
+                "input_text_color": "{{ settings.color_palette.foreground }}",
+                "input_border_color": "{{ settings.color_palette.foreground }}",
+                "border_width": 1,
+                "border_radius": 0,
+                "padding-block-start": 0,
+                "padding-block-end": 0,
+                "padding-inline-start": 0,
+                "padding-inline-end": 0
+              },
+              "blocks": {
+                "quantity": {
+                  "type": "quantity",
+                  "static": true,
+                  "settings": {
+                    "input_style": "default",
+                    "input_background_color": "{{ settings.color_palette.background }}",
+                    "input_text_color": "{{ settings.color_palette.foreground }}",
+                    "input_border_color": "{{ settings.color_palette.foreground }}",
+                    "border_width": 1,
+                    "border_radius": 0
+                  },
+                  "blocks": {}
+                },
+                "add-to-cart": {
+                  "type": "add-to-cart",
+                  "static": true,
+                  "settings": {
+                    "style_class": "button",
+                    "custom_button_background": "{{ settings.color_palette.foreground }}",
+                    "custom_button_text": "{{ settings.color_palette.background }}",
+                    "custom_button_border": "{{ settings.color_palette.background }}"
+                  },
+                  "blocks": {}
+                },
+                "accelerated-checkout": {
+                  "type": "accelerated-checkout",
+                  "static": true,
+                  "settings": {},
+                  "blocks": {}
+                }
+              },
+              "block_order": []
+            },
+            "text_yegcXQ": {
+              "type": "text",
+              "name": "t:names.text",
+              "settings": {
+                "text": "<p><strong>Buy 2, get 20% off your second jar!</strong></p>",
+                "width": "100%",
+                "max_width": "normal",
+                "alignment": "center",
+                "type_preset": "paragraph",
+                "font": "var(--font-body--family)",
+                "font_size": "1rem",
+                "line_height": "normal",
+                "letter_spacing": "normal",
+                "case": "none",
+                "wrap": "pretty",
+                "half_size_mobile": false,
+                "text_color": "",
+                "background": true,
+                "background_color": "#F0DEBC",
+                "corner_radius": 4,
+                "padding-block-start": 6,
+                "padding-block-end": 6,
+                "padding-inline-start": 16,
+                "padding-inline-end": 16
+              },
+              "blocks": {}
+            },
+            "custom_liquid_Q6fRbp": {
+              "type": "custom-liquid",
+              "name": "t:names.custom_liquid",
+              "settings": {
+                "custom_liquid": "{% unless product.available %}\n  <a href=\"/pages/contact\" class=\"button\" style=\"display:block; width:100%; text-align:center; margin-top:12px;\">\n    Join the waitlist\n  </a>\n  <p style=\"text-align:center; font-size:0.85em; margin-top:6px;\">\n    Be first to know when the next harvest is in.\n  </p>\n{% endunless %}"
+              },
+              "blocks": {}
+            },
+            "text_aEtTtq": {
+              "type": "text",
+              "name": "t:names.product_description",
+              "settings": {
+                "text": "{{ closest.product.description }}",
+                "width": "100%",
+                "max_width": "normal",
+                "alignment": "left",
+                "type_preset": "rte",
+                "font": "var(--font-body--family)",
+                "font_size": "1rem",
+                "line_height": "normal",
+                "letter_spacing": "normal",
+                "case": "none",
+                "wrap": "pretty",
+                "half_size_mobile": false,
+                "text_color": "",
+                "background": false,
+                "background_color": "#00000026",
+                "corner_radius": 0,
+                "padding-block-start": 0,
+                "padding-block-end": 0,
+                "padding-inline-start": 0,
+                "padding-inline-end": 0
+              },
+              "blocks": {}
+            },
+            "jh_trust": {
+              "type": "jh-line",
+              "settings": {
+                "style": "trust",
+                "text": "Secure checkout by Shopify, UK delivery in 2 to 3 days, EU delivery in 3 to 4 days"
+              },
+              "blocks": {}
+            },
+            "jh_info": {
+              "type": "accordion",
+              "settings": {
+                "icon": "plus",
+                "dividers": true,
+                "divider_color": "{{ settings.color_palette.color4 }}",
+                "type_preset": "h6"
+              },
+              "blocks": {
+                "row_ingredients": {
+                  "type": "_accordion-row",
+                  "settings": {
+                    "heading": "Ingredients",
+                    "open_by_default": false,
+                    "icon": "none",
+                    "width": 20
+                  },
+                  "blocks": {
+                    "row_ingredients_text": {
+                      "type": "text",
+                      "settings": {
+                        "text": "<p>100% honeydew honey. Nothing added.</p>",
+                        "width": "100%",
+                        "type_preset": "rte"
+                      },
+                      "blocks": {}
+                    }
+                  },
+                  "block_order": [
+                    "row_ingredients_text"
+                  ]
+                },
+                "row_origin": {
+                  "type": "_accordion-row",
+                  "settings": {
+                    "heading": "Origin and batch",
+                    "open_by_default": false,
+                    "icon": "none",
+                    "width": 20
+                  },
+                  "blocks": {
+                    "row_origin_text": {
+                      "type": "text",
+                      "settings": {
+                        "text": "<p>From our family apiary near Strzyżów, Podkarpackie, Poland. 2026 harvest. Net weight 1.2 kg.</p>",
+                        "width": "100%",
+                        "type_preset": "rte"
+                      },
+                      "blocks": {}
+                    }
+                  },
+                  "block_order": [
+                    "row_origin_text"
+                  ]
+                },
+                "row_storage": {
+                  "type": "_accordion-row",
+                  "settings": {
+                    "heading": "Storage",
+                    "open_by_default": false,
+                    "icon": "none",
+                    "width": 20
+                  },
+                  "blocks": {
+                    "row_storage_text": {
+                      "type": "text",
+                      "settings": {
+                        "text": "<p>Keep the jar closed, below 25°C and out of direct sunlight. Raw honey crystallises naturally; to make it runny again, stand the closed jar in warm water below 40°C.</p><p>Not suitable for babies under 12 months.</p>",
+                        "width": "100%",
+                        "type_preset": "rte"
+                      },
+                      "blocks": {}
+                    }
+                  },
+                  "block_order": [
+                    "row_storage_text"
+                  ]
+                },
+                "row_delivery": {
+                  "type": "_accordion-row",
+                  "settings": {
+                    "heading": "Delivery",
+                    "open_by_default": false,
+                    "icon": "none",
+                    "width": 20
+                  },
+                  "blocks": {
+                    "row_delivery_text": {
+                      "type": "text",
+                      "settings": {
+                        "text": "<p>UK: sent from Doncaster, usually 2 to 3 days. £8 for one jar, £11 for two.</p><p>EU: sent from Poland, usually 3 to 4 days. From €14 for one jar, depending on the country.</p><p>We don't currently deliver to Croatia, Cyprus, Greece or Malta.</p>",
+                        "width": "100%",
+                        "type_preset": "rte"
+                      },
+                      "blocks": {}
+                    }
+                  },
+                  "block_order": [
+                    "row_delivery_text"
+                  ]
+                },
+                "row_returns": {
+                  "type": "_accordion-row",
+                  "settings": {
+                    "heading": "Returns and refunds",
+                    "open_by_default": false,
+                    "icon": "none",
+                    "width": 20
+                  },
+                  "blocks": {
+                    "row_returns_text": {
+                      "type": "text",
+                      "settings": {
+                        "text": "<p>If a jar arrives damaged, email us a photo within 14 days of delivery and we'll replace it or refund you. Unopened jars can be returned within 14 days of delivery: email us first and we'll tell you where to send them.</p>",
+                        "width": "100%",
+                        "type_preset": "rte"
+                      },
+                      "blocks": {}
+                    }
+                  },
+                  "block_order": [
+                    "row_returns_text"
+                  ]
+                }
+              },
+              "block_order": [
+                "row_ingredients",
+                "row_origin",
+                "row_storage",
+                "row_delivery",
+                "row_returns"
+              ]
+            }
+          },
+          "block_order": [
+            "group_icgrde",
+            "divider_VJhene",
+            "variant_picker_R3rGDr",
+            "buy_buttons_eYQEYi",
+            "text_yegcXQ",
+            "custom_liquid_Q6fRbp",
+            "jh_trust",
+            "text_aEtTtq",
+            "jh_info"
+          ]
+        }
+      },
+      "block_order": [
+        "custom_liquid_Pa8RyK",
+        "disclosures_g9mWze"
+      ],
+      "settings": {
+        "content_width": "content-center-aligned",
+        "desktop_media_position": "left",
+        "equal_columns": false,
+        "limit_details_width": false,
+        "gap": 48,
+        "enable_sticky_add_to_cart": true,
+        "background_color": "{{ settings.color_palette.background }}",
+        "padding-block-start": 0,
+        "padding-block-end": 0
+      }
+    },
+    "1790181673e6bcfc0e": {
+      "type": "_blocks",
+      "blocks": {
+        "judge_me_reviews_review_widget_3tCgkJ": {
+          "type": "shopify://apps/judge-me-reviews/blocks/review_widget/61ccd3b1-a9f2-4160-9fe9-4fec8413e5d8",
+          "settings": {
+            "review_data": "sample_data",
+            "max_width": 1200,
+            "show_shop_reviews": false,
+            "empty_state": "empty_widget"
+          }
+        }
+      },
+      "block_order": [
+        "judge_me_reviews_review_widget_3tCgkJ"
+      ],
+      "settings": {
+        "content_direction": "column",
+        "vertical_on_mobile": true,
+        "horizontal_alignment": "flex-start",
+        "vertical_alignment": "center",
+        "align_baseline": false,
+        "horizontal_alignment_flex_direction_column": "flex-start",
+        "vertical_alignment_flex_direction_column": "center",
+        "gap": 12,
+        "section_width": "page-width",
+        "section_height": "",
+        "section_height_custom": 50,
+        "background_media": "none",
+        "background_color": "",
+        "video_position": "cover",
+        "background_image_position": "cover",
+        "toggle_overlay": false,
+        "overlay_color": "#00000026",
+        "overlay_style": "solid",
+        "gradient_direction": "to top",
+        "border": "none",
+        "border_width": 1,
+        "border_opacity": 100,
+        "border_color": "",
+        "border_radius": 0,
+        "padding-block-start": 0,
+        "padding-block-end": 0
+      }
+    }
+  },
+  "order": [
+    "main",
+    "1790181673e6bcfc0e"
+  ]
+}

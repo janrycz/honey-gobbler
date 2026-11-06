@@ -1,0 +1,484 @@
+{% render 'jh-tokens' %}
+
+{%- comment -%}
+  Homepage purchase section.
+  The stock badge and the two waitlist banners use the same logic as the old product card:
+  stock comes from the variant metafields custom.stock_uk (GB visitors) and custom.stock_eu (everyone else),
+  the badge goes from yellow (full) to red (empty) against "Most jars (UK/EU)" below,
+  and the banner shows when that stock is 0 or the visitor's country isn't in the "Ships to" list.
+  The Add to cart button / waitlist button follows product.available, like the product page.
+{%- endcomment -%}
+
+{%- liquid
+  assign p = section.settings.product
+  if p == blank
+    assign p = all_products['honeydew-liden-honey-1200-g']
+  endif
+
+  assign max_uk = section.settings.max_uk
+  assign max_eu = section.settings.max_eu
+  assign ship_to = section.settings.ship_to | remove: ' ' | upcase | split: ','
+  assign waitlist_url = section.settings.waitlist_link | default: '/pages/contact'
+
+  assign banner = ''
+  assign qty = nil
+
+  if p != blank
+    assign v = p.selected_or_first_available_variant
+    assign country = localization.country.iso_code
+
+    if country == 'GB'
+      assign qty = v.metafields.custom.stock_uk.value
+      assign max = max_uk
+    else
+      assign qty = v.metafields.custom.stock_eu.value
+      assign max = max_eu
+    endif
+
+    assign hexchars = '0123456789ABCDEF'
+    assign g_now = 0
+    if qty != blank and max > 0
+      assign g_now = qty | times: 255 | divided_by: max
+      if g_now > 255
+        assign g_now = 255
+      endif
+      if g_now < 0
+        assign g_now = 0
+      endif
+    endif
+    assign g_half = g_now | divided_by: 2
+
+    assign hi = g_now | divided_by: 16
+    assign lo = g_now | modulo: 16
+    assign hichar = hexchars | slice: hi, 1
+    assign lochar = hexchars | slice: lo, 1
+    assign col_now = '#FF' | append: hichar | append: lochar | append: '00'
+
+    assign hi2 = g_half | divided_by: 16
+    assign lo2 = g_half | modulo: 16
+    assign hichar2 = hexchars | slice: hi2, 1
+    assign lochar2 = hexchars | slice: lo2, 1
+    assign col_half = '#FF' | append: hichar2 | append: lochar2 | append: '00'
+
+    assign fg = '#FFFFFF'
+    if g_now > 130
+      assign fg = '#000000'
+    endif
+
+    if qty == 0
+      assign bg = '#FF0000'
+      assign fg = '#FFFFFF'
+      assign msg = 'Sold out'
+    elsif qty == 1
+      assign bg = '#FF0000'
+      assign msg = 'Only 1 left!'
+    else
+      assign bg = 'linear-gradient(to right, ' | append: col_now | append: ', ' | append: col_half | append: ')'
+      assign msg = 'Only ' | append: qty | append: ' left!'
+    endif
+
+    if qty == 0
+      assign banner = "Sorry, we're out of stock! Please join the waitlist and we'll let you know when we're back in stock again!"
+    else
+      unless ship_to contains country
+        assign banner = "Sorry, we don't currently ship to your country. Please join the waitlist and we'll let you know when we do!"
+      endunless
+    endif
+
+    assign rating = p.metafields.reviews.rating.value
+    assign rating_count = p.metafields.reviews.rating_count.value
+  endif
+-%}
+
+<section
+  id="{{ section.settings.anchor_id | default: 'shop' | handleize }}"
+  class="jh jh-section jh-product jh-bg--{{ section.settings.background }}"
+>
+  {%- if p != blank -%}
+    <div class="jh-container jh-product__grid">
+      <div class="jh-product__media">
+        {%- if banner != '' -%}
+          <a class="jh-product__banner" href="{{ waitlist_url }}">{{ banner }}</a>
+        {%- endif -%}
+        <a class="jh-product__image" href="{{ p.url }}">
+          {%- if p.featured_media != blank -%}
+            {{
+              p.featured_media
+              | image_url: width: 1800
+              | image_tag:
+                widths: '600, 900, 1200, 1500, 1800',
+                sizes: '(min-width: 990px) 55vw, 100vw',
+                loading: 'lazy',
+                alt: p.featured_media.alt | default: p.title
+            }}
+          {%- endif -%}
+          {%- if qty != blank -%}
+            <span class="jh-stock" style="background:{{ bg }};color:{{ fg }};">{{ msg }}</span>
+          {%- endif -%}
+        </a>
+      </div>
+
+      <div class="jh-product__info">
+        {%- if section.settings.eyebrow != blank -%}
+          <p class="jh-eyebrow">{{ section.settings.eyebrow | escape }}</p>
+        {%- endif -%}
+        <h2 class="jh-title jh-product__title">{{ section.settings.heading | default: p.title | escape }}</h2>
+
+        <p class="jh-product__price">
+          <span class="jh-product__amount">{{ v.price | money_without_trailing_zeros }}</span>
+          {%- if section.settings.weight_label != blank -%}
+            <span class="jh-product__weight">/ {{ section.settings.weight_label | escape }}</span>
+          {%- endif -%}
+        </p>
+
+        {%- if rating_count != blank and rating_count > 0 -%}
+          <a class="jh-product__rating" href="{{ section.settings.reviews_link | default: '#reviews' }}">
+            <span class="jh-stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+            <span>{{ rating.rating | round: 1 }} from {{ rating_count }} reviews</span>
+          </a>
+        {%- endif -%}
+
+        {%- if section.blocks.size > 0 -%}
+          <ul class="jh-product__points" role="list">
+            {%- for block in section.blocks -%}
+              <li {{ block.shopify_attributes }}>{{ block.settings.label | escape }}</li>
+            {%- endfor -%}
+          </ul>
+        {%- endif -%}
+
+        {%- if section.settings.text != blank -%}
+          <div class="jh-body jh-product__text">{{ section.settings.text }}</div>
+        {%- endif -%}
+
+        {%- if section.settings.offer != blank -%}
+          <p class="jh-product__offer">{{ section.settings.offer | escape }}</p>
+        {%- endif -%}
+
+        {%- if p.available -%}
+          {%- form 'product', p, class: 'jh-product__form' -%}
+            <input type="hidden" name="id" value="{{ v.id }}">
+            <div class="jh-qty" data-jh-qty>
+              <button type="button" class="jh-qty__btn" data-step="-1" aria-label="One fewer jar">&minus;</button>
+              <input
+                class="jh-qty__input"
+                type="number"
+                name="quantity"
+                value="1"
+                min="1"
+                {% if v.inventory_management != blank and v.inventory_policy == 'deny' and v.inventory_quantity > 0 %}
+                  max="{{ v.inventory_quantity }}"
+                {% endif %}
+                inputmode="numeric"
+                aria-label="Number of jars"
+              >
+              <button type="button" class="jh-qty__btn" data-step="1" aria-label="One more jar">+</button>
+            </div>
+            <button type="submit" name="add" class="button jh-product__add">
+              {{- section.settings.add_label | default: 'Add to cart' | escape -}}
+            </button>
+          {%- endform -%}
+        {%- else -%}
+          <a href="{{ waitlist_url }}" class="button jh-product__add jh-product__add--full">Join the waitlist</a>
+          <p class="jh-product__soldout-note">Be first to know when the next harvest is in.</p>
+        {%- endif -%}
+
+        <ul class="jh-product__trust" role="list">
+          {%- if section.settings.trust_1 != blank -%}<li>{{ section.settings.trust_1 | escape }}</li>{%- endif -%}
+          {%- if section.settings.trust_2 != blank -%}<li>{{ section.settings.trust_2 | escape }}</li>{%- endif -%}
+          {%- if section.settings.trust_3 != blank -%}<li>{{ section.settings.trust_3 | escape }}</li>{%- endif -%}
+        </ul>
+
+        {%- if section.settings.details_label != blank -%}
+          <a class="jh-link jh-product__details" href="{{ p.url }}">{{ section.settings.details_label | escape }}</a>
+        {%- endif -%}
+      </div>
+    </div>
+  {%- endif -%}
+</section>
+
+<script>
+  (function () {
+    document.querySelectorAll('[data-jh-qty]:not([data-ready])').forEach(function (box) {
+      box.setAttribute('data-ready', '1');
+      var input = box.querySelector('input');
+      box.querySelectorAll('[data-step]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var min = parseInt(input.min || '1', 10);
+          var max = input.max ? parseInt(input.max, 10) : Infinity;
+          var next = (parseInt(input.value, 10) || min) + parseInt(btn.dataset.step, 10);
+          input.value = Math.min(max, Math.max(min, next));
+        });
+      });
+    });
+  })();
+</script>
+
+{% stylesheet %}
+  .jh-product__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 40px;
+    align-items: center;
+  }
+
+  @media screen and (min-width: 990px) {
+    .jh-product__grid {
+      grid-template-columns: 1.15fr 1fr;
+      gap: clamp(48px, 6vw, 96px);
+    }
+  }
+
+  .jh-product__banner {
+    display: block;
+    margin: 0 0 12px;
+    padding: 10px 14px;
+    border-radius: 4px;
+    background-color: #f0d08a;
+    color: #1a1a1a;
+    font-weight: 600;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    text-align: center;
+    text-decoration: none;
+  }
+
+  .jh-product__banner:hover {
+    background-color: #e8c26e;
+  }
+
+  .jh-product__image {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    border-radius: 4px;
+    background-color: var(--jh-sand);
+  }
+
+  .jh-product__image img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .jh-stock {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  .jh-product__title {
+    margin-bottom: 12px;
+  }
+
+  .jh-product__price {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin: 0 0 12px;
+  }
+
+  .jh-product__amount {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight, 600);
+    font-size: 2.25rem;
+    line-height: 1;
+    color: var(--jh-charcoal);
+  }
+
+  .jh-product__weight {
+    font-size: 1.0625rem;
+    opacity: 0.75;
+  }
+
+  .jh-product__rating {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 24px;
+    font-size: 0.875rem;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .jh-product__rating:hover span:last-child {
+    text-decoration: underline;
+  }
+
+  .jh-product__points {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+    margin: 0 0 24px;
+    padding: 18px 0;
+    border-block: 1px solid var(--jh-line);
+    list-style: none;
+    font-size: 0.9375rem;
+  }
+
+  .jh-product__points li {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .jh-product__points li::before {
+    content: '';
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background-color: var(--jh-amber);
+  }
+
+  .jh-product__text {
+    margin-bottom: 24px;
+  }
+
+  .jh-product__offer {
+    margin: 0 0 20px;
+    padding: 10px 16px;
+    border-radius: 4px;
+    background-color: color-mix(in srgb, var(--jh-amber) 22%, var(--jh-ivory));
+    font-weight: 600;
+    font-size: 0.9375rem;
+    text-align: center;
+  }
+
+  .jh-product__form {
+    display: flex;
+    gap: 12px;
+  }
+
+  .jh-qty {
+    display: inline-flex;
+    align-items: center;
+    flex: none;
+    border: 1px solid var(--jh-line);
+    border-radius: 4px;
+    background-color: color-mix(in srgb, #fff 55%, var(--jh-ivory));
+  }
+
+  .jh-qty__btn {
+    width: 44px;
+    height: 52px;
+    border: 0;
+    background: none;
+    color: inherit;
+    font-size: 1.25rem;
+    cursor: pointer;
+  }
+
+  .jh-qty__input {
+    width: 40px;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: center;
+    -moz-appearance: textfield;
+  }
+
+  .jh-qty__input::-webkit-outer-spin-button,
+  .jh-qty__input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  .jh-product .jh-product__add {
+    flex: 1;
+    min-height: 54px;
+    justify-content: center;
+    font-size: 1rem;
+  }
+
+  .jh-product .jh-product__add--full {
+    display: flex;
+    width: 100%;
+  }
+
+  .jh-product__soldout-note {
+    margin: 8px 0 0;
+    text-align: center;
+    font-size: 0.875rem;
+    opacity: 0.8;
+  }
+
+  .jh-product__trust {
+    display: grid;
+    gap: 6px;
+    margin: 24px 0 20px;
+    padding: 0;
+    list-style: none;
+    font-size: 0.875rem;
+    opacity: 0.85;
+  }
+
+  .jh-product__trust li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .jh-product__trust li::before {
+    content: '';
+    width: 14px;
+    height: 1px;
+    background-color: var(--jh-amber);
+  }
+
+  .jh-product__details {
+    font-size: 0.9375rem;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "JH product",
+  "tag": "div",
+  "settings": [
+    { "type": "product", "id": "product", "label": "Product" },
+    { "type": "text", "id": "anchor_id", "label": "Anchor for links", "default": "shop", "info": "Links to /#shop scroll here." },
+    {
+      "type": "select",
+      "id": "background",
+      "label": "Background",
+      "options": [
+        { "value": "ivory", "label": "Ivory" },
+        { "value": "sand", "label": "Sand" }
+      ],
+      "default": "ivory"
+    },
+    { "type": "text", "id": "eyebrow", "label": "Small line above heading", "default": "Our honey" },
+    { "type": "text", "id": "heading", "label": "Heading", "info": "Leave empty to use the product title." },
+    { "type": "text", "id": "weight_label", "label": "Shown after the price", "default": "1.2 kg" },
+    { "type": "richtext", "id": "text", "label": "Text" },
+    { "type": "text", "id": "offer", "label": "Offer", "default": "Buy 2, get 20% off your second jar!" },
+    { "type": "text", "id": "add_label", "label": "Button label", "default": "Add to cart" },
+    { "type": "text", "id": "trust_1", "label": "Reassurance line 1", "default": "Secure checkout" },
+    { "type": "text", "id": "trust_2", "label": "Reassurance line 2", "default": "UK delivery in 2 to 3 days" },
+    { "type": "text", "id": "trust_3", "label": "Reassurance line 3", "default": "EU delivery in 3 to 4 days" },
+    { "type": "text", "id": "details_label", "label": "Link to product page", "default": "Full product details" },
+    { "type": "url", "id": "reviews_link", "label": "Reviews link", "info": "Leave empty to scroll to the reviews section." },
+    { "type": "header", "content": "Stock badge and waitlist" },
+    { "type": "number", "id": "max_uk", "label": "Most jars (UK)", "default": 13, "info": "The badge is yellow at this stock level and turns red as it runs out." },
+    { "type": "number", "id": "max_eu", "label": "Most jars (EU)", "default": 19 },
+    { "type": "text", "id": "ship_to", "label": "Ships to (country codes)", "default": "AT,BE,BG,CZ,DK,EE,FI,FR,DE,HU,IE,IT,LV,LT,LU,NL,PL,PT,RO,SK,SI,ES,SE,GB,AE" },
+    { "type": "url", "id": "waitlist_link", "label": "Waitlist page", "info": "Leave empty for /pages/contact." }
+  ],
+  "blocks": [
+    {
+      "type": "point",
+      "name": "Key point",
+      "settings": [{ "type": "text", "id": "label", "label": "Label", "default": "Raw" }]
+    }
+  ],
+  "max_blocks": 8,
+  "presets": [{ "name": "JH product" }]
+}
+{% endschema %}

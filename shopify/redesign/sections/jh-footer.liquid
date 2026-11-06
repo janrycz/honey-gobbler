@@ -1,0 +1,230 @@
+{% render 'jh-tokens' %}
+
+<footer id="contact" class="jh jh-footer">
+  <div class="jh-container">
+    <div class="jh-footer__grid">
+      <div class="jh-footer__brand">
+        <a class="jh-footer__name" href="{{ routes.root_url }}">{{ section.settings.brand | default: shop.name | escape }}</a>
+        {%- if section.settings.tagline != blank -%}
+          <p class="jh-footer__tagline">{{ section.settings.tagline | escape }}</p>
+        {%- endif -%}
+      </div>
+
+      {%- assign menu = linklists[section.settings.menu] -%}
+      {%- if menu.links.size > 0 or section.settings.extra_label_1 != blank -%}
+        <nav class="jh-footer__col" aria-label="{{ section.settings.menu_heading | default: 'Explore' | escape }}">
+          <p class="jh-footer__heading">{{ section.settings.menu_heading | escape }}</p>
+          <ul role="list">
+            {%- for link in menu.links -%}
+              <li><a href="{{ link.url }}">{{ link.title | escape }}</a></li>
+            {%- endfor -%}
+            {%- if section.settings.extra_label_1 != blank and section.settings.extra_link_1 != blank -%}
+              <li><a href="{{ section.settings.extra_link_1 }}">{{ section.settings.extra_label_1 | escape }}</a></li>
+            {%- endif -%}
+            {%- if section.settings.extra_label_2 != blank and section.settings.extra_link_2 != blank -%}
+              <li><a href="{{ section.settings.extra_link_2 }}">{{ section.settings.extra_label_2 | escape }}</a></li>
+            {%- endif -%}
+          </ul>
+        </nav>
+      {%- endif -%}
+
+      <div class="jh-footer__col">
+        <p class="jh-footer__heading">{{ section.settings.contact_heading | escape }}</p>
+        <ul role="list">
+          {%- if section.settings.email != blank -%}
+            <li><a href="mailto:{{ section.settings.email }}">{{ section.settings.email | escape }}</a></li>
+          {%- endif -%}
+          {%- if section.settings.business != blank -%}
+            <li class="jh-footer__plain">{{ section.settings.business | escape | newline_to_br }}</li>
+          {%- endif -%}
+        </ul>
+      </div>
+
+      <div class="jh-footer__col">
+        <p class="jh-footer__heading">{{ section.settings.social_heading | escape }}</p>
+        <ul role="list">
+          {%- if section.settings.instagram != blank -%}<li><a href="{{ section.settings.instagram }}" target="_blank" rel="noopener">Instagram</a></li>{%- endif -%}
+          {%- if section.settings.youtube != blank -%}<li><a href="{{ section.settings.youtube }}" target="_blank" rel="noopener">YouTube</a></li>{%- endif -%}
+          {%- if section.settings.tiktok != blank -%}<li><a href="{{ section.settings.tiktok }}" target="_blank" rel="noopener">TikTok</a></li>{%- endif -%}
+          {%- if section.settings.x != blank -%}<li><a href="{{ section.settings.x }}" target="_blank" rel="noopener">X</a></li>{%- endif -%}
+        </ul>
+      </div>
+    </div>
+
+    <div class="jh-footer__bottom">
+      <p class="jh-footer__small">
+        &copy; {{ 'now' | date: '%Y' }} {{ section.settings.brand | default: shop.name | escape }}
+        {%- for policy in shop.policies -%}
+          <span class="jh-footer__sep" aria-hidden="true">&middot;</span><a href="{{ policy.url }}">{{ policy.title | escape }}</a>
+        {%- endfor -%}
+      </p>
+      <div class="jh-footer__pay">
+        {%- if section.settings.secure_text != blank -%}
+          <span class="jh-footer__small">{{ section.settings.secure_text | escape }}</span>
+        {%- endif -%}
+        {%- if section.settings.show_payment_icons -%}
+          <ul class="jh-footer__icons" role="list">
+            {%- for type in shop.enabled_payment_types -%}
+              <li>{{ type | payment_type_svg_tag: class: 'jh-footer__icon' }}</li>
+            {%- endfor -%}
+          </ul>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+</footer>
+
+{% stylesheet %}
+  .jh-footer {
+    padding-block: clamp(56px, 8vw, 96px) 32px;
+    background-color: var(--jh-green);
+    color: var(--jh-ivory);
+    scroll-margin-top: 72px;
+  }
+
+  .jh-footer a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .jh-footer a:hover {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+
+  .jh-footer__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  @media screen and (min-width: 750px) {
+    .jh-footer__grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .jh-footer__brand {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media screen and (min-width: 1100px) {
+    .jh-footer__grid {
+      grid-template-columns: 1.6fr 1fr 1fr 1fr;
+    }
+
+    .jh-footer__brand {
+      grid-column: auto;
+    }
+  }
+
+  .jh-footer__name {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight, 600);
+    font-size: 1.875rem;
+    line-height: 1.1;
+  }
+
+  .jh-footer__tagline {
+    max-width: 22em;
+    margin: 14px 0 0;
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    opacity: 0.8;
+  }
+
+  .jh-footer__heading {
+    margin: 0 0 16px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--jh-amber);
+  }
+
+  .jh-footer__col ul {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 0.9375rem;
+  }
+
+  .jh-footer__plain {
+    opacity: 0.8;
+    line-height: 1.6;
+  }
+
+  .jh-footer__bottom {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px 32px;
+    margin-top: clamp(48px, 7vw, 80px);
+    padding-top: 24px;
+    border-top: 1px solid rgb(247 242 232 / 0.18);
+  }
+
+  .jh-footer__small {
+    margin: 0;
+    font-size: 0.8125rem;
+    opacity: 0.75;
+  }
+
+  .jh-footer__sep {
+    margin-inline: 8px;
+  }
+
+  .jh-footer__pay {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 16px;
+  }
+
+  .jh-footer__icons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .jh-footer__icon {
+    display: block;
+    width: 38px;
+    height: 24px;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "JH footer",
+  "tag": "div",
+  "enabled_on": { "groups": ["footer"] },
+  "settings": [
+    { "type": "text", "id": "brand", "label": "Name", "default": "Ryczkowski Honey" },
+    { "type": "textarea", "id": "tagline", "label": "Short description" },
+    { "type": "text", "id": "menu_heading", "label": "Links heading", "default": "Explore" },
+    { "type": "link_list", "id": "menu", "label": "Menu" },
+    { "type": "text", "id": "extra_label_1", "label": "Extra link 1 label" },
+    { "type": "url", "id": "extra_link_1", "label": "Extra link 1" },
+    { "type": "text", "id": "extra_label_2", "label": "Extra link 2 label" },
+    { "type": "url", "id": "extra_link_2", "label": "Extra link 2" },
+    { "type": "text", "id": "contact_heading", "label": "Contact heading", "default": "Contact" },
+    { "type": "text", "id": "email", "label": "Email" },
+    { "type": "textarea", "id": "business", "label": "Business details" },
+    { "type": "text", "id": "social_heading", "label": "Social heading", "default": "Follow" },
+    { "type": "url", "id": "instagram", "label": "Instagram" },
+    { "type": "url", "id": "youtube", "label": "YouTube" },
+    { "type": "url", "id": "tiktok", "label": "TikTok" },
+    { "type": "url", "id": "x", "label": "X" },
+    { "type": "text", "id": "secure_text", "label": "Line next to payment icons", "default": "Secure checkout by Shopify" },
+    { "type": "checkbox", "id": "show_payment_icons", "label": "Show payment icons", "default": true }
+  ],
+  "presets": [{ "name": "JH footer" }]
+}
+{% endschema %}
