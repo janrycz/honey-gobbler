@@ -10,7 +10,12 @@
         {%- endif -%}
       </div>
 
-      {%- assign menu = linklists[section.settings.menu] -%}
+      {%- liquid
+        assign menu = section.settings.menu
+        if menu.links == blank and section.settings.menu != blank
+          assign menu = linklists[section.settings.menu]
+        endif
+      -%}
       {%- if menu.links.size > 0 or section.settings.extra_label_1 != blank -%}
         <nav class="jh-footer__col" aria-label="{{ section.settings.menu_heading | default: 'Explore' | escape }}">
           <p class="jh-footer__heading">{{ section.settings.menu_heading | escape }}</p>
